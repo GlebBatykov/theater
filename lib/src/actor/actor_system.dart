@@ -11,6 +11,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   late final ActorPath _userGuardianPath;
 
   /// [ActorPath] instance of [SystemGuardian] actor.
+  // ignore: unused_field
   late final ActorPath _systemGuardianPath;
 
   /// [RootActorCell] instance of root actor.

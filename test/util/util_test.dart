@@ -32,7 +32,7 @@ void main() {
         expect(event, 'cancel');
       });
 
-      test('.cancel(). Send cancel event to all onCancel subscribers.', () {
+      test('.cancel(). Sends cancel event to all onCancel subscribers.', () {
         cancellationToken.cancel();
 
         expect(cancellationToken.isCanceled, true);

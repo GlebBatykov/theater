@@ -21,7 +21,6 @@
 В этом примере создается сервер на Dart-е где приходящие запросы на выбранный порт будут распределятся между созданными акторами (изолятами) при помощи поля shared класса HttpServer. Подобное можно реализовать и без использования Theater, просто используя изоляты. Однако Theater помогает помимо распределения поступающих запросов между изолятами легко строить более сложные стратегии обработки запросов в других изолятах, один из вариантов реализации показан [здесь](#многопоточный-сервер-с-пулом-работников).
 
 ```dart
-
 // Create server receiver actor class
 class ServerReceiver extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -60,7 +59,6 @@ void main(List<String> arguments) async {
         'receiver-' + (i + 1).toString(), ServerReceiver());
   }
 }
-
 ```
 
 ## Многопоточный сервер с пулом работников
@@ -78,7 +76,6 @@ void main(List<String> arguments) async {
 Если учитывать время выполнения запроса то можно добится баланса путем обработки легких по времени вычислений в акторах приемниках (и сразу отправлять ответы) - для того чтобы не терять время на перессылке информации между акторами (изолятами), а тяжелые запросы отсылать выполнятся работникам.
 
 ```dart
-
 // Create server receiver actor class
 class ServerReceiver extends WorkerActor {
   // Override onStart method which will be executed at actor startup
@@ -173,7 +170,6 @@ void main(List<String> arguments) async {
   // Create server workers pool router
   await actorSystem.actorOf('workers', ServerWorkerPoolRouter());
 }
-
 ```
 
 # Flutter

@@ -144,7 +144,7 @@ void main() {
           await UnreliableMailboxTester().systemRoutingMessagesTest(data);
         });
 
-        test('.dispose(). Dispose mailbox and checks him status.', () async {
+        test('.dispose(). Disposes mailbox and checks him status.', () async {
           await UnreliableMailboxTester().disposeTest(data);
         });
       });
@@ -195,7 +195,7 @@ void main() {
           await ReliabilityMailboxTester().systemRoutingMessagesTest(data);
         });
 
-        test('.dispose(). Dispose mailbox and checks him status.', () async {
+        test('.dispose(). Disposes mailbox and checks him status.', () async {
           await ReliabilityMailboxTester().disposeTest(data);
         });
       });
@@ -218,19 +218,26 @@ void main() {
           }
         });
 
-        test('.next(). ', () async {
+        test(
+            '.next(). Sends two message and receive their. Uses method .next() after receving first message.',
+            () async {
           await PriorityReliableMailboxTester().nextTest(data);
         });
 
-        test('.mailboxMessages. ', () async {
+        test('.mailboxMessages. Sends messages to mailbox and receive their.',
+            () async {
           await PriorityReliableMailboxTester().mailboxMessagesTest(data);
         });
 
-        test('.actorRoutingMessages. ', () async {
+        test(
+            '.actorRoutingMessages. Sends messages to mailbox and receive their.',
+            () async {
           await PriorityReliableMailboxTester().actorRoutingMessagesTest(data);
         });
 
-        test('.systemRoutingMessages. ', () async {
+        test(
+            '.systemRoutingMessages. Sends messages to mailbox and receive their.',
+            () async {
           await PriorityReliableMailboxTester().systemRoutingMessagesTest(data);
         });
 
@@ -240,7 +247,7 @@ void main() {
           await PriorityReliableMailboxTester().priorityTest(data);
         });
 
-        test('.dispose(). ', () async {
+        test('.dispose(). Disposes mailbox and checks him status.', () async {
           await PriorityReliableMailboxTester().disposeTest(data);
         });
       });

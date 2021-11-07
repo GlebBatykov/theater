@@ -5,5 +5,6 @@ part of theater.actor;
 /// Sheets in actor tree can't creates children.
 abstract class SheetActor<T extends SheetActorContext>
     extends ObservableActor<T> {
+  // ignore: unused_element
   SheetActorCellFactory _createActorCellFactory();
 }

@@ -68,6 +68,19 @@ Currently in development is the ability to send a message over the network to ac
 
 # Installing
 
+Add Theater to your pubspec.yaml file:
+
+```dart
+dependencies:
+  theater: ^0.1.0
+```
+
+Import theater in files that it will be used:
+
+```dart
+import 'package:theater/theater.dart';
+```
+
 # What is Actor
 
 An actor is an entity that has a behavior and is executed in a separate isolate. It has its own unique address (path) in the actor system. He can receive and send messages to other actors using links to them or using only their address (path) in the actor system. Each actor has methods called during its lifecycle (which repeat the lifecycle of its isolate):
@@ -115,7 +128,6 @@ Actors created during the initialization of the actor system:
 Create and initialize an actor system, create a test actor, and output "Hello, world!" out of him.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -136,7 +148,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await system.actorOf('test_actor', TestActor());
 }
-
 ```
 
 The created test actor in the example above will have an absolute path to it in the actor system - "test_system/root/user/test_actor".
@@ -149,9 +160,9 @@ If you called the kill method after killing all the actors in the actor system, 
 
 ## Actor tree
 
-In Theater, the system of actors is represented as a hierarchical structure of actors, this structure is called the actor tree.
+In Theater, the actor system is represented as a hierarchical structure of actors, this structure is called the actor tree.
 
-This is how the tree of actors can be depicted.
+This is how the tree of actors can be shown at the picture below:
 
 <div align = "center">
 
@@ -169,7 +180,7 @@ If we transfer these 2 categories to concepts closer to the structure of the tre
 - Supervisor actor is a node of the tree;
 - Observed actor is a sheet of the tree.
 
-A special case of an actor-node is a root actor. This is an actor who has child actors, but at the same time does not have an supervisor in the form of another actor. Its supervisor is the system of actors itself.
+A special case of an actor-node is a root actor. This is an actor who has child actors, but at the same time does not have an supervisor in the form of another actor. Its supervisor is the actor system itself.
   
 # Actor types
 
@@ -192,7 +203,6 @@ The absolute path to the actor is given from the name of the actor system. The p
 An example of displaying the absolute path to the created top-level actor.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -212,15 +222,12 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await actorSystem.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Expected output
 
 ```dart
-
 tcp://test_system/root/user/test_actor
-
 ```
 
 In the example, the full path to the actor also has "tcp" at the beginning. What does this mean? Currently in development is the ability to communicate through the network of several systems of actors in different Dart VMs. The prefix at the beginning of the path to the actor will mean the network protocol in the actor system for other actor system communication over the network.
@@ -266,7 +273,6 @@ The priority is set using the PriorityGenerator class.
 Creating an actor with a priority mailbox (in the example, messages of type String have a higher priority than messages of type int), sending messages to it.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   @override
@@ -314,7 +320,6 @@ void main(List<String> arguments) async {
     ref.send(i < 3 ? i : i.toString()); // Send messages 0, 1, 2, "3", "4"
   }
 }
-
 ```
   
 In the example above, 5 messages were sent to the actor - 0, 1, 2, "3", "4".
@@ -322,13 +327,11 @@ In the example above, 5 messages were sent to the actor - 0, 1, 2, "3", "4".
 Expected output
 
 ```dart
-
 0
 3
 4
 1
 2
-
 ```
 
 In the output, you can notice that all messages except the first are received by the actor in accordance with their priorities. This is due to the fact that the first message that hits the mailbox was sent to the actor before the rest of the messages reached the mailbox and before the priority queue in the mailbox was rebuilt in accordance with the message priorities.
@@ -346,8 +349,8 @@ Actor link encapsulates SendPort for sending a message to the actor's mailbox.
 The link can be obtained both when creating a top-level actor using the actor system, and when creating a child actor through the actor context.
 
 In these examples, we use the actor system to create a top-level actor and get a link to it, send a message to it.
-```dart
 
+```dart
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -373,13 +376,11 @@ void main(List<String> arguments) async {
   // Send 'Hello, from main!' message to actor
   ref.send('Hello, from main!');
 }
-
 ```
 
 In this example, we use the UntypedActor context to create its child actor, get a link to it and send a message to it.
 
 ```dart
-
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
@@ -415,7 +416,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'first_test_actor'
   await system.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 Thus, you can send messages to the actors by their links. Links, if desired, can be passed to other actors.
@@ -436,10 +436,9 @@ An absolute path is a full path to an actor starting from the name of the actor 
 
 A relative path is a path that is specified relative to the path to the current actor (when sending a message through the actor context) or relative to the user guardian (in the case of sending a message through the actor system). An example of a relative path, if we send a message through the actor system, with an absolute path to the actor "test_system/root/user/test_actor" - "../test_actor".
 
-An example of sending a message to an actor using the actor system with an absolute path.
+An example of sending a message to an actor using the actor system using absolute path.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -465,13 +464,11 @@ void main(List<String> arguments) async {
   // Send message to actor using absolute path
   system.send('test_system/root/user/test_actor', 'Hello, from main!');
 }
-
 ```
 
-An example of sending a message to an actor using the system of actors with a relative path.
+An example of sending a message to an actor using the actor system with a relative path.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -497,13 +494,11 @@ void main(List<String> arguments) async {
   // Send message to actor using relative path
   system.send('../test_actor', 'Hello, from main!');
 }
-
 ```
 
 An example of sending a message to an actor that is higher in the actor hierarchy, using the actor context with an absolute path.
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -537,13 +532,11 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await system.actorOf('test_actor', FirstTestActor());
 }
-
 ```
 
 An example of sending a message to an actor to a child using the actor context with a relative path.
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -577,7 +570,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await system.actorOf('test_actor', FirstTestActor());
 }
-
 ```
 
 ### Receiving messages
@@ -588,7 +580,6 @@ An example of creating an actor class and at the start of assigning a handler fo
 
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -605,7 +596,6 @@ class TestActor extends UntypedActor {
     });
   }
 }
-
 ```
 
 ### Get message response
@@ -624,7 +614,6 @@ Possible message states:
 An example of sending a message to an actor, receiving a response from it.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -661,16 +650,13 @@ void main(List<String> arguments) async {
     }
   });
 }
-
 ```
 
 Expected output
 
 ```dart
-
 Hello, from main!
 Hello, from actor!
-
 ```
 
 A message subscription encapsulates a ReceivePort, a regular message subscription closes its ReceivePort after receiving one result per message.
@@ -701,7 +687,6 @@ Has the following message routing strategies:
 An example of using a group router using a broadcast routing strategy.
 
 ```dart
-
 // Create first test actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -763,20 +748,17 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await actorSystem.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 Expected output
 
 ```dart
-
 Second actor received message: Second hello!
 Third actor received message: Second hello!
 Second actor received message: First hello!
-
 ```
 
-The structure of the actor tree in the system of actors created in the example
+The structure of the actor tree in the actor system created in the example
 
 <div align="center">
 
@@ -803,7 +785,6 @@ Has the following message routing strategies:
 An example of creating a pool router using a random routing strategy.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   @override
@@ -860,7 +841,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await actorSystem.actorOf('test_actor', TestActor());
 }
-
 ```
 
 The structure of the actor tree in the actor system created in the example
@@ -874,13 +854,11 @@ The structure of the actor tree in the actor system created in the example
 One of the possible output results
 
 ```dart
-
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №1
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-2, message: Hello message №0
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-4, message: Hello message №2
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-2, message: Hello message №3
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №4
-
 ```
 
 # Supervising and error handling
@@ -907,7 +885,6 @@ By default, each supervisor has a OneForOne strategy that communicates the error
 An example of error handling using the OneForOne strategy
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -959,7 +936,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'first_test_actor'
   await system.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 In this example, the tree of actors and what happens in it when an error occurs can be represented as follows
@@ -983,7 +959,6 @@ At the moment, the scheduler is under development and it is planned to add to it
 An example of creating tasks using the scheduler, canceling scheduled tasks after 3 seconds using the cancellation token.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -1026,24 +1001,21 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await system.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Expected output
 
 ```dart
-
 Hello, from first action!
 Hello, from second action!
 Hello, from first action!
 Hello, from second action!
 Hello, from second action!
-
 ```
 
 # Road map
 
 Currently in development are:
-- communication with actor systems located in other Dart VMs via the network (upd, tcp);
+- communication with actor systems located in other Dart VMs via the network (udp, tcp);
 - improvement of the message routing system (more functions and, if necessary, optimization);
 - improvement of the error handling system, error logging.

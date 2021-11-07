@@ -68,7 +68,8 @@ void main() {
         await actorMailbox.dispose();
       });
 
-      test('.initialize(). Initialize supervisor and check supervisor status.',
+      test(
+          '.initialize(). Initializes supervisor and checks supervisor status.',
           () async {
         await supervisor.initialize();
 
@@ -76,7 +77,7 @@ void main() {
       });
 
       test(
-          '.start(). Start supervisor with, receive message from actor and check supervisor status.',
+          '.start(). Starts supervisor with, receives message from actor and checks supervisor status.',
           () async {
         await supervisor.initialize();
         await supervisor.start();
@@ -87,7 +88,7 @@ void main() {
       });
 
       test(
-          '.pause(). Pause supervisor, receive messages from actor and check supervisor status.',
+          '.pause(). Pauses supervisor, receives messages from actor and checks supervisor status.',
           () async {
         await supervisor.initialize();
         await supervisor.start();
@@ -100,7 +101,7 @@ void main() {
       });
 
       test(
-          '.resume(). Resume supervisor, receive messages from actor and check supervisor status.',
+          '.resume(). Resumes supervisor, receives messages from actor and checks supervisor status.',
           () async {
         await supervisor.initialize();
         await supervisor.start();
@@ -115,7 +116,7 @@ void main() {
       });
 
       test(
-          '.kill(). Kill supervisor, receive messages from actor and check supervisor status.',
+          '.kill(). Kills supervisor, receives messages from actor and checks supervisor status.',
           () async {
         await supervisor.initialize();
         await supervisor.kill();
@@ -125,7 +126,7 @@ void main() {
       });
 
       test(
-          '.dispose(). Dispose supervisor, receive messages from actor and check supervisor status.',
+          '.dispose(). Disposes supervisor, receives messages from actor and checks supervisor status.',
           () async {
         await supervisor.initialize();
         await supervisor.start();
@@ -137,7 +138,7 @@ void main() {
         expect(await streamQueue.take(2), ['start', 'kill']);
       });
 
-      test('.send(). Send message to actor and receive message from actor.',
+      test('.send(). Sends message to actor and receives message from actor.',
           () async {
         await supervisor.initialize();
         await supervisor.start();

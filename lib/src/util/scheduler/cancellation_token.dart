@@ -1,6 +1,6 @@
 part of theater.util;
 
-/// Class used to override various things. For example, to undo a action redo in [Scheduler].
+/// Class used to cancel various things. For example, to undo a action redo in [Scheduler].
 class CancellationToken {
   final StreamController<CancelEvent> _streamController =
       StreamController.broadcast();

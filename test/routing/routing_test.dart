@@ -7,7 +7,7 @@ void main() {
 
     var parentPath = ActorPath(address, 'test', 0);
 
-    test('.withParent(). ', () {
+    test('.withParent(). Creates actor path with actor parent.', () {
       var path = ActorPath.withParent(parentPath, 'test_child');
 
       expect(path.segments, ['test', 'test_child']);
@@ -15,7 +15,9 @@ void main() {
       expect(path.depthLevel, 1);
     });
 
-    test('.parceAbsolute(). ', () {
+    test(
+        '.parceAbsolute(). Creates actor path from string which contains absolute path.',
+        () {
       var path = ActorPath.parceAbsolute('test_system/test/test_child');
 
       expect(path.segments, ['test', 'test_child']);
@@ -23,7 +25,9 @@ void main() {
       expect(path.depthLevel, 1);
     });
 
-    test('.parceRelative(). ', () {
+    test(
+        '.parceRelative(). Creates actor path from string whuck contains relative path.',
+        () {
       var path = ActorPath.parceRelative('../test_child', parentPath);
 
       expect(path.segments, ['test', 'test_child']);
@@ -31,7 +35,7 @@ void main() {
       expect(path.depthLevel, 1);
     });
 
-    test('.createChild(). ', () {
+    test('.createChild(). Creates child path.', () {
       var path = parentPath.createChild('test_child');
 
       expect(path.segments, ['test', 'test_child']);
@@ -39,7 +43,7 @@ void main() {
       expect(path.depthLevel, 1);
     });
 
-    test('.isRelativePath(). ', () {
+    test('.isRelativePath(). Checks if a string is a relative path.', () {
       var isRelativePath = ActorPath.isRelativePath('../test_child');
       var isNotRelativePath = ActorPath.isRelativePath('/test_child');
 
@@ -47,13 +51,13 @@ void main() {
       expect(isNotRelativePath, false);
     });
 
-    test('.toString(). ', () {
+    test('.toString(). Converts actor path to string and check it.', () {
       expect(parentPath.toString(), 'tcp://test_system/test');
     });
   });
 
   group('address', () {
-    test('.toString(). ', () {
+    test('.toString(). Converts address to string and check it.', () {
       var address = Address('test_system',
           protocol: 'udp', host: '127.0.0.1', port: 8555);
 

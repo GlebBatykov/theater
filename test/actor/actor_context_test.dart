@@ -82,42 +82,56 @@ void main() {
       });
 
       test(
-          '.kill(). Calls .kill () method and receives [ActorWantsToDie] event in him supervisor port.',
+          '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
           () async {
         await RootActorContextTester().killTest(data);
       });
 
       group('.send().', () {
-        test('With absolute path. ', () async {
+        test(
+            'With absolute path. Creates child actor with name \'test_child\', sends message to him using absolute path to him, receives response.',
+            () async {
           await RootActorContextTester().sendWithAbsolutePath(data);
         });
 
-        test('With relative path. ', () async {
+        test(
+            'With relative path. Creates child actor with name \'test_child\', sends message to him using relative path to him, receives response.',
+            () async {
           await RootActorContextTester().sendWithRelativePath(data);
         });
 
-        test('Send to himself. ', () async {
+        test('Send to himself. Sends message to himself using absolute path.',
+            () async {
           await RootActorContextTester().sendToHimself(data);
         });
       });
 
-      test('.actorOf(). ', () async {
+      test('.actorOf(). Creates child actor and receives 5 message from him.',
+          () async {
         await RootActorContextTester().actorOfTest(data);
       });
 
-      test('.killChildren(). ', () async {
+      test(
+          '.killChildren(). Kills all child actor and receives messages from their.',
+          () async {
         await RootActorContextTester().killChildrenTest(data);
       });
 
-      test('.pauseChildren(). ', () async {
+      test(
+          '.pauseChildren(). Pauses all child actor and receives messages from their.',
+          () async {
         await RootActorContextTester().pauseChildrenTest(data);
       });
 
-      test('.resumeChildren(). ', () async {
+      test(
+          '.resumeChildren(). Resumes all child actor and receives messages from their.',
+          () async {
         await RootActorContextTester().resumeChildrenTest(data);
       });
 
-      test('.restartChildren(). ', () async {
+      test(
+          '.restartChildren(). Restarts all child actor and receievs messages from their.',
+          () async {
         await RootActorContextTester().restartChildrenTest(data);
       }, timeout: Timeout(Duration(milliseconds: 1500)));
     });
@@ -197,41 +211,57 @@ void main() {
         await context.killChildren();
       });
 
-      test('.kill(). ', () async {
+      test(
+          '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
+          () async {
         await UntypedActorContextTester().killTest(data);
       });
 
       group('.send(). ', () {
-        test('With absolute path. ', () async {
+        test(
+            'With absolute path. Sends message to parent actor using absolute path to him.',
+            () async {
           await UntypedActorContextTester().sendWithAbsolutePath(data);
         });
 
-        test('With relative path. ', () async {
+        test(
+            'With relative path. Creates child actor with name \'test_child\' and sends messege to him using relative path.',
+            () async {
           await UntypedActorContextTester().sendWithRelativePath(data);
         });
 
-        test('Send to himself. ', () async {
+        test('Send to himself. Sends message to himself using absolute path.',
+            () async {
           await UntypedActorContextTester().sendToHimself(data);
         });
       });
 
-      test('.actorOf(). ', () async {
+      test('.actorOf(). Creates child actor and receives 5 message from him.',
+          () async {
         await UntypedActorContextTester().actorOfTest(data);
       });
 
-      test('.killChildren(). ', () async {
+      test(
+          '.killChildren(). Creates 5 child actors, kills all child actor and receives messages from their.',
+          () async {
         await UntypedActorContextTester().killChildrenTest(data);
       });
 
-      test('.pauseChildren(). ', () async {
+      test(
+          '.pauseChildren(). Creates 5 child actors, pauses all child actor and receives messages from their.',
+          () async {
         await UntypedActorContextTester().pauseChildrenTest(data);
       });
 
-      test('.resumeChildren(). ', () async {
+      test(
+          '.resumeChildren(). Creates 5 child actors, resumes all child actor and receives messages from their.',
+          () async {
         await UntypedActorContextTester().resumeChildrenTest(data);
       });
 
-      test('.restartChildren(). ', () async {
+      test(
+          '.restartChildren(). Creates 5 child actors, restarts all child actor and receievs messages from their.',
+          () async {
         await UntypedActorContextTester().restartChildrenTest(data);
       }, timeout: Timeout(Duration(milliseconds: 1500)));
     });
@@ -321,7 +351,9 @@ void main() {
         await context.killChildren();
       });
 
-      test('.kill(). ', () async {
+      test(
+          '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
+          () async {
         context = createContext(List.generate(
             5,
             (index) => ActorInfo(
@@ -335,7 +367,9 @@ void main() {
       });
 
       group('.send().', () {
-        test('With absolute path. ', () async {
+        test(
+            'With absolute path. Sends message to parent actor using absolute path to him.',
+            () async {
           context = createContext(List.generate(
               5,
               (index) => ActorInfo(
@@ -348,7 +382,9 @@ void main() {
           await GroupRounterActorContextTester().sendWithAbsolutePath(data);
         });
 
-        test('With relative path', () async {
+        test(
+            'With relative path. Sends message to child actor in actor group with relative path to him.',
+            () async {
           context = createContext(List.generate(
               5,
               (index) => ActorInfo(
@@ -361,7 +397,8 @@ void main() {
           await GroupRounterActorContextTester().sendWithRelativePath(data);
         });
 
-        test('Send to himself', () async {
+        test('Send to himself. Sends message to himself using absolute path.',
+            () async {
           context = createContext(List.generate(
               5,
               (index) => ActorInfo(
@@ -376,7 +413,9 @@ void main() {
       });
 
       group('routing.', () {
-        test('With broadcast routing strategy. ', () async {
+        test(
+            'With broadcast routing strategy. Creates actor group with 5 child actors, set .broadcast routing strategy and send message to himselft. Receives 5 response from actors in actor group.',
+            () async {
           context = createContext(
               List.generate(
                   5,
@@ -391,7 +430,9 @@ void main() {
           await GroupRounterActorContextTester().routingBroadcastTest(data);
         });
 
-        test('With random routing strategy. ', () async {
+        test(
+            'With random routing strategy. Creates actor group with 5 child actors, set .random routing strategy and send 5 messages to himself. Receives 5 response from actors in actor group and checks time spent processing messages.',
+            () async {
           context = createContext(
               List.generate(
                   5,
@@ -406,7 +447,9 @@ void main() {
           await GroupRounterActorContextTester().routingRandomTest(data);
         });
 
-        test('With round robin routing strategy. ', () async {
+        test(
+            'With round robin routing strategy. Creates actor group with 5 child actors, set .roundRobin routing strategy and send 5 messages to himself. Receives 5 response from actors in actor group and checks time spent processsing messages.',
+            () async {
           context = createContext(
               List.generate(
                   5,
@@ -422,7 +465,9 @@ void main() {
         });
       });
 
-      test('.killChildren(). ', () async {
+      test(
+          '.killChildren(). Creates 5 child actors in actor group, kills all child actor and receives messages from their.',
+          () async {
         context = createContext(List.generate(
             5,
             (index) => ActorInfo(
@@ -435,7 +480,9 @@ void main() {
         await GroupRounterActorContextTester().killChildrenTest(data);
       });
 
-      test('.pauseChildren(). ', () async {
+      test(
+          '.pauseChildren(). Creates 5 child actors in actor group, pauses all child actor and receives messages from their.',
+          () async {
         context = createContext(List.generate(
             5,
             (index) => ActorInfo(
@@ -448,7 +495,9 @@ void main() {
         await GroupRounterActorContextTester().pauseChildrenTest(data);
       });
 
-      test('.resumeChildren(). ', () async {
+      test(
+          '.resumeChildren(). Creates 5 child actors in actor group, resumes all child actor and receives messages from their.',
+          () async {
         context = createContext(List.generate(
             5,
             (index) => ActorInfo(
@@ -461,7 +510,9 @@ void main() {
         await GroupRounterActorContextTester().resumeChildrenTest(data);
       });
 
-      test('.restartChildren(). ', () async {
+      test(
+          '.restartChildren(). Creates 5 child actors in actor group, restarts all child actor and receievs messages from their.',
+          () async {
         context = createContext(List.generate(
             5,
             (index) => ActorInfo(
@@ -562,7 +613,9 @@ void main() {
         await context.killChildren();
       });
 
-      test('.kill(). ', () async {
+      test(
+          '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
+          () async {
         context = createContext();
 
         data = createTestData();
@@ -571,7 +624,9 @@ void main() {
       });
 
       group('.send().', () {
-        test('With absolute path. ', () async {
+        test(
+            'With absolute path. Sends message to parent actor using absolute path to him.',
+            () async {
           context = createContext();
 
           data = createTestData();
@@ -579,7 +634,9 @@ void main() {
           await PoolRouterActorContextTester().sendWithAbsolutePath(data);
         });
 
-        test('With relative path. ', () async {
+        test(
+            'With relative path. Sends message to child actor with relative path, receive response - instanse of RecipientNotFoundResult.',
+            () async {
           context = createContext();
 
           data = createTestData();
@@ -587,7 +644,8 @@ void main() {
           await PoolRouterActorContextTester().sendWithRelativePath(data);
         });
 
-        test('Send to himself. ', () async {
+        test('Send to himself. Sends message to himself using absolute path.',
+            () async {
           context = createContext();
 
           data = createTestData();
@@ -597,7 +655,9 @@ void main() {
       });
 
       group('routing.', () {
-        test('With broadcast routing strategy. ', () async {
+        test(
+            'With broadcast routing strategy. Creates worker pool with 5 workers, set .broadcast routing strategy and send message to himselft. Receives 5 response from workers in worker pool.',
+            () async {
           context = createContext();
 
           data = createTestData();
@@ -605,7 +665,9 @@ void main() {
           await PoolRouterActorContextTester().routingBroadcastTest(data);
         });
 
-        test('With random routing strategy. ', () async {
+        test(
+            'With random routing strategy. Creates worker pool with 5 workers, set .random routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processing messages.',
+            () async {
           context = createContext(PoolRoutingStrategy.random);
 
           data = createTestData();
@@ -613,7 +675,9 @@ void main() {
           await PoolRouterActorContextTester().routingRandomTest(data);
         });
 
-        test('With round robing routing strategy. ', () async {
+        test(
+            'With round robing routing strategy. Creates worker pool with 5 child workers, set .roundRobin routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processsing messages.',
+            () async {
           context = createContext(PoolRoutingStrategy.roundRobin);
 
           data = createTestData();
@@ -621,7 +685,9 @@ void main() {
           await PoolRouterActorContextTester().routingRoundRobinTest(data);
         });
 
-        test('With balancing routing strategy. ', () async {
+        test(
+            'With balancing routing strategy. Creates worker pool with 5 child workers, set .balancing routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processsing messages.',
+            () async {
           context = createContext(PoolRoutingStrategy.roundRobin);
 
           data = createTestData();
@@ -630,7 +696,9 @@ void main() {
         });
       });
 
-      test('.killChildren().', () async {
+      test(
+          '.killChildren(). Creates 5 workers in worker pool, kills all child actor (workers) and receives messages from their.',
+          () async {
         context = createContext();
 
         data = createTestData();
@@ -638,7 +706,9 @@ void main() {
         await PoolRouterActorContextTester().killChildrenTest(data);
       });
 
-      test('.pauseChildren(). ', () async {
+      test(
+          '.pauseChildren(). Creates 5 workers in worker pool, pauses all child actor (workers) and receives messages from their.',
+          () async {
         context = createContext();
 
         data = createTestData();
@@ -646,7 +716,9 @@ void main() {
         await PoolRouterActorContextTester().pauseChildrenTest(data);
       });
 
-      test('.resumeChildren(). ', () async {
+      test(
+          '.resumeChildren(). Creates 5 workers in worker pool, resumes all child actor (workers) and receives messages from their.',
+          () async {
         context = createContext();
 
         data = createTestData();
@@ -654,7 +726,9 @@ void main() {
         await PoolRouterActorContextTester().resumeChildrenTest(data);
       });
 
-      test('.restartChildren(). ', () async {
+      test(
+          '.restartChildren(). Creates 5 workers in worker pool, restarts all child actor (workers) and receievs messages from their.',
+          () async {
         context = createContext();
 
         data = createTestData();
@@ -730,20 +804,27 @@ void main() {
         supervisorErrorPort.close();
       });
 
-      test('.kill(). ', () async {
+      test(
+          '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
+          () async {
         await WorkerActorContextTester().killTest(data);
       });
 
       group('.send(). ', () {
-        test('With absolute path. ', () async {
+        test(
+            'With absolute path. Sends message to parent actor using absolute path to him.',
+            () async {
           await WorkerActorContextTester().sendWithAbsolutePath(data);
         });
 
-        test('With relative path. ', () async {
+        test(
+            'With relative path. Sends message to child actor (worker don\'t have child actors) with relative path, receive response - instanse of RecipientNotFoundResult.',
+            () async {
           await WorkerActorContextTester().sendWithRelativePath(data);
         });
 
-        test('Send to himself. ', () async {
+        test('Send to himself. Sends message to himself using absolute path.',
+            () async {
           await WorkerActorContextTester().sendToHimself(data);
         });
       });

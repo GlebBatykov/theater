@@ -71,6 +71,19 @@ Theater - это пакет для упрощения работы с много
 
 # Установка
 
+Добавьте Theater в ваш pubspec.yaml файл:
+
+```dart
+dependencies:
+  theater: ^0.1.0
+```
+
+Импортируйте theater в файлы где он должен использоваться:
+
+```dart
+import 'package:theater/theater.dart';
+```
+
 # Что такое актор
 
 Актор - это сущность которая имеет поведение и выполняется в отдельном изоляте. Имеет свой уникальный адрес (путь) в системе акторов. Он может принимать и отправлять сообщения другим акторам, пользуясь ссылками на них или используя лишь их адрес (путь) в системе акторов. Каждый актор имеет методы вызываемые в процессе его жизненного цикла (которые повторяют жизненный цикл его изолята):
@@ -118,7 +131,6 @@ Theater - это пакет для упрощения работы с много
 Создание и инициализация системы акторов, создание тестового актора и вывод "Hello, world!" из него.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -139,7 +151,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await system.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Созданный тестовый актор в примере выше будет иметь абсолютный путь к нему в системе акторов - "test_system/root/user/test_actor".
@@ -195,7 +206,6 @@ void main(List<String> arguments) async {
 Пример вывода абсолютного пути к созданному актору верхнего уровня.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -215,15 +225,12 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await actorSystem.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Ожидаемый вывод
 
 ```dart
-
 tcp://test_system/root/user/test_actor
-
 ```
 
 В примере видно что полный путь к актору так же имеет в самом начале - "tcp". Что это означает? В данный момент в разработке находится возможность общения через сеть нескольких систем акторов находящихся в разных Dart VM. Приставка в начале пути к актору будет означать сетевой протокол используемый в этой системе акторов для общения с другими системами акторов по сети.
@@ -269,7 +276,6 @@ tcp://test_system/root/user/test_actor
 Создание актора с приоритетным почтовым ящиком (в примере сообщения типа String имеют более высокий приоритет, чем сообщения типа int), отправка ему сообщений.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   @override
@@ -317,7 +323,6 @@ void main(List<String> arguments) async {
     ref.send(i < 3 ? i : i.toString()); // Send messages 0, 1, 2, "3", "4"
   }
 }
-
 ```
 
 В примере выше в актор было отправлено 5 сообщений - 0, 1, 2, "3", "4".
@@ -325,13 +330,11 @@ void main(List<String> arguments) async {
 Ожидаемый вывод
 
 ```dart
-
 0
 3
 4
 1
 2
-
 ```
 
 В выводе можно заметить что все сообщения кроме первого получены актором в соответствии с их приоритетами. Происходит это из за того что первое сообщение при попадании в почтовый ящик было отправлено в актор до того как в почтовый ящик попали остальные сообщения и до того как приоритетная очередь в почтовом ящике была перестроена в соответствии с приоритетами сообщений.
@@ -351,7 +354,6 @@ void main(List<String> arguments) async {
 В этом примеры мы при помощи системы акторов мы создаем актора верхнего уровня и получаем ссылку на его, отправляем ему сообщение.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -377,13 +379,11 @@ void main(List<String> arguments) async {
   // Send 'Hello, from main!' message to actor
   ref.send('Hello, from main!');
 }
-
 ```
 
 В этом примере мы при помощи контекста UntypedActor-а создаем его актора-ребенка, получаем ссылку на него и отправляем ему сообщение.
 
 ```dart
-
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
@@ -419,7 +419,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'first_test_actor'
   await system.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 Таким образом можно отправлять сообщения в акторы по их ссылкам. Ссылки при желании можно передавать в другие акторы.
@@ -443,7 +442,6 @@ void main(List<String> arguments) async {
 Пример отправки сообщения актору используя систему акторов с указанием абсолютного пути.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -469,13 +467,11 @@ void main(List<String> arguments) async {
   // Send message to actor using absolute path
   system.send('test_system/root/user/test_actor', 'Hello, from main!');
 }
-
 ```
 
 Пример отправки сообщения актору используя систему акторов с указанием относительного пути.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -501,13 +497,11 @@ void main(List<String> arguments) async {
   // Send message to actor using relative path
   system.send('../test_actor', 'Hello, from main!');
 }
-
 ```
 
 Пример отправки сообщения актору находящемуся выше по иерархии актора, используя контекст актора с указанием абсолютного пути.
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -541,13 +535,11 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await system.actorOf('test_actor', FirstTestActor());
 }
-
 ```
 
 Пример отправки сообщения актору ребенку используя контекст актора с указанием относительного пути.
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -581,7 +573,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await system.actorOf('test_actor', FirstTestActor());
 }
-
 ```
 
 ### Прием сообщений
@@ -591,7 +582,6 @@ void main(List<String> arguments) async {
 Пример создания класса актора и при старте назначения обработчика приема сообщений типа String и int.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -608,7 +598,6 @@ class TestActor extends UntypedActor {
     });
   }
 }
-
 ```
 
 ### Получение ответа на сообщение
@@ -627,7 +616,6 @@ class TestActor extends UntypedActor {
 Пример отправки сообщения в актор, получения ответа из него.  
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -664,16 +652,13 @@ void main(List<String> arguments) async {
     }
   });
 }
-
 ```
 
 Ожидаемый вывод
 
 ```dart
-
 Hello, from main!
 Hello, from actor!
-
 ```
 
 Подписка на сообщение инкапсулирует в себе ReceivePort, обычная подписка на сообщение закрывает свой ReceivePort после получение одного результата на сообщение. 
@@ -704,7 +689,6 @@ Hello, from actor!
 Пример использования маршрутизатора группы с использованием широковещательной стратегии маршрутизации.
 
 ```dart
-
 // Create first test actor class
 class FirstTestActor extends UntypedActor {
   @override
@@ -766,17 +750,14 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'hello_actor'
   await actorSystem.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 Ожидаемый вывод
 
 ```dart
-
 Second actor received message: Second hello!
 Third actor received message: Second hello!
 Second actor received message: First hello!
-
 ```
 
 Структура древа акторов в системе акторов созданной в примере
@@ -806,7 +787,6 @@ Second actor received message: First hello!
 Пример создания маршрутизатора пула с использованием случайной стратегии маршрутизации.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   @override
@@ -863,7 +843,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await actorSystem.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Структура древа акторов в системе акторов созданной в примере
@@ -877,13 +856,11 @@ void main(List<String> arguments) async {
 Один из возможных результатов вывода
 
 ```dart
-
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №1
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-2, message: Hello message №0
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-4, message: Hello message №2
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-2, message: Hello message №3
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №4
-
 ```
 
 # Наблюдение и обработка ошибок
@@ -910,7 +887,6 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 Пример обработки ошибок с использование OneForOne стратегии
 
 ```dart
-
 // Create first actor class
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -962,7 +938,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'first_test_actor'
   await system.actorOf('first_test_actor', FirstTestActor());
 }
-
 ```
 
 В данном примере древо акторов и то что происходит в нем при возникновении ошибки можно представить так
@@ -986,7 +961,6 @@ void main(List<String> arguments) async {
 Пример создания задач при помощи планировщика, отмены запланировнных задач спустя 3 секунды при помощи токена отмены.
 
 ```dart
-
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -1029,24 +1003,21 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await system.actorOf('test_actor', TestActor());
 }
-
 ```
 
 Ожидаемый вывод
 
 ```dart
-
 Hello, from first action!
 Hello, from second action!
 Hello, from first action!
 Hello, from second action!
 Hello, from second action!
-
 ```
 
 # Дорожная карта
 
 Сейчас в разработке находятся:
-- общение с системами акторов находящяхся в других Dart VM через сеть (upd, tcp);
+- общение с системами акторов находящяхся в других Dart VM через сеть (udp, tcp);
 - улучшение системы маршрутизации сообщений (больше функций и если необходимо то оптимизация);
 - улучшение системы обработки ошибок, логирование ошибок.

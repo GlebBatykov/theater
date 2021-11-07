@@ -21,7 +21,6 @@ You can see various simpler examples of using the package (creating an actor, se
 This example creates a server on Dart where incoming requests to the selected port will be distributed among the created actors (isolates) using the shared field of the HttpServer class. This can be done without using Theater, just using isolates. However, Theater helps, in addition to distributing incoming requests between isolates, to easily build more complex strategies for processing requests in other isolates, one of the implementation options is shown [here](#multithreaded-server-with-worker-pool).
 
 ```dart
-
 // Create server receiver actor class
 class ServerReceiver extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -60,7 +59,6 @@ void main(List<String> arguments) async {
         'receiver-' + (i + 1).toString(), ServerReceiver());
   }
 }
-
 ```
 
 ## Multithreaded server with worker pool
@@ -78,7 +76,6 @@ This approach allowed me to achieve higher performance when, on the http request
 If we take into account the query execution time, then we can achieve a balance by processing easy-to-time computations in the receivers actors (and immediately sending responses) - in order not to waste time sending information between actors (isolates), and heavy requests will be fulfilled by the workers.
 
 ```dart
-
 // Create server receiver actor class
 class ServerReceiver extends WorkerActor {
   // Override onStart method which will be executed at actor startup
@@ -173,7 +170,6 @@ void main(List<String> arguments) async {
   // Create server workers pool router
   await actorSystem.actorOf('workers', ServerWorkerPoolRouter());
 }
-
 ```
 
 # Flutter

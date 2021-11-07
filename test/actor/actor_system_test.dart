@@ -22,7 +22,9 @@ void main() {
       await actorSystem.dispose();
     });
 
-    test('.actorOf(). ', () async {
+    test(
+        '.actorOf(). Creates top-level actor with actor system, sends \'ping\' message to him and receives \'pong\' message.',
+        () async {
       var ref = await actorSystem.actorOf('test_actor', TestActor_1());
 
       var subscription = ref.send('ping');
@@ -36,7 +38,9 @@ void main() {
     });
 
     group('.send().', () {
-      test('Use relative path.', () async {
+      test(
+          'Use relative path. Sends message to actor using the actor system, using relative path to actor.',
+          () async {
         await actorSystem.actorOf('test_actor', TestActor_1());
 
         var subscription = actorSystem.send('../test_actor', 'ping');
@@ -49,7 +53,9 @@ void main() {
             emitsThrough('pong'));
       });
 
-      test('Use absolute path.', () async {
+      test(
+          'Use absolute path. Sends message to actor using the actor system, using absolute path to actor.',
+          () async {
         await actorSystem.actorOf('test_actor', TestActor_1());
 
         var subscription =
@@ -64,7 +70,9 @@ void main() {
       });
     });
 
-    test('.pause(). ', () async {
+    test(
+        '.pause(). Pauses all actors in actor system, receives message from actor when will it be stopped.',
+        () async {
       var receivePort = ReceivePort();
 
       var streamQueue = StreamQueue(receivePort.asBroadcastStream());
@@ -79,7 +87,9 @@ void main() {
       receivePort.close();
     });
 
-    test('.resume(). ', () async {
+    test(
+        '.resume(). Resumes all actors in actor system, receives message from actor when will it be resumed.',
+        () async {
       var receivePort = ReceivePort();
 
       var streamQueue = StreamQueue(receivePort.asBroadcastStream());
@@ -96,7 +106,9 @@ void main() {
       receivePort.close();
     });
 
-    test('.kill(). ', () async {
+    test(
+        '.kill(). Kills all actors in actor system, receives message from actor when will it be killed.',
+        () async {
       var receivePort = ReceivePort();
 
       var streamQueue = StreamQueue(receivePort.asBroadcastStream());
@@ -111,7 +123,9 @@ void main() {
       receivePort.close();
     });
 
-    test('.dispose(). ', () async {
+    test(
+        '.dispose(). Disposes all actors in actor system, receives message from actor when will it be killed.',
+        () async {
       var receivePort = ReceivePort();
 
       var stream = receivePort.asBroadcastStream();
