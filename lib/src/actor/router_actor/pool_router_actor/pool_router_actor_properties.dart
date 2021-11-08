@@ -9,6 +9,8 @@ class PoolRouterActorProperties extends RouterActorProperties {
       required SupervisorStrategy supervisorStrategy,
       required LocalActorRef parentRef,
       required MailboxType mailboxType,
+      required SendPort actorSystemMessagePort,
       Map<String, dynamic>? data})
-      : super(parentRef, supervisorStrategy, actorRef, mailboxType, data ?? {});
+      : super(parentRef, supervisorStrategy, actorRef, mailboxType,
+            actorSystemMessagePort, data ?? {});
 }

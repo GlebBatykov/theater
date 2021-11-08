@@ -34,6 +34,7 @@ Actor model implementation in Dart
     - [Send without link](#send-without-link)
     - [Receiving messages](#receiving-messages)
     - [Get message response](#get-message-response)
+    - [Listening messages by the actor system](#listening-messages-by-the-actor-system)
   - [Routers](#routers)
     - [Group router](#group-router)
     - [Pool router](#pool-router)
@@ -664,6 +665,128 @@ A message subscription encapsulates a ReceivePort, a regular message subscriptio
 However, for example, when using router actors, you may need to accept multiple responses from different actors per message. Or if you have created multiple handlers for messages of the same type and you expect to receive multiple responses from both handlers.
 
 To do this, you can turn MessageSubscription into MultipleMessageSubscription using the asMultipleSubscription () method. Such a subscription will not close its RecevePort after receiving the first message, however, this may create a not entirely transparent situation due to the use of ReceivePort inside the subscription, which you will need to close yourself using the cancel () method of the subscription - then when you no longer need the subscription.
+
+### Listening messages by the actor system
+
+In Theater, you can easily send a message from one actor to another, send or receive a reply to a sent message. But a situation may arise when you want to listen to messages from them without sending a message to the actors. For this, actor system has such a thing as Topics.
+
+Using the ActorSystem class, you can subscribe to a topic of interest, as well as to messages of a certain type in this topic.
+
+In this example, we create two actors, subscribe to messages of type String from the topic 'test_topic':
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'test_topic'
+    context.sendToTopic('test_topic', 'Hello, from first test actor!');
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'test_topic'
+    context.sendToTopic('test_topic', 'Hello, from second test actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with her
+  await system.initialize();
+
+  // Create handler to messages as String from topic with name 'test_topic'
+  system.listenTopic<String>('test_topic', (message) async {
+    print(message);
+  });
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor());
+}
+```
+
+Expected output:
+
+```dart
+Hello, from first test actor!
+Hello, from second test actor!
+```
+
+In this example, we are subscribing to several different topics, as well as posting replies to messages from topic 'first_test_topic':
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'first_test_topic' and get subscription to response
+    var subscription =
+        context.sendToTopic('first_test_topic', 'This is String');
+
+    // Set handler to response
+    subscription.onResponse((response) {
+      if (response is MessageResult) {
+        print(response.data);
+      }
+    });
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'second_test_topic'
+    context.sendToTopic('second_test_topic', 123.4);
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with her
+  await system.initialize();
+
+  // Create handler to messages as String from topic with name 'first_test_topic'
+  system.listenTopic<String>('first_test_topic', (message) async {
+    print(message);
+
+    return MessageResult(data: 'Hello, from main!');
+  });
+
+  // Create handler to messages as double from topic with name 'second_test_topic'
+  system.listenTopic<double>('second_test_topic', (message) async {
+    print(message * 2);
+  });
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor());
+}
+```
+
+Excepted output:
+
+```dart
+This is String
+Hello, from main!
+246.8
+```
 
 ## Routers
 

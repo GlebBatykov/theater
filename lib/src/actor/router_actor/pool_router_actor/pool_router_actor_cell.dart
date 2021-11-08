@@ -1,8 +1,8 @@
 part of theater.actor;
 
 class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
-  PoolRouterActorCell(
-      ActorPath path, PoolRouterActor actor, LocalActorRef parentRef,
+  PoolRouterActorCell(ActorPath path, PoolRouterActor actor,
+      LocalActorRef parentRef, SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -11,6 +11,7 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
+            actorSystemMessagePort,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -26,6 +27,7 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
             deployementStrategy: actor.createDeployementStrategy(),
             supervisorStrategy: actor.createSupervisorStrategy(),
             mailboxType: _mailbox.type,
+            actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RouterActorIsolateHandlerFactory(),
         PoolRouterActorContextFactory(), onError: (error) {

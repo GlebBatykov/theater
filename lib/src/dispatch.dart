@@ -30,6 +30,7 @@ part 'dispatch/message/mailbox_message.dart';
 part 'dispatch/message/routing_message.dart';
 part 'dispatch/message/routing_message/actor_routing_message.dart';
 part 'dispatch/message/routing_message/system_routing_message.dart';
+part 'dispatch/message/actor_system_topic_message.dart';
 
 part 'dispatch/ref/actor_ref.dart';
 part 'dispatch/ref/local_actor_ref.dart';

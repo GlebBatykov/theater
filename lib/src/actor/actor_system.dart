@@ -1,8 +1,33 @@
 part of theater.actor;
 
+/// Class is used for creating group of actor.
+///
+/// Group of actor which is created by the [ActorSystem] is represented as a tree.
+///
+/// Each actor which located in a separate [Isolate]. Has its own memory area.
+///
+/// [ActorSystem] helps executing code in another thread (in another [Isolate]), without delving into work [ReceivePort] and [SendPort].
+///
+/// [ActorSystem] allows you to conveniently send messages between actors. Each actor in the actor system has its own [ActorPath].
+///
+/// In addition to the actors created by the user, the [ActorSystem] during initialization creates the actors that are necessary for its work.
+///
+/// An example of such system actors:
+///
+/// - [RootActor] is the root actor, the first actor created by the [ActorSystem] on initialization. The only one actor who don't have parent.
+///
+/// - [UserGuardian] is the actor who is the parent of all user-created actors. Created by the [RootActor] upon start.
+///
+/// - [SystemGuardian] is the actor who is the parent of all system actors. Created by the [RootActor] upon start.
 class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Name of actor system. Used in [ActorPath] of everyone actors.
   final String name;
+
+  /// Instanse of [ReceivePort] of actor system.
+  late ReceivePort _messagePort;
+
+  final StreamController<ActorSystemTopicMessage> _topicMessageController =
+      StreamController.broadcast();
 
   /// [ActorPath] instance of [RootActor] actor.
   late final ActorPath _rootPath;
@@ -25,33 +50,27 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// If [ActorSystem] call [dispose] method and in this time some top-level actor is in the making - closes all port.
   final List<ReceivePort> _createChildReceivePorts = [];
 
-  /// Class is used for creating group of actor.
-  ///
-  /// Group of actor which is created by the [ActorSystem] is represented as a tree.
-  ///
-  /// Each actor which located in a separate [Isolate]. Has its own memory area.
-  ///
-  /// [ActorSystem] helps executing code in another thread (in another [Isolate]), without delving into work [ReceivePort] and [SendPort].
-  ///
-  /// [ActorSystem] allows you to conveniently send messages between actors. Each actor in the actor system has its own [ActorPath].
-  ///
-  /// In addition to the actors created by the user, the [ActorSystem] during initialization creates the actors that are necessary for its work.
-  ///
-  /// An example of such system actors:
-  ///
-  /// - [RootActor] is the root actor, the first actor created by the [ActorSystem] on initialization. The only one actor who don't have parent.
-  ///
-  /// - [UserGuardian] is the actor who is the parent of all user-created actors. Created by the [RootActor] upon start.
-  ///
-  /// - [SystemGuardian] is the actor who is the parent of all system actors. Created by the [RootActor] upon start.
   ActorSystem(this.name) {
     _rootPath = ActorPath(Address(name), 'root', 0);
 
     _userGuardianPath = _rootPath.createChild('user');
 
     _systemGuardianPath = _rootPath.createChild('system');
+  }
 
-    _root = RootActorCell(_rootPath, DefaultRootActor());
+  /// Uses by the primary initialization [ActorSystem]. Creates and starts root actor and guardians, system actors.
+  ///
+  /// Before work with actor system you must initialize her.
+  Future<void> initialize() async {
+    _messagePort = ReceivePort();
+
+    _messagePort.listen((message) {
+      if (message is ActorSystemTopicMessage) {
+        _topicMessageController.sink.add(message);
+      }
+    });
+
+    _root = RootActorCell(_rootPath, DefaultRootActor(), _messagePort.sendPort);
 
     // If root actor escalate error. Prints stackTrace and dispose actor system.
     _root.errors.listen((error) {
@@ -61,12 +80,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
           message: 'in actor system unhandled exception occurred.\n\n' +
               error.toString());
     });
-  }
 
-  /// Uses by the primary initialization [ActorSystem]. Creates and starts root actor and guardians, system actors.
-  ///
-  /// Before work with actor system you must initialize her.
-  Future<void> initialize() async {
     await _root.initialize();
 
     await _root.start();
@@ -141,13 +155,13 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   ///
   /// Absolute path given by the full path to the actor from the name of the system of actors.
   @override
-  MessageSubscription send(String path, dynamic data, {Duration? duration}) {
+  MessageSubscription send(String path, dynamic data, {Duration? delay}) {
     var recipientPath = _parcePath(path);
 
     var receivePort = ReceivePort();
 
-    if (duration != null) {
-      Future.delayed(duration, () {
+    if (delay != null) {
+      Future.delayed(delay, () {
         _root.ref.sendMessage(
             ActorRoutingMessage(data, receivePort.sendPort, recipientPath));
       });
@@ -168,9 +182,31 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
+  /// Create handler to topic with name [topicName] and his messages are [T].
+  StreamSubscription<ActorSystemTopicMessage> listenTopic<T>(
+      String topicName, Future<MessageResult?> Function(T) handler) {
+    var subscription = _topicMessageController.stream.listen((message) async {
+      if (message.topicName == topicName && message.data is T) {
+        var result = await handler.call(message.data);
+
+        if (result != null) {
+          message.sendResult(result.data);
+        } else {
+          message.successful();
+        }
+      }
+    });
+
+    return subscription;
+  }
+
   /// Kills all actors in actor system and frees all resources, close all streams that were used by the actor system.
   Future<void> dispose() async {
     await _root.dispose();
+
+    await _topicMessageController.close();
+
+    _messagePort.close();
 
     for (var port in _createChildReceivePorts) {
       port.close();

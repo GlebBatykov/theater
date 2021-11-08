@@ -49,6 +49,7 @@ class PoolRouterActorContext
           actorPath,
           actor,
           WorkerActorCellProperties(
+              actorSystemMessagePort: _actorProperties.actorSystemMessagePort,
               parentRef: _actorProperties.actorRef,
               data: _actorProperties.deployementStrategy.data));
 

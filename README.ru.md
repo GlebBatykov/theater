@@ -35,6 +35,7 @@
     - [Отправка без ссылки](#отправка-без-ссылки)
     - [Прием сообщений](#прием-сообщений)
     - [Получение ответа на сообщение](#получение-ответа-на-сообщение)
+    - [Прослушивание сообщений системой акторов](#прослушивание-сообщений-системой-акторов)
   - [Маршрутизаторы](#машрутизаторы)
     - [Маршрутизатор группы](#маршрутизатор-группы)
     - [Маршрутизатор пула](#маршрутизатор-пула)
@@ -666,6 +667,128 @@ Hello, from actor!
 Однако к примеру при использовании акторов маршрутизаторов может возникнуть необходимость принимать множество ответов из различных акторов на одно сообщение. Или если вы создали несколько обработчиков для сообщений одного типа и вы рассчитываете получить несколько ответов из обоих обработчиков.
 
 Для этого вы можете превратить MessageSubscription в MultipleMessageSubscription используя метод asMultipleSubscription(). Такая подписка не закроет свой RecevePort после получения первого сообщения, однако это может создать не совсем прозрачную ситуацию из за использования внутри подписки ReceivePort-а, который вам необходимо будет уже закрыть самостоятельно используя метод cancel() подписки - тогда когда подписка станет вам не нужна.
+
+### Просшуливание сообщений системой акторов
+
+В Theater вы можете легко отправить сообщение из одного актора в другой, отправить или получить ответ на отправленное сообщение. Но может возникнуть ситуация когда вы хотите предварительно не отправляя сообщение акторам прослушивать сообщения от них. Для этого в системе акторов есть такая вещь как темы (Topics).
+
+Используя класс ActorSystem вы можете подписаться на интересующую вас тему, а так же на сообщения определенного типа в этой теме.
+
+В этом примере мы создаем два актора, подписываемся на сообщения типа String из темы 'test_topic':
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'test_topic'
+    context.sendToTopic('test_topic', 'Hello, from first test actor!');
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'test_topic'
+    context.sendToTopic('test_topic', 'Hello, from second test actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with her
+  await system.initialize();
+
+  // Create handler to messages as String from topic with name 'test_topic'
+  system.listenTopic<String>('test_topic', (message) async {
+    print(message);
+  });
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor());
+}
+```
+
+Ожидаемый вывод:
+
+```dart
+Hello, from first test actor!
+Hello, from second test actor!
+```
+
+В этом примере мы подписываемся на несколько различных тем, а так же отправляем ответы на сообщения из темы 'first_test_topic':
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'first_test_topic' and get subscription to response
+    var subscription =
+        context.sendToTopic('first_test_topic', 'This is String');
+
+    // Set handler to response
+    subscription.onResponse((response) {
+      if (response is MessageResult) {
+        print(response.data);
+      }
+    });
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Send message to actor system topic with name 'second_test_topic'
+    context.sendToTopic('second_test_topic', 123.4);
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with her
+  await system.initialize();
+
+  // Create handler to messages as String from topic with name 'first_test_topic'
+  system.listenTopic<String>('first_test_topic', (message) async {
+    print(message);
+
+    return MessageResult(data: 'Hello, from main!');
+  });
+
+  // Create handler to messages as double from topic with name 'second_test_topic'
+  system.listenTopic<double>('second_test_topic', (message) async {
+    print(message * 2);
+  });
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor());
+}
+```
+
+Ожидаемый вывод:
+
+```dart
+This is String
+Hello, from main!
+246.8
+```
 
 ## Машрутизаторы
 

@@ -1,7 +1,8 @@
 part of theater.actor;
 
 class RootActorCell extends SupervisorActorCell<RootActor> {
-  RootActorCell(ActorPath path, RootActor actor,
+  RootActorCell(
+      ActorPath path, RootActor actor, SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -9,6 +10,7 @@ class RootActorCell extends SupervisorActorCell<RootActor> {
             path,
             actor,
             actor.createMailboxFactory().create(MailboxProperties(path)),
+            actorSystemMessagePort,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -22,6 +24,7 @@ class RootActorCell extends SupervisorActorCell<RootActor> {
             actorRef: ref,
             supervisorStrategy: actor.createSupervisorStrategy(),
             mailboxType: _mailbox.type,
+            actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RootActorIsolateHandlerFactory(),
         RootActorContextFactory());

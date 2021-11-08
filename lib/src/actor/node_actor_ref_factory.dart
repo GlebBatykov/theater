@@ -19,7 +19,10 @@ mixin NodeActorRefFactory<P extends SupervisorActorProperties>
         actorPath,
         actor,
         NodeActorCellProperties(
-            parentRef: _actorProperties.actorRef, data: data, onKill: onKill));
+            actorSystemMessagePort: _actorProperties.actorSystemMessagePort,
+            parentRef: _actorProperties.actorRef,
+            data: data,
+            onKill: onKill));
 
     actorCell.errors.listen((error) => _childErrorController.sink.add(error));
 

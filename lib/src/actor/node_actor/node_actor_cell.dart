@@ -5,7 +5,7 @@ abstract class NodeActorCell<A extends NodeActor>
   final LocalActorRef _parentRef;
 
   NodeActorCell(ActorPath path, A actor, LocalActorRef parentRef,
-      Mailbox mailbox, void Function()? onKill)
+      Mailbox mailbox, SendPort actorSystemMessagePort, void Function()? onKill)
       : _parentRef = parentRef,
-        super(path, actor, mailbox, onKill);
+        super(path, actor, mailbox, actorSystemMessagePort, onKill);
 }

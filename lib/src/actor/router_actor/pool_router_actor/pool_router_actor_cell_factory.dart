@@ -5,7 +5,8 @@ class PoolRouterActorCellFactory extends RouterActorCellFactory<PoolRouterActor,
   @override
   PoolRouterActorCell create(ActorPath path, PoolRouterActor actor,
       NodeActorCellProperties properties) {
-    return PoolRouterActorCell(path, actor, properties.parentRef,
+    return PoolRouterActorCell(
+        path, actor, properties.parentRef, properties.actorSystemMessagePort,
         data: properties.data,
         onError: properties.onError,
         onKill: properties.onKill);

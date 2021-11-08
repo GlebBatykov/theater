@@ -11,6 +11,8 @@ import 'isolate/test_actor_1.dart';
 void main() {
   group('isolate', () {
     group('isolate_supervisor', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var actor = TestActor_1();
 
       var parentPath = ActorPath(Address('test_system'), 'user', 1);
@@ -48,6 +50,7 @@ void main() {
                 supervisorStrategy: actor.createSupervisorStrategy(),
                 parentRef: parentRef,
                 mailboxType: actorMailbox.type,
+                actorSystemMessagePort: actorSystemMessagePort.sendPort,
                 data: {'feedbackPort': receivePort.sendPort}),
             UntypedActorIsolateHandlerFactory(),
             UntypedActorContextFactory());
@@ -66,6 +69,7 @@ void main() {
       tearDownAll(() async {
         await parentMailbox.dispose();
         await actorMailbox.dispose();
+        actorSystemMessagePort.close();
       });
 
       test(

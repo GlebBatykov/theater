@@ -5,7 +5,8 @@ class GroupRouterActorCellFactory extends RouterActorCellFactory<
   @override
   GroupRouterActorCell create(ActorPath path, GroupRouterActor actor,
       NodeActorCellProperties properties) {
-    return GroupRouterActorCell(path, actor, properties.parentRef,
+    return GroupRouterActorCell(
+        path, actor, properties.parentRef, properties.actorSystemMessagePort,
         data: properties.data,
         onError: properties.onError,
         onKill: properties.onKill);

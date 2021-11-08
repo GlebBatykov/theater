@@ -5,7 +5,8 @@ class UntypedActorCellFactory extends NodeActorCellFactory<UntypedActor,
   @override
   UntypedActorCell create(
       ActorPath path, UntypedActor actor, NodeActorCellProperties properties) {
-    return UntypedActorCell(path, actor, properties.parentRef,
+    return UntypedActorCell(
+        path, actor, properties.parentRef, properties.actorSystemMessagePort,
         data: properties.data,
         onError: properties.onError,
         onKill: properties.onKill);

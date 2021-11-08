@@ -6,6 +6,8 @@ abstract class RouterActorProperties extends NodeActorProperties {
       SupervisorStrategy supervisorStrategy,
       LocalActorRef actorRef,
       MailboxType mailboxType,
+      SendPort actorSystemMessagePort,
       Map<String, dynamic> data)
-      : super(parentRef, supervisorStrategy, actorRef, mailboxType, data);
+      : super(parentRef, supervisorStrategy, actorRef, mailboxType,
+            actorSystemMessagePort, data);
 }

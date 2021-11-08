@@ -5,6 +5,8 @@ class WorkerActorProperties extends SheetActorProperties {
       {required LocalActorRef actorRef,
       required LocalActorRef parentRef,
       required MailboxType mailboxType,
+      required SendPort actorSystemMessagePort,
       Map<String, dynamic>? data})
-      : super(parentRef, actorRef, mailboxType, data ?? {});
+      : super(parentRef, actorRef, mailboxType, actorSystemMessagePort,
+            data ?? {});
 }

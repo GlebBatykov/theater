@@ -21,6 +21,8 @@ import 'actor_cell/worker_actor/worker_actor_cell_tester.dart';
 void main() {
   group('actor_cell', () {
     group('root_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var path = ActorPath(Address('test_system'), 'test', 0);
 
       late ReceivePort receivePort;
@@ -36,7 +38,8 @@ void main() {
 
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
-        actorCell = RootActorCell(path, TestRootActor_1(),
+        actorCell = RootActorCell(
+            path, TestRootActor_1(), actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -48,6 +51,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {
@@ -92,6 +99,8 @@ void main() {
     });
 
     group('untyped_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test', 0);
 
       var path = parentPath.createChild('test_child');
@@ -118,6 +127,7 @@ void main() {
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
         actorCell = UntypedActorCell(path, TestUntypedActor_1(), parentRef,
+            actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -131,6 +141,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {
@@ -175,6 +189,8 @@ void main() {
     });
 
     group('group_router_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test', 0);
 
       var path = parentPath.createChild('test_child');
@@ -200,8 +216,8 @@ void main() {
 
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
-        actorCell = GroupRouterActorCell(
-            path, TestGroupRouterActor_1(), parentRef,
+        actorCell = GroupRouterActorCell(path, TestGroupRouterActor_1(),
+            parentRef, actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -215,6 +231,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {
@@ -259,6 +279,8 @@ void main() {
     });
 
     group('pool_router_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test', 0);
 
       var path = parentPath.createChild('test_child');
@@ -284,8 +306,8 @@ void main() {
 
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
-        actorCell = PoolRouterActorCell(
-            path, TestPoolRouterActor_1(), parentRef,
+        actorCell = PoolRouterActorCell(path, TestPoolRouterActor_1(),
+            parentRef, actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -299,6 +321,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {
@@ -343,6 +369,8 @@ void main() {
     });
 
     group('worker_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test', 0);
 
       var path = parentPath.createChild('test_child');
@@ -368,8 +396,8 @@ void main() {
 
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
-        actorCell = GroupRouterActorCell(
-            path, TestGroupRouterActor_1(), parentRef,
+        actorCell = GroupRouterActorCell(path, TestGroupRouterActor_1(),
+            parentRef, actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -383,6 +411,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {
@@ -427,6 +459,8 @@ void main() {
     });
 
     group('pool_router_actor_cell', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test', 0);
 
       var path = parentPath.createChild('test_child');
@@ -453,6 +487,7 @@ void main() {
         streamQueue = StreamQueue(receivePort.asBroadcastStream());
 
         actorCell = WorkerActorCell(path, TestWorkerActor_2(), parentRef,
+            actorSystemMessagePort.sendPort,
             data: {'feedbackPort': receivePort.sendPort});
 
         data = ActorCellTestData(actorCell, receivePort, streamQueue);
@@ -466,6 +501,10 @@ void main() {
         if (!actorCell.isDisposed) {
           actorCell.dispose();
         }
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test('.initialize(). Initialize actor cell and check status.', () async {

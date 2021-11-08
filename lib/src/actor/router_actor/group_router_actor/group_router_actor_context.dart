@@ -52,7 +52,9 @@ class GroupRouterActorContext
           actorPath,
           group[i].actor,
           NodeActorCellProperties(
-              parentRef: _actorProperties.actorRef, data: group[i].data));
+              actorSystemMessagePort: _actorProperties.actorSystemMessagePort,
+              parentRef: _actorProperties.actorRef,
+              data: group[i].data));
 
       actorCell.errors.listen((error) => _childErrorController.sink.add(error));
 

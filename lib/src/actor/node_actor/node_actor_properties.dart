@@ -8,6 +8,8 @@ abstract class NodeActorProperties extends SupervisorActorProperties {
       SupervisorStrategy supervisorStrategy,
       LocalActorRef actorRef,
       MailboxType mailboxType,
+      SendPort actorSystemMessagePort,
       Map<String, dynamic> data)
-      : super(supervisorStrategy, actorRef, mailboxType, data);
+      : super(supervisorStrategy, actorRef, mailboxType, actorSystemMessagePort,
+            data);
 }

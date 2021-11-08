@@ -8,6 +8,8 @@ abstract class ActorCell<A extends Actor> {
 
   final ActorPath path;
 
+  final SendPort _actorSystemMessagePort;
+
   final Mailbox _mailbox;
 
   final A _actor;
@@ -32,9 +34,11 @@ abstract class ActorCell<A extends Actor> {
 
   bool get isDisposed => _isDisposed;
 
-  ActorCell(this.path, A actor, Mailbox mailbox, void Function()? onKill)
+  ActorCell(this.path, A actor, Mailbox mailbox,
+      SendPort actorSystemMessagePort, void Function()? onKill)
       : _mailbox = mailbox,
         _actor = actor,
+        _actorSystemMessagePort = actorSystemMessagePort,
         _onKillCallback = onKill;
 
   Future<void> initialize() async {

@@ -6,7 +6,8 @@ class NodeActorCellProperties extends SupervisorActorCellProperties {
   NodeActorCellProperties(
       {required this.parentRef,
       Map<String, dynamic>? data,
+      required SendPort actorSystemMessagePort,
       void Function()? onKill,
       void Function(ActorError)? onError})
-      : super(data ?? {}, onKill, onError);
+      : super(data ?? {}, actorSystemMessagePort, onKill, onError);
 }

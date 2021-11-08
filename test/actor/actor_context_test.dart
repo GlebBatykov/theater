@@ -18,6 +18,8 @@ import 'actor_context/worker_actor_context_tester.dart';
 void main() {
   group('actor_context', () {
     group('root_actor_context', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var path = ActorPath(Address('test_system'), 'test', 0);
 
       late UnreliableMailbox mailbox;
@@ -58,7 +60,8 @@ void main() {
                 actorRef: actorRef,
                 supervisorStrategy:
                     OneForOneStrategy(decider: DefaultDecider()),
-                mailboxType: MailboxType.unreliable));
+                mailboxType: MailboxType.unreliable,
+                actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
         feedbackPort = ReceivePort();
 
@@ -79,6 +82,10 @@ void main() {
         feedbackPort.close();
 
         await context.killChildren();
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test(
@@ -137,6 +144,8 @@ void main() {
     });
 
     group('untyped_actor_context', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
 
       var path = parentPath.createChild('test');
@@ -190,7 +199,8 @@ void main() {
                 actorRef: actorRef,
                 supervisorStrategy:
                     OneForOneStrategy(decider: DefaultDecider()),
-                mailboxType: MailboxType.unreliable));
+                mailboxType: MailboxType.unreliable,
+                actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
             supervisorMessagePort, supervisorErrorPort,
@@ -209,6 +219,10 @@ void main() {
         supervisorErrorPort.close();
 
         await context.killChildren();
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test(
@@ -267,6 +281,8 @@ void main() {
     });
 
     group('group_router_actor_context', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
 
       var path = parentPath.createChild('test');
@@ -305,7 +321,8 @@ void main() {
                       routingStrategy: strategy, group: group),
                   supervisorStrategy:
                       OneForOneStrategy(decider: DefaultDecider()),
-                  mailboxType: MailboxType.unreliable));
+                  mailboxType: MailboxType.unreliable,
+                  actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
       ActorContextTestData<TestGroupRouterActorContext> createTestData() =>
           ActorContextTestData(context, mailbox, isolateContext,
@@ -349,6 +366,10 @@ void main() {
         feedbackPort.close();
 
         await context.killChildren();
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test(
@@ -527,6 +548,8 @@ void main() {
     });
 
     group('pool_router_actor_context', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
 
       var path = parentPath.createChild('test');
@@ -567,7 +590,8 @@ void main() {
                       data: {'feedbackPort': feedbackPort.sendPort}),
                   supervisorStrategy:
                       OneForOneStrategy(decider: DefaultDecider()),
-                  mailboxType: MailboxType.unreliable));
+                  mailboxType: MailboxType.unreliable,
+                  actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
       ActorContextTestData<TestPoolRouterActorContext> createTestData() =>
           ActorContextTestData(context, mailbox, isolateContext,
@@ -611,6 +635,10 @@ void main() {
         feedbackPort.close();
 
         await context.killChildren();
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test(
@@ -738,6 +766,8 @@ void main() {
     });
 
     group('worker_actor_context', () {
+      var actorSystemMessagePort = ReceivePort();
+
       var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
 
       var path = parentPath.createChild('worker');
@@ -785,7 +815,8 @@ void main() {
             WorkerActorProperties(
                 parentRef: parentRef,
                 actorRef: actorRef,
-                mailboxType: MailboxType.unreliable));
+                mailboxType: MailboxType.unreliable,
+                actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
             supervisorMessagePort, supervisorErrorPort,
@@ -802,6 +833,10 @@ void main() {
         supervisorMessagePort.close();
 
         supervisorErrorPort.close();
+      });
+
+      tearDownAll(() {
+        actorSystemMessagePort.close();
       });
 
       test(

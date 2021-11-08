@@ -5,7 +5,8 @@ class WorkerActorCellFactory extends SheetActorCellFactory<WorkerActor,
   @override
   WorkerActorCell create(
       ActorPath path, WorkerActor actor, WorkerActorCellProperties properties) {
-    return WorkerActorCell(path, actor, properties.parentRef,
+    return WorkerActorCell(
+        path, actor, properties.parentRef, properties.actorSystemMessagePort,
         data: properties.data,
         onError: properties.onError,
         onKill: properties.onKill);

@@ -23,7 +23,7 @@ packages:
     source: hosted
     version: "2.2.0"
   async:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: async
       url: "https://pub.dartlang.org"

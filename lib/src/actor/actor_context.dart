@@ -52,7 +52,7 @@ abstract class ActorContext<P extends ActorProperties>
   ///
   /// Absolute path given by the full path to the actor from the name of the system of actors.
   @override
-  MessageSubscription send(String path, dynamic data, {Duration? duration}) {
+  MessageSubscription send(String path, dynamic data, {Duration? delay}) {
     var recipientPath = _parcePath(path);
 
     var receivePort = ReceivePort();
@@ -60,12 +60,31 @@ abstract class ActorContext<P extends ActorProperties>
     var message =
         ActorRoutingMessage(data, receivePort.sendPort, recipientPath);
 
-    if (duration != null) {
-      Future.delayed(duration, () {
+    if (delay != null) {
+      Future.delayed(delay, () {
         _handleRoutingMessage(message);
       });
     } else {
       _handleRoutingMessage(message);
+    }
+
+    return MessageSubscription(receivePort);
+  }
+
+  /// Sends [data] to actor system topic with name [topicName].
+  MessageSubscription sendToTopic(String topicName, dynamic data,
+      {Duration? delay}) {
+    var receivePort = ReceivePort();
+
+    var message =
+        ActorSystemTopicMessage(topicName, data, receivePort.sendPort);
+
+    if (delay != null) {
+      Future.delayed(delay, () {
+        _actorProperties.actorSystemMessagePort.send(message);
+      });
+    } else {
+      _actorProperties.actorSystemMessagePort.send(message);
     }
 
     return MessageSubscription(receivePort);
