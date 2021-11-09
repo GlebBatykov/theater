@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
@@ -7,6 +8,7 @@ import 'package:theater/src/dispatch.dart';
 
 import 'actor_system/test_actor_1.dart';
 import 'actor_system/test_actor_2.dart';
+import 'actor_system/test_actor_3.dart';
 
 void main() {
   group('actor_system', () {
@@ -68,6 +70,22 @@ void main() {
                 .map((event) => event.data),
             emitsThrough('pong'));
       });
+    });
+
+    test(
+        '.listenTopic(). Creates top level actor who send message to topic with name \'test_topic\', receive message from topic with name \'test_topic\'',
+        () async {
+      var streamController = StreamController();
+
+      actorSystem.listenTopic('test_topic', (message) async {
+        streamController.sink.add(message);
+      });
+
+      await actorSystem.actorOf('test_actor', TestActor_3());
+
+      expect(await streamController.stream.first, 'test');
+
+      await streamController.close();
     });
 
     test(

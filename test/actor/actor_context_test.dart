@@ -66,7 +66,7 @@ void main() {
         feedbackPort = ReceivePort();
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
             feedbackPort: feedbackPort);
       });
 
@@ -111,6 +111,10 @@ void main() {
             () async {
           await RootActorContextTester().sendToHimself(data);
         });
+      });
+
+      test('.sendToTopic(). Sends message to actor system topic.', () async {
+        await RootActorContextTester().sendToTopicTest(data);
       });
 
       test('.actorOf(). Creates child actor and receives 5 message from him.',
@@ -203,7 +207,7 @@ void main() {
                 actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
             parentMailbox: parentMailbox, feedbackPort: feedbackPort);
       });
 
@@ -248,6 +252,10 @@ void main() {
             () async {
           await UntypedActorContextTester().sendToHimself(data);
         });
+      });
+
+      test('.sendToTopic(). Sends message to actor system topic.', () async {
+        await UntypedActorContextTester().sendToTopicTest(data);
       });
 
       test('.actorOf(). Creates child actor and receives 5 message from him.',
@@ -325,8 +333,13 @@ void main() {
                   actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
       ActorContextTestData<TestGroupRouterActorContext> createTestData() =>
-          ActorContextTestData(context, mailbox, isolateContext,
-              supervisorMessagePort, supervisorErrorPort,
+          ActorContextTestData(
+              context,
+              mailbox,
+              isolateContext,
+              supervisorMessagePort,
+              supervisorErrorPort,
+              actorSystemMessagePort,
               parentMailbox: parentMailbox,
               feedbackPort: feedbackPort,
               isolateReceivePort: isolateReceivePort);
@@ -431,6 +444,10 @@ void main() {
 
           await GroupRounterActorContextTester().sendToHimself(data);
         });
+      });
+
+      test('.sendToTopic(). Sends message to actor system topic.', () async {
+        await GroupRounterActorContextTester().sendToTopicTest(data);
       });
 
       group('routing.', () {
@@ -594,8 +611,13 @@ void main() {
                   actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
       ActorContextTestData<TestPoolRouterActorContext> createTestData() =>
-          ActorContextTestData(context, mailbox, isolateContext,
-              supervisorMessagePort, supervisorErrorPort,
+          ActorContextTestData(
+              context,
+              mailbox,
+              isolateContext,
+              supervisorMessagePort,
+              supervisorErrorPort,
+              actorSystemMessagePort,
               parentMailbox: parentMailbox,
               feedbackPort: feedbackPort,
               isolateReceivePort: isolateReceivePort);
@@ -680,6 +702,10 @@ void main() {
 
           await PoolRouterActorContextTester().sendToHimself(data);
         });
+      });
+
+      test('.sendToTopic(). Sends message to actor system topic.', () async {
+        await PoolRouterActorContextTester().sendToTopicTest(data);
       });
 
       group('routing.', () {
@@ -819,7 +845,7 @@ void main() {
                 actorSystemMessagePort: actorSystemMessagePort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
             parentMailbox: parentMailbox);
       });
 
@@ -862,6 +888,10 @@ void main() {
             () async {
           await WorkerActorContextTester().sendToHimself(data);
         });
+      });
+
+      test('.sendToTopic(). Sends message to actor system topic.', () async {
+        await WorkerActorContextTester().sendToTopicTest(data);
       });
     });
   }, timeout: Timeout(Duration(seconds: 1)));

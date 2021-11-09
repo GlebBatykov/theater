@@ -1,6 +1,8 @@
 part of theater.dispatch;
 
+/// Used by sending message to local mailbox actor (located in the same actor system).
 class LocalActorRef extends ActorRef {
+  /// Path to the actor whose mailbox the ref point to.
   final ActorPath path;
 
   final SendPort _sendPort;

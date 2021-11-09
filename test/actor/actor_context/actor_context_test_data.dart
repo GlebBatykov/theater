@@ -18,9 +18,18 @@ class ActorContextTestData<T extends ActorContext> {
 
   final ReceivePort supervisorErrorPort;
 
+  final ReceivePort actorSystemMessagePort;
+
   final ReceivePort? feedbackPort;
 
-  ActorContextTestData(this.actorContext, this.mailbox, this.isolateContext,
-      this.supervisorMessagePort, this.supervisorErrorPort,
-      {this.parentMailbox, this.feedbackPort, this.isolateReceivePort});
+  ActorContextTestData(
+      this.actorContext,
+      this.mailbox,
+      this.isolateContext,
+      this.supervisorMessagePort,
+      this.supervisorErrorPort,
+      this.actorSystemMessagePort,
+      {this.parentMailbox,
+      this.feedbackPort,
+      this.isolateReceivePort});
 }

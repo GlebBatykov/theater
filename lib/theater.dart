@@ -54,7 +54,8 @@ export 'src/dispatch.dart'
         MessageSubscription,
         MailboxFactory,
         Mailbox,
-        MailboxType;
+        MailboxType,
+        LocalActorRef;
 
 export 'src/routing.dart';
 

@@ -1,5 +1,4 @@
-import 'package:theater/src/actor.dart';
-import 'package:theater/src/dispatch.dart';
+import 'package:theater/theater.dart';
 
 // Create first actor class
 class FirstTestActor extends UntypedActor {
