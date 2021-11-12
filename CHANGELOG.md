@@ -1,3 +1,8 @@
+## 0.1.3
+
+- Add example.
+- Fix documentation.
+
 ## 0.1.2
 
 - Add tests.

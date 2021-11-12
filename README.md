@@ -61,7 +61,7 @@ Theater is a package to simplify working with multithreading in Dart, to simplif
 
 It provides:
 - a system for routing messages between actors (isolates), which encapsulates work with Receive and Send ports;
-- error handling system at the level of one factor or a group of actors;
+- error handling system at the level of one actor or a group of actors;
 - the ability to configure message routing (special actors - routers that allow you to set one of the proposed message routing strategy between their child actors, the ability to set priority to messages of a certain type);
 - ability to load balance (messages) between actors, creating pools of actors.
 
@@ -73,7 +73,7 @@ Add Theater to your pubspec.yaml file:
 
 ```dart
 dependencies:
-  theater: ^0.1.1
+  theater: ^0.1.3
 ```
 
 Import theater in files that it will be used:
@@ -126,7 +126,7 @@ Actors created during the initialization of the actor system:
 - System guardian. The actor who is the progenitor of all system actors;
 - User guardian. Actor that is the parent of all top-level actors created by the user.
 
-Create and initialize an actor system, create a test actor, and output "Hello, world!" out of him.
+Create and initialize an actor system, create a test actor, and output "Hello, world!" out of him:
 
 ```dart
 // Create actor class
@@ -175,7 +175,7 @@ Actors in the tree are divided into 2 categories:
 - supervisor. Supervisor are those actors who can create their own child actors (and themselves, in turn, have a supervisor actor);
 - observable. Observable actors are actors that cannot create child actors.
 
-Supervisors control the life cycle of their child actors (start, kill, stop, resume, restart), they receive messages about errors occurring in the child actors and make decisions in accordance with the established strategy (SupervisorStrategy). You can read more about error handling in child actors [here] (#supervising-and-error-handling).
+Supervisors control the life cycle of their child actors (start, kill, stop, resume, restart), they receive messages about errors occurring in the child actors and make decisions in accordance with the established strategy (SupervisorStrategy). You can read more about error handling in child actors [here](#supervising-and-error-handling).
 
 If we transfer these 2 categories to concepts closer to the structure of the tree, these categories can be called as follows:
 - Supervisor actor is a node of the tree;
@@ -201,7 +201,7 @@ The routing of messages in the Theater is inextricably linked with the concept o
 
 The absolute path to the actor is given from the name of the actor system. The path to the actor also includes the names of the actor system, if we are talking about an actor created by the user, the root actor and user guardian (user) are indicated.
 
-An example of displaying the absolute path to the created top-level actor.
+An example of displaying the absolute path to the created top-level actor:
 
 ```dart
 // Create actor class
@@ -225,7 +225,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-Expected output
+Expected output:
 
 ```dart
 tcp://test_system/root/user/test_actor
@@ -271,7 +271,7 @@ This is a special kind of delivery confirmation mailbox in which you can set the
 
 The priority is set using the PriorityGenerator class.
 
-Creating an actor with a priority mailbox (in the example, messages of type String have a higher priority than messages of type int), sending messages to it.
+Creating an actor with a priority mailbox (in the example, messages of type String have a higher priority than messages of type int), sending messages to it:
 
 ```dart
 // Create actor class
@@ -325,7 +325,7 @@ void main(List<String> arguments) async {
   
 In the example above, 5 messages were sent to the actor - 0, 1, 2, "3", "4".
 
-Expected output
+Expected output:
 
 ```dart
 0
@@ -349,7 +349,7 @@ Actor link encapsulates SendPort for sending a message to the actor's mailbox.
 
 The link can be obtained both when creating a top-level actor using the actor system, and when creating a child actor through the actor context.
 
-In these examples, we use the actor system to create a top-level actor and get a link to it, send a message to it.
+In these examples, we use the actor system to create a top-level actor and get a link to it, send a message to it:
 
 ```dart
 // Create actor class
@@ -409,7 +409,7 @@ class SecondTestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var system = ActorSystem('system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with her
   await system.initialize();
@@ -437,7 +437,7 @@ An absolute path is a full path to an actor starting from the name of the actor 
 
 A relative path is a path that is specified relative to the path to the current actor (when sending a message through the actor context) or relative to the user guardian (in the case of sending a message through the actor system). An example of a relative path, if we send a message through the actor system, with an absolute path to the actor "test_system/root/user/test_actor" - "../test_actor".
 
-An example of sending a message to an actor using the actor system using absolute path.
+An example of sending a message to an actor using the actor system using absolute path:
 
 ```dart
 // Create actor class
@@ -467,7 +467,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-An example of sending a message to an actor using the actor system with a relative path.
+An example of sending a message to an actor using the actor system with a relative path:
 
 ```dart
 // Create actor class
@@ -497,7 +497,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-An example of sending a message to an actor that is higher in the actor hierarchy, using the actor context with an absolute path.
+An example of sending a message to an actor that is higher in the actor hierarchy, using the actor context with an absolute path:
 
 ```dart
 // Create first actor class
@@ -535,7 +535,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-An example of sending a message to an actor to a child using the actor context with a relative path.
+An example of sending a message to an actor to a child using the actor context with a relative path:
 
 ```dart
 // Create first actor class
@@ -577,7 +577,7 @@ void main(List<String> arguments) async {
 
 Each actor can receive messages and handle them. To assign a handler to an actor to receive a message of a certain type, you can use the receive method in the actor context. Multiple handlers can be assigned to a message of the same type.
 
-An example of creating an actor class and at the start of assigning a handler for receiving messages of type String and int.
+An example of creating an actor class and at the start of assigning a handler for receiving messages of type String and int:
 
 
 ```dart
@@ -612,7 +612,7 @@ Possible message states:
 - RecipientNotFoundResult - means that there is no actor with this address in the actor tree;
 - MessageResult - means that the message has been successfully delivered, the addressee has sent you a reply to your message.
 
-An example of sending a message to an actor, receiving a response from it.
+An example of sending a message to an actor, receiving a response from it:
 
 ```dart
 // Create actor class
@@ -653,7 +653,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-Expected output
+Expected output:
 
 ```dart
 Hello, from main!
@@ -807,7 +807,7 @@ Has the following message routing strategies:
 - Random. The message received by the router is forwarded to a random actor from its group;
 - Round robin. Messages received by the router are sent to the actors from its group in a circle. That is, if 3 messages have arrived, and there are 2 actors in the group of actors, then 1 message will be received by actor №1, the second message - by actor №2, the third message - by actor №1.
 
-An example of using a group router using a broadcast routing strategy.
+An example of using a group router using a broadcast routing strategy:
 
 ```dart
 // Create first test actor class
@@ -873,7 +873,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-Expected output
+Expected output:
 
 ```dart
 Second actor received message: Second hello!
@@ -905,7 +905,7 @@ Has the following message routing strategies:
 - Round robin. Messages received by the router are sent to the actors from its group in a circle. That is, if 3 messages have arrived, and there are 2 actors in the group of actors, then 1 message will be received by actor No. 1, the second message - by actor No. 2, the third message - by actor No. 1;
 - Load balancing. Balancing the load between workers in the pool, taking into account how many unprocessed messages each worker in the pool contains.
 
-An example of creating a pool router using a random routing strategy.
+An example of creating a pool router using a random routing strategy:
 
 ```dart
 // Create actor class
@@ -966,7 +966,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-The structure of the actor tree in the actor system created in the example
+The structure of the actor tree in the actor system created in the example:
 
 <div align="center">
   
@@ -1005,7 +1005,7 @@ The difference between these two strategies is that the OneForOne strategy appli
 
 By default, each supervisor has a OneForOne strategy that communicates the error to the upstream supervisor. When the error reaches the user's guardian, he also passes it up to the root actor, which in turn passes the error to the actor system and the actor system killed all actors and throws an exception displaying the stack trace of all actors through which the error passed.
 
-An example of error handling using the OneForOne strategy
+An example of error handling using the OneForOne strategy:
 
 ```dart
 // Create first actor class
@@ -1020,7 +1020,7 @@ class FirstTestActor extends UntypedActor {
   // Override createSupervisorStrategy method, set decider and restartDelay
   @override
   SupervisorStrategy createSupervisorStrategy() => OneForOneStrategy(
-      decider: TestDecider(), restartDuration: Duration(milliseconds: 500));
+      decider: TestDecider(), restartDelay: Duration(milliseconds: 500));
 }
 
 // Create decider class
@@ -1079,7 +1079,7 @@ In Dart, tasks that are executed periodically after some time are very easy to i
 
 At the moment, the scheduler is under development and it is planned to add to it, for example, the ability to transfer cancellation tokens to other actors (at the moment this is not possible), this will allow canceling scheduled tasks from other actors.
 
-An example of creating tasks using the scheduler, canceling scheduled tasks after 3 seconds using the cancellation token.
+An example of creating tasks using the scheduler, canceling scheduled tasks after 3 seconds using the cancellation token:
 
 ```dart
 // Create actor class
@@ -1126,7 +1126,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-Expected output
+Expected output:
 
 ```dart
 Hello, from first action!

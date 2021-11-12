@@ -2,8 +2,8 @@
 
 **Языки:**
   
-[![English](https://img.shields.io/badge/Language-English-blue?style=?style=flat-square)](/example/README.md)
-[![Russian](https://img.shields.io/badge/Language-Russian-blue?style=?style=flat-square)](/example/README.ru.md)
+[![English](https://img.shields.io/badge/Language-English-blue?style=?style=flat-square)](https://github.com/GlebBatykov/theater/tree/main/example/README.md)
+[![Russian](https://img.shields.io/badge/Language-Russian-blue?style=?style=flat-square)](https://github.com/GlebBatykov/theater/tree/main/example/README.ru.md)
   
 </div>  
 
@@ -69,7 +69,7 @@ void main(List<String> arguments) async {
 
 Работники в примере это те акторы которые обрабатывают поступающие запросы, отправляют обратно ответ акторам получателям (т.к только тот изолят который принял http запрос может отправить ответ на него). Работники подписаны на сообщения типа int поступающие к ним, затем вычисляют сумму чисел Фиббоначи до этого числа и отправляют ответ тому актору который отправил им это сообщение.
 
-Пулы (маршрутизаторы пулов) в этом премере для получателей используются из за удобства создания сразу целого пула акторов указанной величины, а для работников это так же является и средством балансировки нагрузки поступающих в них сообщений.
+Пулы (маршрутизаторы пулов) в этом примере для получателей используются из за удобства создания сразу целого пула акторов указанной величины, а для работников это так же является и средством балансировки нагрузки поступающих в них сообщений.
 
 Подобный подход позволил мне добится более высокой производительности тогда когда на поступивший мне http запрос я выполнял некоторые тяжелые действия требующие длительного времени вычисления.
 
@@ -174,4 +174,229 @@ void main(List<String> arguments) async {
 
 # Flutter
 
-* Раздел не дописан *
+Сценарии использования Theater в Flutter-е идентичны сценариям использования изолятов. В отличии от серверной стороны в Flutter-е редко возникает необходимость использовать изоляты и тем более реализовывать сложные схемы взаимодействия между ними. Поэтому в этом примере мы рассмотрим вполне стандартный пример использованя изолятов в Flutter-е, но реализуем это при помощи Theater.
+
+В качестве примера выбран калькулятор суммы чисел Фиббоначи, считать сумму мы будем при помощи рекурсивного алгоритма, на телефоне где проводились тесты примерно до ~36 числа Фиббоначи сумма, при помощи рекурсии, вычислялась без видимых лагов в UI, однако начиная с 36 числа во время вычисления наш поток UI зависал. Чтобы не допустить зависания UI мы выносим вычисление сумм чисел Фибоначчи начиная с 36 числа в отдельный актор (изолят), а суммы Фибоначчи для чисел до 36 мы вычисляем в нашем основном потоке чтобы не терять производительность на перессылке сообщений между акторами (изолятами).
+
+Данный пример несколько усложнен использованием пакета для внедрения зависимостей (GetIt), однако я сделал это намеренно для того чтобы показать то как я вижу использование Theater в Flutter приложениях.
+
+Слева представлен тест без использования Theater (и изолятов в целом), а справа с Theater:
+
+<div align="center">
+  <img src="https://i.ibb.co/LPn96mP/In-Ui-Thread.gif" width="20%" display="inline-block"/>
+  <img src="https://i.ibb.co/nQQVMc5/In-Other-Isolate.gif" width="20%" display="inline-block"/>
+</div>
+
+```dart
+void main() async {
+  // Initialize dependencies
+  await InjectionContainer.initialize();
+
+  // Run application
+  runApp(const Application());
+}
+
+abstract class InjectionContainer {
+  static Future<void> initialize() async {
+    // Get [GetIt] instance
+    var getIt = GetIt.instance;
+
+    // Register dependency of [ActorSystem]
+    getIt.registerLazySingletonAsync<ActorSystem>(() async {
+      // Create actor system
+      var system = ActorSystem('test_system');
+
+      // Initialize actor system before work with her
+      await system.initialize();
+
+      return system;
+    }, dispose: (system) async {
+      // Dispose actor system
+      await system.dispose();
+    });
+
+    // Register dependency of [LocalActorRef] with instance name 'test_actor_ref' to actor with name 'test_actor'
+    getIt.registerLazySingletonAsync<LocalActorRef>(() async {
+      // Get [ActorSystem] dependency for [GetIt]
+      var system = await getIt.getAsync<ActorSystem>();
+
+      // Create top-level actor in actor system with name 'test_actor'
+      var ref = await system.actorOf('test_actor', TestActor());
+
+      return ref;
+    }, instanceName: 'test_actor_ref');
+  }
+}
+
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all int type messages which actor received
+    context.receive<int>((message) async {
+      // Calculate result
+      var result = Fibonacci.calculate(message);
+
+      // Send message result
+      return MessageResult(data: result);
+    });
+  }
+}
+
+abstract class Fibonacci {
+  static int calculate(int number) =>
+      number <= 2 ? 1 : calculate(number - 1) + calculate(number - 2);
+}
+
+class Application extends StatelessWidget {
+  const Application({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'flutter_theater_example_application',
+      home: Scaffold(
+        body: Container(
+          margin: const EdgeInsets.all(50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              FibonacciCalculator(),
+              Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: SizedBox(
+                    width: 200,
+                    height: 150,
+                    child: TestAnimation(),
+                  ))
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FibonacciCalculator extends StatefulWidget {
+  const FibonacciCalculator({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _FibonacciCalculatorState();
+}
+
+class _FibonacciCalculatorState extends State<FibonacciCalculator> {
+  final TextEditingController _textEditingController = TextEditingController();
+
+  late final LocalActorRef _ref;
+
+  String _result = '';
+
+  // Get dependency for [GetIt]
+  Future<void> _initialize() async {
+    // Get instance of [LocalActorRef] with name 'test_actor_ref'
+    _ref = await GetIt.instance
+        .getAsync<LocalActorRef>(instanceName: 'test_actor_ref');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: _initialize(),
+        builder: (context, snapshot) {
+          return Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                const Text('Fibonacci calculator',
+                    style: TextStyle(fontSize: 20)),
+                TextFormField(
+                    controller: _textEditingController,
+                    keyboardType: TextInputType.number),
+                Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 20),
+                  child: ElevatedButton(
+                      style: ButtonStyle(
+                          minimumSize:
+                              MaterialStateProperty.all(const Size(125, 50))),
+                      onPressed: () async {
+                        if (_textEditingController.text.isNotEmpty) {
+                          var number = int.parse(_textEditingController.text);
+
+                          late int result;
+
+                          // Check number
+                          if (number < 36) {
+                            result = Fibonacci.calculate(number);
+                          } else {
+                            // Send message to actor
+                            var subscription = _ref.send(number);
+
+                            // Wait response from actor
+                            var response = await subscription.stream.first;
+
+                            result = (response as MessageResult).data;
+                          }
+
+                          setState(() {
+                            // Set new state of _result
+                            _result = result.toString();
+                          });
+                        } else {
+                          // Show snack bar if field is empty
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Field is empty')));
+                        }
+                      },
+                      child: const Text('Calculate',
+                          style: TextStyle(fontSize: 16))),
+                ),
+                if (_result.isNotEmpty)
+                  Text('Result: ' + _result,
+                      style: const TextStyle(fontSize: 16))
+              ]));
+        });
+  }
+}
+
+// Widget of animation
+class TestAnimation extends StatefulWidget {
+  const TestAnimation({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _TestAnimationState();
+}
+
+class _TestAnimationState extends State<TestAnimation>
+    with TickerProviderStateMixin {
+  late final AnimationController _animationController =
+      AnimationController(vsync: this, duration: const Duration(seconds: 1))
+        ..repeat(reverse: true);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constrains) {
+      var biggest = constrains.biggest;
+
+      return Stack(
+        children: [
+          PositionedTransition(
+            rect: RelativeRectTween(
+                    begin: RelativeRect.fromSize(
+                        const Rect.fromLTWH(0, 0, 25, 25), biggest),
+                    end: RelativeRect.fromSize(
+                        Rect.fromLTWH(
+                            biggest.width - 25, biggest.height - 25, 25, 25),
+                        biggest))
+                .animate(CurvedAnimation(
+                    parent: _animationController, curve: Curves.ease)),
+            child: Container(
+              color: Colors.blue,
+            ),
+          )
+        ],
+      );
+    });
+  }
+}
+```
