@@ -1,4 +1,4 @@
-part of theater.util;
+part of theater.core;
 
 extension ListEqual on List {
   bool equal(List other) {

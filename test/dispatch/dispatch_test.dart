@@ -6,6 +6,7 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 import 'package:theater/src/dispatch.dart';
 import 'package:theater/src/routing.dart';
+import 'package:theater/src/util.dart';
 
 import 'mailbox/mailbox_test_data.dart';
 import 'mailbox/priority_reliability_mailbox/priority_reliability_mailbox_tester.dart';
@@ -249,6 +250,81 @@ void main() {
 
         test('.dispose(). Disposes mailbox and checks him status.', () async {
           await PriorityReliableMailboxTester().disposeTest(data);
+        });
+      });
+    });
+
+    group('ref', () {
+      group('scheduler_action_token_ref', () {
+        late ReceivePort receivePort;
+
+        late RepeatedlyActionTokenRef actionTokenRef;
+
+        setUp(() {
+          receivePort = ReceivePort();
+
+          actionTokenRef = RepeatedlyActionTokenRef(receivePort.sendPort);
+        });
+
+        tearDown(() {
+          receivePort.close();
+        });
+
+        group('repeatedly_action_token_ref', () {
+          test('.stop(). ', () async {
+            actionTokenRef.stop();
+
+            expect(await receivePort.first, isA<RepeatedlyActionTokenStop>());
+          });
+
+          test('.resume(). ', () async {
+            actionTokenRef.resume();
+
+            expect(await receivePort.first, isA<RepeatedlyActionTokenResume>());
+          });
+
+          test('.getStatus(). ', () async {
+            unawaited(actionTokenRef.getStatus());
+
+            expect(
+                await receivePort.first, isA<RepeatedlyActionTokenGetStatus>());
+          });
+
+          test('.isRunning(). ', () async {
+            unawaited(actionTokenRef.isRunning());
+
+            expect(
+                await receivePort.first, isA<RepeatedlyActionTokenGetStatus>());
+          });
+
+          test('.isStoped(). ', () async {
+            unawaited(actionTokenRef.isStoped());
+
+            expect(
+                await receivePort.first, isA<RepeatedlyActionTokenGetStatus>());
+          });
+        });
+
+        group('one_shot_action_token_ref', () {
+          late ReceivePort receivePort;
+
+          late OneShotActionTokenRef actionTokenRef;
+
+          setUp(() {
+            receivePort = ReceivePort();
+
+            actionTokenRef = OneShotActionTokenRef(receivePort.sendPort);
+          });
+
+          tearDown(() {
+            receivePort.close();
+          });
+
+          test('.call(). ', () async {
+            actionTokenRef.call();
+
+            expect(await receivePort.first, isA<OneShotActionTokenCall>());
+          });
         });
       });
     });

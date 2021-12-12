@@ -1,10 +1,12 @@
 part of theater.actor;
 
 /// The class used by [UntypedActor] to communicate with other actors in the actor system, receive messages from other actors.
-class UntypedActorContext<P extends UntypedActorProperties>
-    extends NodeActorContext<P>
-    with NodeActorRefFactory, ActorMessageReceiver<P> {
-  UntypedActorContext(IsolateContext isolateContext, P actorProperties)
+class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
+    with
+        NodeActorRefFactoryMixin,
+        ActorMessageReceiverMixin<UntypedActorProperties> {
+  UntypedActorContext(
+      IsolateContext isolateContext, UntypedActorProperties actorProperties)
       : super(isolateContext, actorProperties) {
     _isolateContext.messages.listen(_handleMessageFromSupervisor);
 
@@ -32,10 +34,8 @@ class UntypedActorContext<P extends UntypedActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef
-            .sendMessage(MailboxMessage(message.data, message.feedbackPort));
-      } else if (message is SystemRoutingMessage) {
-        _handleSystemRoutingMessage(message);
+        _actorProperties.actorRef.sendMessage(
+            MailboxMessage(message.data, feedbackPort: message.feedbackPort));
       }
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
@@ -60,17 +60,6 @@ class UntypedActorContext<P extends UntypedActorProperties>
       } else {
         _actorProperties.parentRef.sendMessage(message);
       }
-    }
-  }
-
-  void _handleSystemRoutingMessage(SystemRoutingMessage message) async {
-    if (message.data is ActorCreateChild) {
-      var action = message.data as ActorCreateChild;
-
-      var ref = await actorOf(action.name, action.actor,
-          data: action.data, onKill: action.onKill);
-
-      message.sendResult(ref);
     }
   }
 }

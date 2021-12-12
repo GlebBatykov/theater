@@ -45,12 +45,19 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Contains all top-level actor names.
   final List<String> _topLevelActorNames = [];
 
+  bool _isDisposed = false;
+
+  /// Shows the status of dispose.
+  bool get isDisposed => _isDisposed;
+
   /// Used in creation top-level actors, needs for receive response from [UserGuardian].
   ///
   /// If [ActorSystem] call [dispose] method and in this time some top-level actor is in the making - closes all port.
   final List<ReceivePort> _createChildReceivePorts = [];
 
-  ActorSystem(this.name) {
+  ActorSystem(this.name,
+      {ServerConfiguration serverConfiguration =
+          ServerConfiguration.defaultConfiguration}) {
     _rootPath = ActorPath(Address(name), 'root', 0);
 
     _userGuardianPath = _rootPath.createChild('user');
@@ -60,7 +67,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
   /// Uses by the primary initialization [ActorSystem]. Creates and starts root actor and guardians, system actors.
   ///
-  /// Before work with actor system you must initialize her.
+  /// Before work with actor system you must initialize it.
   Future<void> initialize() async {
     _messagePort = ReceivePort();
 
@@ -118,10 +125,10 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
       _createChildReceivePorts.add(receivePort);
 
-      var action = ActorCreateChild(name, actor, data, onKill);
+      var action = UserGuardianCreateTopLevelActor(name, actor, data, onKill);
 
-      _root.ref.sendMessage(SystemRoutingMessage(
-          action, receivePort.sendPort, _userGuardianPath));
+      _root.ref.sendMessage(SystemRoutingMessage(action, _userGuardianPath,
+          feedbackPort: receivePort.sendPort));
 
       late LocalActorRef actorRef;
 
@@ -140,6 +147,20 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
+  ///
+  @override
+  void send(String path, dynamic data, {Duration? delay}) {
+    var recipientPath = _parcePath(path);
+
+    if (delay != null) {
+      Future.delayed(delay, () {
+        _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath));
+      });
+    } else {
+      _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath));
+    }
+  }
+
   /// Sends message to actor which in located on [path].
   ///
   /// If [duration] is not null, message sends after delay equals [duration].
@@ -155,19 +176,20 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   ///
   /// Absolute path given by the full path to the actor from the name of the system of actors.
   @override
-  MessageSubscription send(String path, dynamic data, {Duration? delay}) {
+  MessageSubscription sendAndSubscribe(String path, dynamic data,
+      {Duration? delay}) {
     var recipientPath = _parcePath(path);
 
     var receivePort = ReceivePort();
 
     if (delay != null) {
       Future.delayed(delay, () {
-        _root.ref.sendMessage(
-            ActorRoutingMessage(data, receivePort.sendPort, recipientPath));
+        _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath,
+            feedbackPort: receivePort.sendPort));
       });
     } else {
-      _root.ref.sendMessage(
-          ActorRoutingMessage(data, receivePort.sendPort, recipientPath));
+      _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath,
+          feedbackPort: receivePort.sendPort));
     }
 
     return MessageSubscription(receivePort);
@@ -187,12 +209,10 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
       String topicName, Future<MessageResult?> Function(T) handler) {
     var subscription = _topicMessageController.stream.listen((message) async {
       if (message.topicName == topicName && message.data is T) {
-        var result = await handler.call(message.data);
+        var result = await handler(message.data);
 
-        if (result != null) {
-          message.sendResult(result.data);
-        } else {
-          message.successful();
+        if (message.isHaveSubscription) {
+          result != null ? message.sendResult(result) : message.successful();
         }
       }
     });
@@ -211,5 +231,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     for (var port in _createChildReceivePorts) {
       port.close();
     }
+
+    _isDisposed = true;
   }
 }

@@ -21,9 +21,9 @@ abstract class ActorContextTester<T extends ActorContext> {
     expect(message.data, 'test');
   }
 
-  Future<void> sendWithAbsolutePath(ActorContextTestData<T> data);
+  Future<void> sendAndSubscribeWithAbsolutePath(ActorContextTestData<T> data);
 
-  Future<void> sendWithRelativePath(ActorContextTestData<T> data);
+  Future<void> sendAndSubscribeWithRelativePath(ActorContextTestData<T> data);
 
-  Future<void> sendToHimself(ActorContextTestData<T> data);
+  Future<void> sendAndSubscribeToHimself(ActorContextTestData<T> data);
 }

@@ -31,7 +31,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   for (var i = 0; i < 3; i++) {

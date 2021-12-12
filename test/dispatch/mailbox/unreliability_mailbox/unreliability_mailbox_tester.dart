@@ -11,7 +11,8 @@ class UnreliableMailboxTester<T extends UnreliableMailbox>
     var streamQueue = StreamQueue(data.mailbox.mailboxMessages);
 
     for (var i = 0; i < 5; i++) {
-      data.mailbox.sendPort.send(MailboxMessage(i, data.receivePort.sendPort));
+      data.mailbox.sendPort
+          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),
@@ -23,7 +24,10 @@ class UnreliableMailboxTester<T extends UnreliableMailbox>
 
     for (var i = 0; i < 5; i++) {
       data.mailbox.sendPort.send(ActorRoutingMessage(
-          i + 1, data.receivePort.sendPort, data.recipientPath));
+        i + 1,
+        data.recipientPath,
+        feedbackPort: data.receivePort.sendPort,
+      ));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),
@@ -35,7 +39,10 @@ class UnreliableMailboxTester<T extends UnreliableMailbox>
 
     for (var i = 0; i < 5; i++) {
       data.mailbox.sendPort.send(SystemRoutingMessage(
-          i.toString(), data.receivePort.sendPort, data.recipientPath));
+        i.toString(),
+        data.recipientPath,
+        feedbackPort: data.receivePort.sendPort,
+      ));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),

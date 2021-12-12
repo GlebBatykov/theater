@@ -2,7 +2,10 @@ part of theater.dispatch;
 
 class RemoveActorRef extends ActorRef {
   @override
-  MessageSubscription send(message, {Duration? duration}) {
+  void send(dynamic message, {Duration? duration}) {}
+
+  @override
+  MessageSubscription sendAndSubscribe(message, {Duration? duration}) {
     throw UnimplementedError();
   }
 

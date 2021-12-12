@@ -13,7 +13,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'

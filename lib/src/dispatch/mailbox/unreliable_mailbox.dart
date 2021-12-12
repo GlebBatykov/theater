@@ -25,8 +25,8 @@ class UnreliableMailbox extends Mailbox {
 
   void _handleActorRoutingMessage(ActorRoutingMessage message) {
     if (message.recipientPath == path) {
-      _mailboxMessageController.sink
-          .add(MailboxMessage(message.data, message.feedbackPort));
+      _mailboxMessageController.sink.add(
+          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
     } else {
       _actorRoutingMessageController.sink.add(message);
     }

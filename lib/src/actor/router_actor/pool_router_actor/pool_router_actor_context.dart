@@ -129,8 +129,8 @@ class PoolRouterActorContext
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef
-          .sendMessage(MailboxMessage(message.data, message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(
+          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

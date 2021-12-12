@@ -10,7 +10,24 @@ class LocalActorRef extends ActorRef {
   LocalActorRef(this.path, SendPort sendPort) : _sendPort = sendPort;
 
   @override
-  MessageSubscription send(dynamic message, {Duration? duration}) {
+  void send(dynamic message, {Duration? duration}) {
+    if (message is ActorMessage) {
+      throw ActorRefException(
+          message:
+              'message is instance of [ActorMessage], for sending it use [sendMessage] method of [ActorRef].');
+    } else {
+      if (duration != null) {
+        Future.delayed(duration, () {
+          _sendPort.send(MailboxMessage(message));
+        });
+      } else {
+        _sendPort.send(MailboxMessage(message));
+      }
+    }
+  }
+
+  @override
+  MessageSubscription sendAndSubscribe(dynamic message, {Duration? duration}) {
     if (message is ActorMessage) {
       throw ActorRefException(
           message:
@@ -20,10 +37,12 @@ class LocalActorRef extends ActorRef {
 
       if (duration != null) {
         Future.delayed(duration, () {
-          _sendPort.send(MailboxMessage(message, receivePort.sendPort));
+          _sendPort.send(
+              MailboxMessage(message, feedbackPort: receivePort.sendPort));
         });
       } else {
-        _sendPort.send(MailboxMessage(message, receivePort.sendPort));
+        _sendPort
+            .send(MailboxMessage(message, feedbackPort: receivePort.sendPort));
       }
 
       return MessageSubscription(receivePort);

@@ -5,7 +5,8 @@ class MyActor extends UntypedActor {
   Future<void> onStart(context) async {
     await context.actorOf('second', MySecondActor());
 
-    var subscription = context.send('../second', 'Hello, from actor!');
+    var subscription =
+        context.sendAndSubscribe('../second', 'Hello, from actor!');
 
     subscription.onResponse((response) {
       if (response is MessageResult) {

@@ -12,7 +12,7 @@ abstract class InjectionContainer {
       // Create actor system
       var system = ActorSystem('test_system');
 
-      // Initialize actor system before work with her
+      // Initialize actor system before work with it
       await system.initialize();
 
       return system;

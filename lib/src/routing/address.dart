@@ -8,7 +8,7 @@ class Address {
   ///
   /// - tcp (by default);
   /// - udp.
-  final String protocol;
+  final InternetProtocol protocol;
 
   /// Name of [ActorSystem].
   final String system;
@@ -19,16 +19,14 @@ class Address {
   /// Port which the used [ActorSystem].
   final int? port;
 
-  static const String defaultProtocol = 'tcp';
-
   Address(this.system,
-      {this.protocol = defaultProtocol, String? host, int? port})
+      {this.protocol = InternetProtocol.tcp, String? host, int? port})
       : host = host,
         port = port;
 
   @override
   String toString() {
-    return protocol +
+    return protocol.toString() +
         '://' +
         system +
         (host != null ? '@' + host! : '') +

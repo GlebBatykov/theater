@@ -1,3 +1,19 @@
+# 0.1.4
+
+- Adds a new type of actor - system actor (previously, they were not explicitly present).
+
+- Duplicates each method of sending a message to another actor. There is a version with a subscription to the state of the message (and to reply to messages) and without a subscription. It was done because it is not always necessary to monitor the status or response of a message, but this process creates additional traffic and degrades the speed of sending the application, the performance of the application. Therefore, use the subscription only when you need it.
+
+- Improves scheduler. In addition to repeatedly actions, there are one shot actions.
+  - CancellationToken replace to RepeatedlyActionToken for repeatedly actions and OneShotActionToken for one shot actions.
+  - For OneShotActionToken and RepeatedlyActionToken add the ability to receive links to them and transfer them to other actors (isolates).
+    - Using OneShotActionTokenRef, you can call one shot action from another actor.
+    - Using RepatedlyActionTokenRef, you can stop and resume RepeatedlyAction from another actor.
+
+- Updates documentation.
+- Updates and adds examples.
+- Adds tests.
+
 ## 0.1.3
 
 - Add example.

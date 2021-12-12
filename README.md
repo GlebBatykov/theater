@@ -2,11 +2,13 @@
 
 ![](https://github.com/GlebBatykov/theater/blob/main/logo.png?raw=true)
 
-Actor model implementation in Dart
+Actor framework for Dart
   
 </div>
 
 <div align="center">
+
+[![pub package](https://img.shields.io/pub/v/theater.svg?label=theater&color=blue)](https://pub.dev/packages/theater)
 
 **Languages:**
   
@@ -20,9 +22,9 @@ Actor model implementation in Dart
 - [Installing](#installing)
 - [What is Actor](#what-is-actor)
   - [Notes about the actors](#notes-about-the-actors)
+  - [Using Actors](#using-actors)
 - [Actor system](#actor-system)
   - [Actor tree](#actor-tree)
-  - [Using Actors](#using-actors)
 - [Actor types](#actor-types)
 - [Routing](#routing)
   - [Mailboxes](#mailboxes)
@@ -60,6 +62,7 @@ At the moment, the package is under development, I will be very glad to hear any
 Theater is a package to simplify working with multithreading in Dart, to simplify working with isolates.
 
 It provides:
+
 - a system for routing messages between actors (isolates), which encapsulates work with Receive and Send ports;
 - error handling system at the level of one actor or a group of actors;
 - the ability to configure message routing (special actors - routers that allow you to set one of the proposed message routing strategy between their child actors, the ability to set priority to messages of a certain type);
@@ -122,6 +125,7 @@ First of all, this approach would allow more efficient use of Dart on the server
 A actor system is a group of actors in a hierarchical structure in the form of a tree. In the package, the actor system is represented by the class ActorSystem. Before working with it (creating actors, sending messages, etc.), you need to initialize it. During initialization, the actor system will create the system actors that are required for its operation.
 
 Actors created during the initialization of the actor system:
+
 - Root actor. A unique actor created by the actor system upon initialization. It is unique in that it does not have a parent in the form of another actor, its parent and the one who controls its life cycle is the actor system. At startup, it creates two actors, a system guardian and a user guardian;
 - System guardian. The actor who is the progenitor of all system actors;
 - User guardian. Actor that is the parent of all top-level actors created by the user.
@@ -143,7 +147,7 @@ void main(List<String> arguments) async {
   // Create actor system with name 'test_system'
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -217,7 +221,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -311,7 +315,7 @@ void main(List<String> arguments) async {
   // Create actor system with name 'test_system'
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor' and get ref to it
@@ -368,7 +372,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -411,7 +415,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -456,7 +460,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -486,7 +490,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -527,7 +531,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -565,7 +569,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -581,6 +585,13 @@ An example of creating an actor class and at the start of assigning a handler fo
 
 
 ```dart
+// If you need use your class as message type
+class Dog {
+  final String name;
+
+  Dog(this.name);
+}
+
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -590,10 +601,14 @@ class TestActor extends UntypedActor {
     context.receive<String>((message) async {
       print(message);
     });
-    
+
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+    });
+
+    context.receive<Dog>((message) async {
+      print('Dog name: ' + message.name);
     });
   }
 }
@@ -635,7 +650,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -699,7 +714,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create handler to messages as String from topic with name 'test_topic'
@@ -757,7 +772,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create handler to messages as String from topic with name 'first_test_topic'
@@ -865,7 +880,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -958,7 +973,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -974,7 +989,7 @@ The structure of the actor tree in the actor system created in the example:
   
 </div>
 
-One of the possible output results
+One of the possible output results:
 
 ```dart
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №1
@@ -1053,7 +1068,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -1118,7 +1133,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -1139,6 +1154,7 @@ Hello, from second action!
 # Road map
 
 Currently in development are:
+
 - communication with actor systems located in other Dart VMs via the network (udp, tcp);
 - improvement of the message routing system (more functions and, if necessary, optimization);
 - improvement of the error handling system, error logging.

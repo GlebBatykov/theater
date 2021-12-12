@@ -7,7 +7,7 @@ import 'package:theater/src/actor.dart';
 import 'actor_context_test_data.dart';
 import 'test_actor/test_untyped_actor_2.dart';
 
-class NodeActorRefFactoryTester<T extends NodeActorRefFactory> {
+class NodeActorRefFactoryTester<T extends NodeActorRefFactoryMixin> {
   Future<void> actorOfTest(ActorContextTestData<T> data) async {
     var feedbackPort = ReceivePort();
 

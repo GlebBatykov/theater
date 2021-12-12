@@ -1,6 +1,6 @@
 part of theater.actor;
 
-mixin NodeActorRefFactory<P extends SupervisorActorProperties>
+mixin NodeActorRefFactoryMixin<P extends SupervisorActorProperties>
     on SupervisorActorContext<P> implements ActorRefFactory<NodeActor> {
   @override
   Future<LocalActorRef> actorOf<T extends NodeActor>(String name, T actor,

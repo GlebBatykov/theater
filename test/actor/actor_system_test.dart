@@ -29,7 +29,7 @@ void main() {
         () async {
       var ref = await actorSystem.actorOf('test_actor', TestActor_1());
 
-      var subscription = ref.send('ping');
+      var subscription = ref.sendAndSubscribe('ping');
 
       await expectLater(
           subscription.stream
@@ -39,13 +39,14 @@ void main() {
           emitsThrough('pong'));
     });
 
-    group('.send().', () {
+    group('.sendAndSubscribe().', () {
       test(
           'Use relative path. Sends message to actor using the actor system, using relative path to actor.',
           () async {
         await actorSystem.actorOf('test_actor', TestActor_1());
 
-        var subscription = actorSystem.send('../test_actor', 'ping');
+        var subscription =
+            actorSystem.sendAndSubscribe('../test_actor', 'ping');
 
         await expectLater(
             subscription.stream
@@ -60,8 +61,8 @@ void main() {
           () async {
         await actorSystem.actorOf('test_actor', TestActor_1());
 
-        var subscription =
-            actorSystem.send('test_system/root/user/test_actor', 'ping');
+        var subscription = actorSystem.sendAndSubscribe(
+            'test_system/root/user/test_actor', 'ping');
 
         await expectLater(
             subscription.stream

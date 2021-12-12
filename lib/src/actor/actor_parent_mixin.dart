@@ -1,6 +1,6 @@
 part of theater.actor;
 
-mixin ActorParent<P extends SupervisorActorProperties> on ActorContext<P> {
+mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   final List<ActorCell> _children = [];
 
   final StreamController<ActorError> _childErrorController =

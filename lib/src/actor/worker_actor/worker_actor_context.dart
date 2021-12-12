@@ -17,9 +17,11 @@ class WorkerActorContext<P extends WorkerActorProperties>
             _receiveHandlers[type]!.map((element) => Future(() async {
                   var result = await element(message.data);
 
-                  result != null
-                      ? message.sendResult(result.data)
-                      : message.successful();
+                  if (message.isHaveSubscription) {
+                    result != null
+                        ? message.sendResult(result.data)
+                        : message.successful();
+                  }
                 })));
 
         _isolateContext.supervisorMessagePort
@@ -47,8 +49,8 @@ class WorkerActorContext<P extends WorkerActorProperties>
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef
-          .sendMessage(MailboxMessage(message.data, message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(
+          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

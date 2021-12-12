@@ -5,8 +5,10 @@ class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Get message from actor context
-    print(context.data['message']);
+    // Get message from actor store
+    var message = context.store.get<String>('message');
+
+    print(message);
   }
 }
 
@@ -14,7 +16,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   var data = <String, dynamic>{'message': 'Hello, actor world'};

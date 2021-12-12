@@ -13,11 +13,12 @@ class RootActorContextTester<T extends RootActorContext>
     extends ActorContextTester<T>
     with NodeActorRefFactoryTester<T>, ActorParentTester<T> {
   @override
-  Future<void> sendWithAbsolutePath(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeWithAbsolutePath(
+      ActorContextTestData<T> data) async {
     await data.actorContext.actorOf('test_child', TestUntypedActor_1());
 
     var subscription = data.actorContext
-        .send('test_system/test/test_child', 'Hello, test world!');
+        .sendAndSubscribe('test_system/test/test_child', 'Hello, test world!');
 
     var result = await subscription.stream.first;
 
@@ -26,11 +27,12 @@ class RootActorContextTester<T extends RootActorContext>
   }
 
   @override
-  Future<void> sendWithRelativePath(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeWithRelativePath(
+      ActorContextTestData<T> data) async {
     await data.actorContext.actorOf('test_child', TestUntypedActor_1());
 
-    var subscription =
-        data.actorContext.send('../test_child', 'Hello, test world!');
+    var subscription = data.actorContext
+        .sendAndSubscribe('../test_child', 'Hello, test world!');
 
     var result = await subscription.stream.first;
 
@@ -39,7 +41,7 @@ class RootActorContextTester<T extends RootActorContext>
   }
 
   @override
-  Future<void> sendToHimself(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeToHimself(ActorContextTestData<T> data) async {
     data.actorContext.send('test_system/test', 'Hello, test world!');
 
     var message = await data.mailbox.mailboxMessages.first;

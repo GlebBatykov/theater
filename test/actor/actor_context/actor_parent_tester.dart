@@ -4,7 +4,7 @@ import 'package:theater/src/actor.dart';
 
 import 'actor_context_test_data.dart';
 
-class ActorParentTester<T extends ActorParent> {
+class ActorParentTester<T extends ActorParentMixin> {
   Future<void> killChildrenTest(ActorContextTestData<T> data) async {
     var streamQueue = StreamQueue(data.feedbackPort!.asBroadcastStream());
 

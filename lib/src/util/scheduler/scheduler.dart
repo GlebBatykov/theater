@@ -4,6 +4,38 @@ part of theater.util;
 ///
 /// Everything that this class does can be implemented independently using [Timer] and [Future.delayed]. This class is a comfortable abstraction.
 class Scheduler {
+  final List<RepeatedlyAction> _repeatedlyActions = [];
+
+  final List<OneShotAction> _oneShotActions = [];
+
+  void scheduleRepeatedlyAction(
+      {Duration? initialDelay,
+      required Duration interval,
+      required RepeatedlyActionCallback action,
+      RepeatedlyActionToken? actionToken,
+      RepeatedlyActionCallback? onStop,
+      RepeatedlyActionCallback? onResume}) {
+    var repeatedlyAction = RepeatedlyAction(
+        interval: interval,
+        action: action,
+        initialDelay: initialDelay,
+        onStop: onStop,
+        onResume: onResume);
+
+    repeatedlyAction.start();
+
+    _repeatedlyActions.add(repeatedlyAction);
+  }
+
+  void scheduleOneShotAction(
+      {required void Function(OneShotActionContext) action,
+      required OneShotActionToken actionToken}) {
+    var oneShotAction = OneShotAction(action: action, actionToken: actionToken);
+
+    _oneShotActions.add(oneShotAction);
+  }
+
+  /*
   /// Creates an action that is performed at regular intervals.
   ///
   /// The interval is set by the value [interval].
@@ -12,27 +44,39 @@ class Scheduler {
   void scheduleActionRepeatedly(
       {Duration? initDelay,
       required Duration? interval,
-      required void Function() action,
-      CancellationToken? cancellationToken}) {
+      required void Function(RepeatedlyActionContext) action,
+      CancellationToken? cancellationToken,
+      void Function(RepeatedlyActionContext)? onCancel}) {
     if (cancellationToken != null) {
       if (!cancellationToken.isCanceled) {
-        _runAction(initDelay, interval, action, cancellationToken);
+        _runAction(initDelay, interval, action, cancellationToken, onCancel);
       }
     } else {
-      _runAction(initDelay, interval, action, cancellationToken);
+      _runAction(initDelay, interval, action, cancellationToken, onCancel);
     }
   }
 
-  void _runAction(Duration? initDelay, Duration? interval,
-      void Function() action, CancellationToken? cancellationToken) {
+  void _runAction(
+      Duration? initDelay,
+      Duration? interval,
+      void Function(RepeatedlyActionContext) action,
+      CancellationToken? cancellationToken,
+      void Function(RepeatedlyActionContext)? onCancel) {
+    var number = 0;
+
     Future.delayed(initDelay ?? Duration(), () {
       var timer = Timer.periodic(interval ?? Duration(), (timer) {
-        action();
+        number++;
+
+        action(RepeatedlyActionContext(number));
       });
 
       cancellationToken?.addOnCancelListener(() {
         timer.cancel();
+
+        onCancel?.call(RepeatedlyActionContext(number));
       });
     });
   }
+  */
 }
