@@ -135,6 +135,65 @@ abstract class ActorContext<P extends ActorProperties>
     return MessageSubscription(receivePort);
   }
 
+  /// Checks if the register exist a reference to an actor with path - [path].
+  ///
+  /// If exist return [LocalActorRef] pointing to him.
+  ///
+  /// If not exist return null.
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from current actor.
+  ///
+  /// For example current actor has the name "my_actor", you can point out this path "system/root/user/my_actor/my_child" like "../my_child".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
+  Future<LocalActorRef?> getLocalActorRef(String path) async {
+    var actorPath = _parcePath(path);
+
+    var receivePort = ReceivePort();
+
+    _actorProperties.actorSystemMessagePort
+        .send(ActorSystemGetUserLocalActorRef(actorPath, receivePort.sendPort));
+
+    var result = await receivePort.first as ActorSystemGetLocalActorRefResult;
+
+    receivePort.close();
+
+    return result.ref;
+  }
+
+  /// Checks if the register exist a reference to an actor with path - [path].
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from current actor.
+  ///
+  /// For example current actor has the name "my_actor", you can point out this path "system/root/user/my_actor/my_child" like "../my_child".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
+  Future<bool> isExistLocalActorRef(String path) async {
+    var actorPath = _parcePath(path);
+
+    var receivePort = ReceivePort();
+
+    _actorProperties.actorSystemMessagePort.send(
+        ActorSystemIsExistUserLocalActorRef(actorPath, receivePort.sendPort));
+
+    var result =
+        await receivePort.first as ActorSystemIsExistLocalActorRefResult;
+
+    receivePort.close();
+
+    return result.isExist;
+  }
+
   /// Used for parcing [ActorPath] from path string.
   ActorPath _parcePath(String path) {
     if (ActorPath.isRelativePath(path)) {

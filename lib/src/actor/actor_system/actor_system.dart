@@ -45,15 +45,21 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Contains all top-level actor names.
   final List<String> _topLevelActorNames = [];
 
-  bool _isDisposed = false;
+  /// Instance of [LocalActorRefRegister] used to store links to user actors.
+  final LocalActorRefRegister _userActorRegister = LocalActorRefRegister();
 
-  /// Shows the status of dispose.
-  bool get isDisposed => _isDisposed;
+  /// Instance of [LocalActorRefRegister] used to store links to system actors.
+  final LocalActorRefRegister _systemActorRegister = LocalActorRefRegister();
+
+  bool _isDisposed = false;
 
   /// Used in creation top-level actors, needs for receive response from [UserGuardian].
   ///
   /// If [ActorSystem] call [dispose] method and in this time some top-level actor is in the making - closes all port.
   final List<ReceivePort> _createChildReceivePorts = [];
+
+  /// Shows the status of dispose.
+  bool get isDisposed => _isDisposed;
 
   ActorSystem(this.name,
       {ServerConfiguration serverConfiguration =
@@ -74,6 +80,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     _messagePort.listen((message) {
       if (message is ActorSystemTopicMessage) {
         _topicMessageController.sink.add(message);
+      } else if (message is ActorSystemAction) {
+        _handleActorSystemAction(message);
       }
     });
 
@@ -91,6 +99,51 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     await _root.initialize();
 
     await _root.start();
+  }
+
+  void _handleActorSystemAction(ActorSystemAction action) {
+    if (action is ActorSystemRegisterLocalActorRef) {
+      _handleActorSystemRegisterLocalActorRefAction(action);
+    } else if (action is ActorSystemGetLocalActorRef) {
+      _handleActorSystemGetLocalActorRefAction(action);
+    } else if (action is ActorSystemIsExistLocalActorRef) {
+      _handleActorSystemIsExistLocalActorRef(action);
+    }
+  }
+
+  void _handleActorSystemRegisterLocalActorRefAction(
+      ActorSystemRegisterLocalActorRef action) {
+    if (action is ActorSystemRegisterUserLocalActorRef) {
+      _userActorRegister.registerRef(action.ref);
+    } else if (action is ActorSystemRegisterSystemLocalActorRef) {
+      _systemActorRegister.registerRef(action.ref);
+    }
+  }
+
+  void _handleActorSystemGetLocalActorRefAction(
+      ActorSystemGetLocalActorRef action) {
+    if (action is ActorSystemGetUserLocalActorRef) {
+      var ref = _userActorRegister.getRefByPath(action.actorPath);
+
+      action.feedbackPort.send(ActorSystemGetLocalActorRefResult(ref));
+    } else if (action is ActorSystemGetSystemLocalActorRef) {
+      var ref = _systemActorRegister.getRefByPath(action.actorPath);
+
+      action.feedbackPort.send(ActorSystemGetLocalActorRefResult(ref));
+    }
+  }
+
+  void _handleActorSystemIsExistLocalActorRef(
+      ActorSystemIsExistLocalActorRef action) {
+    if (action is ActorSystemIsExistUserLocalActorRef) {
+      var isExist = _userActorRegister.isExistsByPath(action.actorPath);
+
+      action.feedbackPort.send(ActorSystemIsExistLocalActorRefResult(isExist));
+    } else if (action is ActorSystemIsExistSystemLocalActorRef) {
+      var isExist = _systemActorRegister.isExistsByPath(action.actorPath);
+
+      action.feedbackPort.send(ActorSystemIsExistLocalActorRefResult(isExist));
+    }
   }
 
   /// Pauses all actors in actor system.
@@ -147,7 +200,20 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
+  /// Sends message to actor which in located on [path].
   ///
+  /// If [delay] is not null, message sends after delay equals [duration].
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from [UserGuardian].
+  ///
+  /// For example, you can point out this path "system/root/user/my_actor" like "../my_actor".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
   @override
   void send(String path, dynamic data, {Duration? delay}) {
     var recipientPath = _parcePath(path);
@@ -161,9 +227,9 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
-  /// Sends message to actor which in located on [path].
+  /// Sends message to actor which in located on [path] and return subscribe to message.
   ///
-  /// If [duration] is not null, message sends after delay equals [duration].
+  /// If [delay] is not null, message sends after delay equals [duration].
   ///
   /// You have two way how point out path to actor:
   ///
@@ -218,6 +284,46 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     });
 
     return subscription;
+  }
+
+  /// Checks if the register exist a reference to an actor with path - [path].
+  ///
+  /// If exist return [LocalActorRef] pointing to him.
+  ///
+  /// If not exist return null.
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from [UserGuardian].
+  ///
+  /// For example, you can point out this path "system/root/user/my_actor" like "../my_actor".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
+  LocalActorRef? getLocalActorRef(String path) {
+    var actorPath = _parcePath(path);
+
+    return _userActorRegister.getRefByPath(actorPath);
+  }
+
+  /// Checks if the register exist a reference to an actor with path - [path].
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from [UserGuardian].
+  ///
+  /// For example, you can point out this path "system/root/user/my_actor" like "../my_actor".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
+  bool isExistLocalActorRef(String path) {
+    var actorPath = _parcePath(path);
+
+    return _userActorRegister.isExistsByPath(actorPath);
   }
 
   /// Kills all actors in actor system and frees all resources, close all streams that were used by the actor system.

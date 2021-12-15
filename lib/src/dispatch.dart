@@ -36,11 +36,14 @@ part 'dispatch/message/actor_system_topic_message.dart';
 part 'dispatch/ref/ref.dart';
 part 'dispatch/ref/actor_ref.dart';
 part 'dispatch/ref/local_actor_ref.dart';
-part 'dispatch/ref/remove_actor_ref.dart';
+part 'dispatch/ref/remote_actor_ref.dart';
 part 'dispatch/ref/cancellation_token_ref.dart';
 part 'dispatch/ref/scheduler_action_token_ref/callable_action_token_ref.dart';
 part 'dispatch/ref/scheduler_action_token_ref/repeatedly_action_token_ref.dart';
 part 'dispatch/ref/scheduler_action_token_ref/scheduler_action_token_ref.dart';
+
+part 'dispatch/ref/ref_register/ref_register.dart';
+part 'dispatch/ref/ref_register/actor_ref_register/local_actor_ref_register.dart';
 
 part 'dispatch/exception/actor_ref_exception.dart';
 part 'dispatch/exception/cancellation_token_ref_exception.dart';

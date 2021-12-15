@@ -4,7 +4,8 @@ part of theater.actor;
 ///
 /// Receive messages from other actors, create a group of child actors and control their life cycle.
 class GroupRouterActorContext
-    extends RouterActorContext<GroupRouterActorProperties> {
+    extends RouterActorContext<GroupRouterActorProperties>
+    with UserActorContextMixin<GroupRouterActorProperties> {
   GroupRouterActorContext(
       IsolateContext isolateContext, GroupRouterActorProperties actorProperties)
       : super(isolateContext, actorProperties) {

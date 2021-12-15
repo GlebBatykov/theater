@@ -1,6 +1,6 @@
 part of theater.dispatch;
 
-class RemoveActorRef extends ActorRef {
+class RemoteActorRef extends ActorRef {
   @override
   void send(dynamic message, {Duration? duration}) {}
 
