@@ -32,7 +32,7 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
         SystemActorIsolateHandlerFactory(),
         SystemActorContextFactory(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace.toString()));
+          .add(ActorError(path, error.exception, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
@@ -68,7 +68,7 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
               message: 'Receive escalate error from [' +
                   event.error.path.toString() +
                   '].'),
-          StackTrace.current.toString(),
+          StackTrace.current,
           parent: event.error));
     }
   }

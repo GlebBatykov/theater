@@ -30,7 +30,7 @@ class WorkerActorCell extends SheetActorCell<WorkerActor> {
         WorkerActorIsolateHandlerFactory(),
         WorkerActorContextFactory(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace.toString()));
+          .add(ActorError(path, error.exception, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
@@ -60,7 +60,7 @@ class WorkerActorCell extends SheetActorCell<WorkerActor> {
               message: 'Untyped escalate error from [' +
                   event.error.path.toString() +
                   '].'),
-          StackTrace.current.toString(),
+          StackTrace.current,
           parent: event.error));
     } else if (event is ActorCompletedTask) {
       _messageController.sink.add(event);

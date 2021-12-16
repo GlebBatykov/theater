@@ -32,7 +32,7 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
         RouterActorIsolateHandlerFactory(),
         PoolRouterActorContextFactory(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace.toString()));
+          .add(ActorError(path, error.exception, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
@@ -64,7 +64,7 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
               message: 'Untyped escalate error from [' +
                   event.error.path.toString() +
                   '].'),
-          StackTrace.current.toString(),
+          StackTrace.current,
           parent: event.error));
     }
   }
