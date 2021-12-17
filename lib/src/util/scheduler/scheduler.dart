@@ -18,6 +18,7 @@ class Scheduler {
     var repeatedlyAction = RepeatedlyAction(
         interval: interval,
         action: action,
+        actionToken: actionToken,
         initialDelay: initialDelay,
         onStop: onStop,
         onResume: onResume);

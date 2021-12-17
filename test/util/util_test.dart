@@ -228,12 +228,10 @@ void main() {
 
     group('repeatedly_action_context', () {
       test('.number. ', () async {});
+    });
 
-      test('.cancel(). ', () async {});
-
-      test('.stop(). ', () async {});
-
-      test('.resume(). ', () async {});
+    group('one_shot_action_context', () {
+      test('.number. ', () async {});
     });
   }, timeout: Timeout(Duration(seconds: 1)));
 }

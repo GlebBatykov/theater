@@ -44,6 +44,9 @@
 - [Наблюдение и обработка ошибок](#наблюдение-и-обработка-ошибок)
 - [Утилиты](#утилиты)
   - [Планировщик](#планировщик)
+    - [Повторяющееся действие](#повторяющееся-действие)
+    - [Остановка и возобновление повторяющегося действия](#остановка-и-возобновление-повторяющегося-действия)
+    - [Одиночное действие](#одиночное-действие)
 - [Дорожная карта](#дорожная-карта)
 
 # Введение
@@ -1090,11 +1093,16 @@ void main(List<String> arguments) async {
 
 Планировщик это класс делающий более удобным создание некоторых задач которые должны повторятся спустя некое время. Каждый контекст актора имеет свой экземпляр планировщика, однако вы и сами можете создать свой экземпляр планировщика.
 
-На самом деле в Dart-е задачи исполняющиеся периодически спустя некоторое время и так очень легко реализовать при помощи Timer, так что в Theater планировщик является лишь удобной абстракцией для этого. К примеру планировщик в Theater позволяет отменять несколько задач сразу при помощи токена отмены (CancellationToken).
+При помощи планировщика можно создавать запланированные действия. Есть два типа действий:
 
-В данный момент планировщик находится в стадии разработки и планируется добавить в него к примеру возможность передачи токенов отмены в другие акторы (в данный момент это невозможно), это позволит отменять запланировнные задачи из других акторов.
+- повторяющееся действие;
+- одиночное действие.
 
-Пример создания задач при помощи планировщика, отмены запланировнных задач спустя 3 секунды при помощи токена отмены:
+### Повторяющееся действие
+
+Иногда возникает необходимость совершать некоторые повторяющиеся действия через заданный промежуток времени. Для таких случаев планировщик в Theater может создавать повторяющиеся действия.
+
+В этом примере мы создам актора который будет каждую секунду выводить в консоль сообщение 'Hello, actor world!':
 
 ```dart
 // Create actor class
@@ -1102,30 +1110,218 @@ class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create cancellation token
-    var cancellationToken = CancellationToken();
-
-    // Create first repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
+    // Create repeatedly action in scheduler
+    context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
-        action: () {
-          print('Hello, from first action!');
-        },
-        cancellationToken: cancellationToken);
+        action: (RepeatedlyActionContext context) {
+          print('Hello, actor world!');
+        });
+  }
+}
 
-    // Create second repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
-        initDelay: Duration(seconds: 1),
-        interval: Duration(milliseconds: 500),
-        action: () {
-          print('Hello, from second action!');
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+
+```
+
+У действия есть контекст который содержит информацию о действии (например счётчик количества срабатывания действия).
+
+### Остановка и возобновление повторяющегося действия
+
+В процессе использования повторяющихся действий в планировщике Theater-а может возникнуть необходимость остановки запланированного повторяющегося действия.
+
+Для этого существует токен повторяющегося действия. При помощи него можно останавливать и возобновлять запланированные действия.
+
+Пример планирования повторяющегося действия и остановки его через 3 секунды при помощи токена:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
         },
-        cancellationToken: cancellationToken);
+        actionToken: actionToken);
 
     Future.delayed(Duration(seconds: 3), () {
-      // Cancel actions after 3 seconds
-      cancellationToken.cancel();
+      // Stop action
+      actionToken.stop();
     });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+Вы можете использовать один токен для любого количества повторяющихся действий.
+
+Пример планирования двух повторяющихся действий с одним токеном, их отмена через 2 секунды и возобновление через 3 секунду после остановки:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from first action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('First action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('First action resumed!');
+        },
+        actionToken: actionToken);
+
+    // Create second repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from second action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('Second action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('Second action resumed!');
+        },
+        actionToken: actionToken);
+
+    Future.delayed(Duration(seconds: 2), () {
+      // Stop action
+      actionToken.stop();
+
+      Future.delayed(Duration(seconds: 3), () {
+        // Resume action
+        actionToken.resume();
+      });
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+При помощи токена вы можете останавливать и возобновлять повторяющиеся действия в акторе в котором был создан токен. Но для ситуаций в которых вам необходимо останавливать и возобновлять действия в других акторах есть возможность получить ссылку на созданный токен и передать её в другой актор.
+
+Пример планирования повторяющегося действия, получение ссылки на токен, передача ссылки другому актору и отмена действия из другого актора через 5 секунд при помощи ссылки:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action in scheduler with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<RepeatedlyActionTokenRef>('action_token_ref');
+
+    Future.delayed(Duration(seconds: 5), () {
+      // Stop action in other actor
+      ref.stop();
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
+### Одиночное действие
+
+В планировщике вы можете создавать одиночные действия выполняемые когда их вызывают при помощи токена или при помощи ссылки на него. Такие действия могут быть полезные когда вы хотите запускать какое либо действие или несколько действий (при помощи одного токена) в акторе. Такие действия не предусматривают передачу каких либо параметров для их запуска.
+
+Пример планирования одиночного действия и вызов его при помощи токена:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
   }
 }
 
@@ -1141,14 +1337,99 @@ void main(List<String> arguments) async {
 }
 ```
 
-Ожидаемый вывод:
+При необходимости вы можете использовать один токен сразу для нескольких одиночных действий, запуская их вместе.
+
+Пример планирования двух одиночных действий с одним токеном, вызов их при помощи токена:
 
 ```dart
-Hello, from first action!
-Hello, from second action!
-Hello, from first action!
-Hello, from second action!
-Hello, from second action!
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create first action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
+          print('Hello, from first action!');
+        },
+        actionToken: actionToken);
+
+    // Create second action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
+          print('Hello, from second action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+Как и при использовании токена для повторяющихся действия вы можете получить ссылку на токен и передать её в другой актор.
+
+Пример планирования одиночного действия, получения ссылки на его токен, передача ссылки другому актору и вызов действия из другого актора при помощи ссылки:
+
+```dart
+// Create first actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<OneShotActionTokenRef>('action_token_ref');
+
+    // Call action in other actor
+    ref.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
 ```
 
 # Дорожная карта
@@ -1156,5 +1437,4 @@ Hello, from second action!
 Сейчас в разработке находятся:
 
 - общение с системами акторов находящяхся в других Dart VM через сеть (udp, tcp);
-- улучшение системы маршрутизации сообщений (больше функций и если необходимо то оптимизация);
 - улучшение системы обработки ошибок, логирование ошибок.

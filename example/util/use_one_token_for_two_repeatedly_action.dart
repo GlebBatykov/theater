@@ -12,13 +12,38 @@ class TestActor extends UntypedActor {
     context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
         action: (RepeatedlyActionContext context) {
-          print(context.counter);
+          print('Hello, from first action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('First action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('First action resumed!');
         },
         actionToken: actionToken);
 
-    Future.delayed(Duration(seconds: 3), () {
+    // Create second repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from second action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('Second action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('Second action resumed!');
+        },
+        actionToken: actionToken);
+
+    Future.delayed(Duration(seconds: 2), () {
       // Stop action
       actionToken.stop();
+
+      Future.delayed(Duration(seconds: 3), () {
+        // Resume action
+        actionToken.resume();
+      });
     });
   }
 }

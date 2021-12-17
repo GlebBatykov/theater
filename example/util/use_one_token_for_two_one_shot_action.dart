@@ -1,24 +1,28 @@
 import 'package:theater/theater.dart';
 
-// Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create first repeatedly action in scheduler
-    context.scheduler.scheduleRepeatedlyAction(
-        interval: Duration(seconds: 1),
-        action: (RepeatedlyActionContext actionContext) {
-          print('Hello, from first action!');
-        });
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
 
-    // Create second repeatedly action in scheduler
-    context.scheduler.scheduleRepeatedlyAction(
-        initialDelay: Duration(seconds: 1),
-        interval: Duration(milliseconds: 500),
-        action: (RepeatedlyActionContext actionContext) {
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
+          print('Hello, from first action!');
+        },
+        actionToken: actionToken);
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (context) {
           print('Hello, from second action!');
-        });
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
   }
 }
 

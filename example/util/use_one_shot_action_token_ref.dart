@@ -11,7 +11,7 @@ class TestActor extends UntypedActor {
     // Create one shot action in scheduler
     context.scheduler.scheduleOneShotAction(
         action: (context) {
-          print('Hello, from callable action!');
+          print('Hello, from one shot action!');
         },
         actionToken: actionToken);
 

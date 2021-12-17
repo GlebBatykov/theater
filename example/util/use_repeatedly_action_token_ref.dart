@@ -11,7 +11,7 @@ class FirstTestActor extends UntypedActor {
     // Create repeatedly action in scheduler with repeatedly action token
     context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
-        action: (context) {
+        action: (RepeatedlyActionContext context) {
           print(context.counter);
         },
         actionToken: actionToken);
