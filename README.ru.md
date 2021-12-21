@@ -39,6 +39,7 @@
     - [Прием сообщений](#прием-сообщений)
     - [Получение ответа на сообщение](#получение-ответа-на-сообщение)
     - [Прослушивание сообщений системой акторов](#прослушивание-сообщений-системой-акторов)
+    - [Скорость посылки сообщений](#скорость-посылки-сообщений)
   - [Маршрутизаторы](#машрутизаторы)
     - [Маршрутизатор группы](#маршрутизатор-группы)
     - [Маршрутизатор пула](#маршрутизатор-пула)
@@ -443,9 +444,9 @@ void main(List<String> arguments) async {
 
 Получение ссылки на актора при его создании.
 
-Создавая актора при помощи ActorSystem или ActorContext вы получаете локальную ссылку на него.
+Создавая актора при помощи системы акторов или контекста актора вы получаете локальную ссылку на него.
 
-Пример создания актора при помощи ActorSystem и получение ссылки на него:
+Пример создания актора при помощи системы акторов и получение ссылки на него:
 
 ```dart
 // Create actor class
@@ -463,7 +464,7 @@ void main(List<String> arguments) async {
 }
 ```
 
-Пример создания актора при помощи ActorContext и получение ссылки на него:
+Пример создания актора при помощи контекста актора и получение ссылки на него:
 
 ```dart
 // Create first actor class
@@ -493,7 +494,135 @@ void main(List<String> arguments) async {
 
 Передача ссылки на актора в другой актор.
 
+В Theater при создании актора при помощи системы акторов или контекста актора вы получаете ссылку на актора. При помощи ссылки вы можете отправлять сообщения актору. При необходимости вы можете передать ссылку на актора другому актору в сообщении или при создании актора.
+
+Пример создания двух акторов, передачи ссылки на актора №1 актору №2 при создании актора №2, посылки сообщения из актора №2 актору №1 при помощи ссылки:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  late LocalActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref from actor store
+    _ref = context.store.get<LocalActorRef>('first_test_actor_ref');
+
+    // Send message
+    _ref.send('Hello, from second test actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  var ref = await system.actorOf('first_test_actor', FirstTestActor());
+
+  var data = <String, dynamic>{'first_test_actor_ref': ref};
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor(), data: data);
+}
+```
+
 Получение ссылки на актора из регистра ссылок.
+
+В Theater вы можете отправлять сообщения акторам различными способами, при помощи ссылок на них, а так же без ссылки. Ссылку на актора вы получаете при создании актора, а так же можете передать ссылку в другой актор. Однако передача ссылок явно может быть не самым удобным способом получить ссылку на какого либо актора. Поэтому в системе акторов есть место которое хранит ссылки на всех существующих акторов. Это место называется - регистр ссылок. Каждый актор при создании добавляет ссылку на себя в регистр. При помощи системы акторов или контекста актора вы можете получить ссылку на любого актора из регистра.
+
+Пример получения ссылки на актора из регистра при помощи системы акторов:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('test_actor', TestActor());
+
+  // Get ref to actor with relative path '../test_actor' from ref register
+  // We use here relative path, but absolute path to actor with name 'test_actor' equal - 'test_system/root/user/test_actor'
+  var ref = system.getLocalActorRef('../test_actor');
+
+  ref?.send('Hello, from main!');
+}
+```
+
+Пример получения ссылки на актора из регистра при помощи контекста актора:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+
+    // Create child actor with name 'second_test_actor'
+    await context.actorOf('second_test_actor', SecondTestActor());
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref to actor with path 'test_system/root/user/first_test_actor' from ref register
+    var ref = await context
+        .getLocalActorRef('test_system/root/user/first_test_actor');
+
+    // If ref exist (not null) send message
+    ref?.send('Hello, from second actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
 
 ### Отправка без ссылки
 
@@ -873,6 +1002,8 @@ This is String
 Hello, from main!
 246.8
 ```
+
+### Скорость посылки сообщений
 
 ## Машрутизаторы
 
