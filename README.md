@@ -33,16 +33,21 @@ Actor framework for Dart
     - [Priority mailbox](#priority-mailbox)
   - [Sending messages](#sending-messages)
     - [Send by link](#send-by-link)
+    - [Getting link](#getting-link)
     - [Send without link](#send-without-link)
     - [Receiving messages](#receiving-messages)
     - [Get message response](#get-message-response)
     - [Listening messages by the actor system](#listening-messages-by-the-actor-system)
+    - [Message sending rate](#message-sending-rate)
   - [Routers](#routers)
     - [Group router](#group-router)
     - [Pool router](#pool-router)
 - [Supervising and error handling](#supervising-and-error-handling)
 - [Utilities](#utilities)
   - [Scheduler](#scheduler)
+    - [Repeatedly action](#repeatedly-action)
+    - [Stop and resume repeatedly action](#stop-and-resume-repeatedly-action)
+    - [One shot action](#one-shot-action)
 - [Road map](#road-map)
 
 # Introduction
@@ -176,14 +181,16 @@ This is how the tree of actors can be shown at the picture below:
 </div>
   
 Actors in the tree are divided into 2 categories:
+
 - supervisor. Supervisor are those actors who can create their own child actors (and themselves, in turn, have a supervisor actor);
 - observable. Observable actors are actors that cannot create child actors.
 
 Supervisors control the life cycle of their child actors (start, kill, stop, resume, restart), they receive messages about errors occurring in the child actors and make decisions in accordance with the established strategy (SupervisorStrategy). You can read more about error handling in child actors [here](#supervising-and-error-handling).
 
 If we transfer these 2 categories to concepts closer to the structure of the tree, these categories can be called as follows:
-- Supervisor actor is a node of the tree;
-- Observed actor is a sheet of the tree.
+
+- supervisor actor is a node of the tree;
+- observed actor is a sheet of the tree.
 
 A special case of an actor-node is a root actor. This is an actor who has child actors, but at the same time does not have an supervisor in the form of another actor. Its supervisor is the actor system itself.
   
@@ -232,16 +239,15 @@ void main(List<String> arguments) async {
 Expected output:
 
 ```dart
-tcp://test_system/root/user/test_actor
+test_system/root/user/test_actor
 ```
-
-In the example, the full path to the actor also has "tcp" at the beginning. What does this mean? Currently in development is the ability to communicate through the network of several systems of actors in different Dart VMs. The prefix at the beginning of the path to the actor will mean the network protocol in the actor system for other actor system communication over the network.
 
 ## Mailboxes
 
 Each actor has a mailbox in the Theater. The mailbox is the place where requests addressed to the actor go.
 
 Mailboxes are divided into 2 types:
+
 - unreliable;
 - reliable.
 
@@ -425,6 +431,196 @@ void main(List<String> arguments) async {
 
 Thus, you can send messages to the actors by their links. Links, if desired, can be passed to other actors.
 
+### Getting link
+
+At Theater, you can send messages in several ways, one of which is sending a message via a link. You can get a link to an actor in the following ways:
+
+- having created an actor you will receive a link to him;
+- you can pass a link to an actor to another actor;
+- you can get the link to the actor from the link register.
+
+Getting a link to an actor when it is created.
+
+When you create an actor using an actor system or an actor context, you get a local link to it.
+
+An example of creating an actor using the system of actors and getting a link to it:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor' and get ref to him
+  var ref = await system.actorOf('test_actor', TestActor());
+}
+```
+
+An example of creating an actor using the actor context and getting a link to it:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create child actor with name 'second_test_actor' and get ref to him
+    var ref = context.actorOf('second_test_actor', SecondTestActor());
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor' and get ref to him
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
+Passing an actor link to another actor.
+
+In Theater, when you create an actor using an actor system or an actor context, you get a link to the actor. Using the link, you can send messages to the actor. If necessary, you can pass a link to an actor to another actor in a message or when creating an actor.
+
+An example of creating two actors, transferring a link to actor №1 to actor №2 when creating actor №2, sending message from actor №2 to actor №1 using the link:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  late LocalActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref from actor store
+    _ref = context.store.get<LocalActorRef>('first_test_actor_ref');
+
+    // Send message
+    _ref.send('Hello, from second test actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  var ref = await system.actorOf('first_test_actor', FirstTestActor());
+
+  var data = <String, dynamic>{'first_test_actor_ref': ref};
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor(), data: data);
+}
+```
+
+Getting a link to an actor from the link register.
+
+In Theater, you can send messages to actors in various ways, using links to them, as well as without a link. You get a link to an actor when creating an actor, and you can also transfer a link to another actor. However, sending links clearly may not be the most convenient way to get a link to an actor. Therefore, in the system of actors there is a place that stores references to all existing actors. This place is called - the register of links. Each actor, upon creation, adds a link to itself to the register. Using the actor system or actor context, you can get a reference to any actor from the register.
+
+An example of getting a link to an actor from a register using the actor system:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('test_actor', TestActor());
+
+  // Get ref to actor with relative path '../test_actor' from ref register
+  // We use here relative path, but absolute path to actor with name 'test_actor' equal - 'test_system/root/user/test_actor'
+  var ref = system.getLocalActorRef('../test_actor');
+
+  ref?.send('Hello, from main!');
+}
+```
+
+An example of getting a link to an actor from a register using the actor context:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+
+    // Create child actor with name 'second_test_actor'
+    await context.actorOf('second_test_actor', SecondTestActor());
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref to actor with path 'test_system/root/user/first_test_actor' from ref register
+    var ref = await context
+        .getLocalActorRef('test_system/root/user/first_test_actor');
+
+    // If ref exist (not null) send message
+    ref?.send('Hello, from second actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
 ### Send without link
 
 In Theater, you can send messages to actors using an actor link, the link you get when you create an actor using the actor system or through the actor context.
@@ -434,8 +630,9 @@ However, using a link may not always be convenient, for example, in cases where 
 To avoid such inconveniences, Theater has a special type of messages indicating the addressee. When an actor receives a message of this type on his mailbox, he verifies his address and the address specified in the message. If the message is not addressed to him, he, depending on the specified address, transmits this message up or down the tree of actors.
 
 To send such a message, you need to use the send method of the actor system or the actor context. There are 2 types of set addresses:
-- Absolute;
-- Relative.
+
+- absolute;
+- relative.
 
 An absolute path is a full path to an actor starting from the name of the actor system, for example - "test_system/root/user/test_actor".
 
@@ -583,7 +780,6 @@ Each actor can receive messages and handle them. To assign a handler to an actor
 
 An example of creating an actor class and at the start of assigning a handler for receiving messages of type String and int:
 
-
 ```dart
 // If you need use your class as message type
 class Dog {
@@ -623,6 +819,7 @@ When you send a message by reference or using a path, you always get a MessageSu
 Using the onResponse method, you can assign a handler to receive a response about the status of a message.
 
 Possible message states:
+
 - DeliveredSuccessfullyResult - means that the message was successfully delivered to the actor, but he did not send you a response;
 - RecipientNotFoundResult - means that there is no actor with this address in the actor tree;
 - MessageResult - means that the message has been successfully delivered, the addressee has sent you a reply to your message.
@@ -803,6 +1000,31 @@ Hello, from main!
 246.8
 ```
 
+### Message sending rate
+
+In Theater, each actor is performed in his own isolate. Thus, the transfer of messages between them is carried out using the Send and Receive ports.
+
+Each actor has his own mailbox in which messages sent to him come. Since the actor's mailbox is not in the same isolate as the actor itself, the speed of sending messages between actors in the Theater is lower than directly through the Send and Receive ports due to the additional forwarding of messages between the actor's mailbox and the actor itself.
+
+The removal of the mailbox outside the actor's isolate was done so that when killing and restarting the actor, messages addressed to it that had not yet been processed by the actor would not be lost.
+
+Thus, we get that sending messages between actors through the Theater facilities is at best slower than pure Send and Receive ports by about 2 times.
+
+Also, the sending speed is affected by the fact that in Theater messages are transmitted between actors using message class instances, which also reduces the speed, unlike transmission via the Send and Receive port of simple types (int, double, String, etc.).
+
+Theater has several ways to send a message to an actor:
+
+- by link;
+- without link.
+
+In the case of sending a message using a link, the sent message is sent to the actor's mailbox from which, in accordance with the mechanism of operation of a particular mailbox, it enters the actor. This is the recommended method when using Theater.
+
+In the case of sending a message without a link, the message is routed between actors along the tree of actors until it reaches its addressee. Earlier this method of sending messages was considered by me as the main one, but I did not take into account the loss of speed on each forwarding between each actor. Losses are especially evident in deep actor trees.
+
+At the moment, sending messages without a link is still available in Theater, but I do not recommend using it where the speed of information transfer between actors is critically important to you. To make it easier to get a link to the actor you need, a register of links has been added, from which you can get a link to any actor. Although initially the concept of the register of links was not at the heart of Theater.
+
+If the speed of information exchange between actors is critically important in your task and you are not satisfied with the same speed loss when using links to actors, you can also use Send and Receive ports on top of the Theater functionality in those places where you need the maximum speed of information transfer between isolates that can provide you with Dart.
+
 ## Routers
 
 There is a special kind of actors in Theater - routers.
@@ -810,6 +1032,7 @@ There is a special kind of actors in Theater - routers.
 Such actors have child actors created according to their assigned deployment strategy. Forward all messages addressed to them to their child actors in accordance with their assigned message routing strategy. The main purpose of this type of actors is to create by balancing messages between actors.
 
 There are 2 types of router actors in Theater:
+
 - Group router;
 - Pool router.
 
@@ -818,6 +1041,7 @@ There are 2 types of router actors in Theater:
 A group router is a router that creates a group of node actors as child actors (that is, UntypedActors or other routers can act as actors in this group). Unlike the pool router, it allows you to send messages to your child actors directly to them, that is, it is not necessary to send them messages only through the router.
 
 Has the following message routing strategies:
+
 - Broadcast. A message received by a router is forwarded to all actors in its group;
 - Random. The message received by the router is forwarded to a random actor from its group;
 - Round robin. Messages received by the router are sent to the actors from its group in a circle. That is, if 3 messages have arrived, and there are 2 actors in the group of actors, then 1 message will be received by actor №1, the second message - by actor №2, the third message - by actor №1.
@@ -915,6 +1139,7 @@ What is a worker actor? A worker actor is a special kind of actor used in a pool
 Differences in internal work are expressed in the fact that the worker actor, after each processed message, after he has completed all the handlers assigned for the message, sends a report message to his actor manager. This creates additional traffic when using the pool router, but allows you to use its own routing strategy that allows you to more efficiently balance the load between the actors and workers in the pool.
 
 Has the following message routing strategies:
+
 - Broadcast. A message received by a router is forwarded to all actors in its group;
 - Random. The message received by the router is forwarded to a random actor from its group;
 - Round robin. Messages received by the router are sent to the actors from its group in a circle. That is, if 3 messages have arrived, and there are 2 actors in the group of actors, then 1 message will be received by actor No. 1, the second message - by actor No. 2, the third message - by actor No. 1;
@@ -1006,6 +1231,7 @@ In Theater, each actor, with the exception of the root one, has a parent actor w
 Each supervisor has a control strategy (SupervisorStrategy), which handles the error received from the child actor and, in accordance with the exception that occurred in the child actor, receives an directive about what needs to be done with it.
 
 Types of directive:
+
 - Resume;
 - Restart;
 - Pause;
@@ -1013,6 +1239,7 @@ Types of directive:
 - Send an error to a supervisor actor (escalate).
 
 Strategies are divided into 2 types:
+
 - OneForOne;
 - OneForAll.
 
@@ -1090,11 +1317,16 @@ In this example, the tree of actors and what happens in it when an error occurs 
 
 Scheduler is a class that makes it more convenient to create some tasks that have to be repeated after some time. Each actor context has its own scheduler instance, but you can create your own scheduler instance yourself.
 
-In Dart, tasks that are executed periodically after some time are very easy to implement using Timer, so in Theater the scheduler is just a convenient abstraction for this. For example, the Theater scheduler allows you to cancel multiple tasks at once using a CancellationToken.
+With the scheduler, you can create scheduled actions. There are two types of actions:
 
-At the moment, the scheduler is under development and it is planned to add to it, for example, the ability to transfer cancellation tokens to other actors (at the moment this is not possible), this will allow canceling scheduled tasks from other actors.
+- repeatedly action;
+- one shot action.
 
-An example of creating tasks using the scheduler, canceling scheduled tasks after 3 seconds using the cancellation token:
+### Repeatedly action
+
+Sometimes it becomes necessary to perform some actions after a given period of time. For such cases, the Theater scheduler can create repeatedly actions.
+
+In this example, we will create an actor that will print the message 'Hello, actor world!' To the console every second:
 
 ```dart
 // Create actor class
@@ -1102,30 +1334,12 @@ class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create cancellation token
-    var cancellationToken = CancellationToken();
-
-    // Create first repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
+    // Create repeatedly action in scheduler
+    context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
-        action: () {
-          print('Hello, from first action!');
-        },
-        cancellationToken: cancellationToken);
-
-    // Create second repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
-        initDelay: Duration(seconds: 1),
-        interval: Duration(milliseconds: 500),
-        action: () {
-          print('Hello, from second action!');
-        },
-        cancellationToken: cancellationToken);
-
-    Future.delayed(Duration(seconds: 3), () {
-      // Cancel actions after 3 seconds
-      cancellationToken.cancel();
-    });
+        action: (RepeatedlyActionContext context) {
+          print('Hello, actor world!');
+        });
   }
 }
 
@@ -1141,20 +1355,312 @@ void main(List<String> arguments) async {
 }
 ```
 
-Expected output:
+An action has a context that contains information about the action (for example, a counter for the number of times the action was triggered).
+
+### Stop and resume repeatedly action
+
+In the process of using repeatedly actions in the Theater scheduler, it may be necessary to stop a scheduled repeatedly action.
+
+There is a recurring action token for this. With it, you can stop and resume scheduled actions.
+
+An example of scheduling a recurring action and stopping it after 3 seconds using a token:
 
 ```dart
-Hello, from first action!
-Hello, from second action!
-Hello, from first action!
-Hello, from second action!
-Hello, from second action!
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
+        },
+        actionToken: actionToken);
+
+    Future.delayed(Duration(seconds: 3), () {
+      // Stop action
+      actionToken.stop();
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+You can use one token for any number of repeatedly actions.
+
+An example of scheduling two repeatedly actions with one token, canceling them after 2 seconds and resuming 3 seconds after stopping:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from first action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('First action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('First action resumed!');
+        },
+        actionToken: actionToken);
+
+    // Create second repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from second action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('Second action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('Second action resumed!');
+        },
+        actionToken: actionToken);
+
+    Future.delayed(Duration(seconds: 2), () {
+      // Stop action
+      actionToken.stop();
+
+      Future.delayed(Duration(seconds: 3), () {
+        // Resume action
+        actionToken.resume();
+      });
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+With the help of a token, you can stop and resume repeatedly actions in the actor in which the token was created. But for situations in which you need to stop and resume actions in other actors, it is possible to get a link to the created token and pass it to another actor.
+
+An example of scheduling a repeatedly action, getting a link to a token, passing a link to another actor, and canceling an action from another actor after 5 seconds using a link:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action in scheduler with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<RepeatedlyActionTokenRef>('action_token_ref');
+
+    Future.delayed(Duration(seconds: 5), () {
+      // Stop action in other actor
+      ref.stop();
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
+### One shot action
+
+In the scheduler, you can create one shot actions that are executed when they are called with or by reference to a token. Such actions can be useful when you want to launch an action or several actions (using one token) in an actor. Such actions do not provide for the transfer of any arguments for their launch.
+
+An example of scheduling a one shot action and calling it using a token:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+If necessary, you can use one token for several single actions at once by running them together.
+
+An example of planning two one shot actions with one token, calling them using a token:
+
+```dart
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create first action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from first action!');
+        },
+        actionToken: actionToken);
+
+    // Create second action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from second action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+As with using a token for repeatedly actions, you can get a reference to the token and pass it to another actor.
+
+An example of scheduling one shot action, getting a link to its token, passing the link to another actor, and calling the action from another actor using the link:
+
+```dart
+// Create first actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<OneShotActionTokenRef>('action_token_ref');
+
+    // Call action in other actor
+    ref.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
 ```
 
 # Road map
 
 Currently in development are:
 
-- communication with actor systems located in other Dart VMs via the network (udp, tcp);
-- improvement of the message routing system (more functions and, if necessary, optimization);
+- ~~improvement of the scheduler~~;
+- ~~improved means for sending messages~~;
+- adding tools for linking data in two or more actors;
+- communication with actor systems located in other Dart VMs through the network (udp, tcp);
 - improvement of the error handling system, error logging.

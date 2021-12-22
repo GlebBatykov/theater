@@ -150,7 +150,7 @@ class TestActor extends UntypedActor {
 }
 
 void main(List<String> arguments) async {
-  // Create actor system with name 'test_system'
+  // Create actor system
   var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
@@ -227,23 +227,21 @@ class TestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
 Ожидаемый вывод:
 
 ```dart
-tcp://test_system/root/user/test_actor
+test_system/root/user/test_actor
 ```
-
-В примере видно что полный путь к актору так же имеет в самом начале - "tcp". Что это означает? В данный момент в разработке находится возможность общения через сеть нескольких систем акторов находящихся в разных Dart VM. Приставка в начале пути к актору будет означать сетевой протокол используемый в этой системе акторов для общения с другими системами акторов по сети.
 
 ## Почтовые ящики
 
@@ -290,7 +288,7 @@ tcp://test_system/root/user/test_actor
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  Future<void> onStart(context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -1005,6 +1003,29 @@ Hello, from main!
 
 ### Скорость посылки сообщений
 
+В Theater каждый актор выполняется в своем изоляте. Таким образом передача сообщений между ними осуществляется при помощи Send и Receive портов.
+
+У каждого актора есть свой почтовый ящик в который приходят сообщения отправленные ему. Так как почтовый ящик актора находится не в том же изоляте что и сам актор, скорость отправки сообщений между акторами в Theater более низкая чем напрямую через Send и Receive порты из за дополнительной перессылки сообщений между почтовым ящиком актора и самим актором.
+
+Вынесение почтового ящика за пределы изолята актора было сделано для того чтобы уничтожая, перезагружая актор не терялись адресованные ему сообщения, которые еще не были обработанны актором.
+
+Таким образом получаем что отправка сообщений между акторами через средства Theater в лучшем случае медленней чистых Send и Receive портов примерно в 2 раза.
+
+Так же на скорость отправки влияет то что в Theater сообщения между акторами преедаются при помощи экземпляров классов сообщений, что так же снижает скорость в отличии от передачи через Send и Receive порт простых типов (int, double, String и т.д).
+
+В Theater есть несколько способов отправить сообщение актору:
+
+- по ссылке;
+- без ссылки.
+
+В случае отправки сообщения по ссылке отправленное сообщение отправляется в почтовый ящик актора из которого в соответствии с механизмом работы конкретного почтового ящика попадает в актор. Этот способ является рекомендуемым при использовании Theater.
+
+В случае отправки сообщения без ссылки сообщение маршрутизуется между акторами по древу акторов до тех пор пока не настигнет своего адресата. Ранее этот способ отправки сообщений рассматривался мной как основной, однако я не учел потери скорости на каждой перессылке между каждым актором. Особенно потери проявляются в древах акторов с большой глубиной.
+
+В данный момент отправки сообщений без ссылки по прежнему есть в Theater, однако я не рекомендую использовать его там где вам критически важна скорость передачи информации между акторами. Для того чтобы было легче получить ссылку на нужного вам актора был добавлен регистр ссылок, из которого вы можете получить ссылку на любого актора. Хоть изначально концепция регистра ссылок и не лежала в основе Theater.
+
+Если в вашей задаче критически важна скорость обмена информацией между акторами и вас не устраивают так же потери скорости при использовании ссылок на акторов вы можете поверх функционала Theater использовать так же Send и Receive порты в тех местах где вам нужна максимальная скорость передачи информации между изолятами которую может предоставить вам Dart.
+
 ## Машрутизаторы
 
 В Theater существует особый вид акторов - маршрутизаторы.
@@ -1082,13 +1103,13 @@ class ThirdTestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
-  await actorSystem.actorOf('first_test_actor', FirstTestActor());
+  await system.actorOf('first_test_actor', FirstTestActor());
 }
 ```
 
@@ -1176,13 +1197,13 @@ class TestWorkerFactory extends WorkerActorFactory {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
@@ -1333,7 +1354,6 @@ void main(List<String> arguments) async {
   // Create top-level actor in actor system with name 'test_actor'
   await system.actorOf('test_actor', TestActor());
 }
-
 ```
 
 У действия есть контекст который содержит информацию о действии (например счётчик количества срабатывания действия).
@@ -1519,7 +1539,7 @@ class TestActor extends UntypedActor {
 
     // Create one shot action in scheduler
     context.scheduler.scheduleOneShotAction(
-        action: (context) {
+        action: (OneShotActionContext context) {
           print('Hello, from one shot action!');
         },
         actionToken: actionToken);
@@ -1555,14 +1575,14 @@ class TestActor extends UntypedActor {
 
     // Create first action in scheduler
     context.scheduler.scheduleOneShotAction(
-        action: (context) {
+        action: (OneShotActionContext context) {
           print('Hello, from first action!');
         },
         actionToken: actionToken);
 
     // Create second action in scheduler
     context.scheduler.scheduleOneShotAction(
-        action: (context) {
+        action: (OneShotActionContext context) {
           print('Hello, from second action!');
         },
         actionToken: actionToken);
@@ -1599,7 +1619,7 @@ class TestActor extends UntypedActor {
 
     // Create one shot action in scheduler
     context.scheduler.scheduleOneShotAction(
-        action: (context) {
+        action: (OneShotActionContext context) {
           print('Hello, from one shot action!');
         },
         actionToken: actionToken);
@@ -1640,5 +1660,8 @@ void main(List<String> arguments) async {
 
 Сейчас в разработке находятся:
 
+- ~~улучшение планировщика действий~~;
+- ~~улучшение средств для отправки сообщений~~;
+- добавление инструментов для связывания данных в двух и более акторах;
 - общение с системами акторов находящяхся в других Dart VM через сеть (udp, tcp);
 - улучшение системы обработки ошибок, логирование ошибок.

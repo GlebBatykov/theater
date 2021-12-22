@@ -21,6 +21,10 @@ abstract class ActorContext<P extends ActorProperties>
   /// Path to current actor in actor system.
   ActorPath get path => _actorProperties.path;
 
+  /// The data which was transferred to actor during initialization.
+  @Deprecated('Now use actor store to get data')
+  Map<String, dynamic> get data => Map.unmodifiable(_actorProperties.data);
+
   ActorContext(IsolateContext isolateContext, P actorProperties)
       : _isolateContext = isolateContext,
         _actorProperties = actorProperties {
