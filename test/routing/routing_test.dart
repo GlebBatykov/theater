@@ -58,8 +58,7 @@ void main() {
 
   group('address', () {
     test('.toString(). Converts address to string and check it.', () {
-      var address = Address('test_system',
-          protocol: InternetProtocol.udp, host: '127.0.0.1', port: 8555);
+      var address = Address('test_system', host: '127.0.0.1', port: 8555);
 
       expect(address.toString(), 'theater.udp://test_system@127.0.0.1:8555');
     });
