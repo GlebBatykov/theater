@@ -61,9 +61,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Shows the status of dispose.
   bool get isDisposed => _isDisposed;
 
-  ActorSystem(this.name,
-      {ServerConfiguration serverConfiguration =
-          ServerConfiguration.defaultConfiguration}) {
+  ActorSystem(this.name) {
     _rootPath = ActorPath(Address(name), 'root', 0);
 
     _userGuardianPath = _rootPath.createChild('user');
@@ -204,7 +202,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
   /// Sends message to actor which in located on [path].
   ///
-  /// If [delay] is not null, message sends after delay equals [duration].
+  /// If [delay] is not null, message sends after delay equals [delay].
   ///
   /// You have two way how point out path to actor:
   ///
@@ -231,7 +229,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
   /// Sends message to actor which in located on [path] and return subscribe to message.
   ///
-  /// If [delay] is not null, message sends after delay equals [duration].
+  /// If [delay] is not null, message sends after delay equals [delay].
   ///
   /// You have two way how point out path to actor:
   ///

@@ -1,4 +1,8 @@
-# 0.1.51
+# 0.1.52
+
+- Updates README.md and README.ru.md.
+
+## 0.1.51
 
 - Fixes errors with missing files when publishing.
 

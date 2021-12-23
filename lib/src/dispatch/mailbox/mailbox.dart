@@ -41,7 +41,7 @@ abstract class Mailbox {
   /// Displays whether the mailbox has been disposed.
   bool get isDisposed => _isDisposed;
 
-  /// Stream of [MailboxMessages] from mailbox.
+  /// Stream of [MailboxMessage] from mailbox.
   Stream<MailboxMessage> get mailboxMessages =>
       _mailboxMessageController.stream;
 
