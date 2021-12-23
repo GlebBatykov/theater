@@ -22,14 +22,14 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
   var ref = await system.actorOf('actor', TestActor());
 
   // Send message 'Hello, from main!' to actor and get message subscription
-  var subscription = ref.send('ping');
+  var subscription = ref.sendAndSubscribe('ping');
 
   // Set onResponse handler
   subscription.onResponse((response) {

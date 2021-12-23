@@ -12,7 +12,8 @@ import '../actor_parent_tester.dart';
 class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
     extends ActorContextTester<T> with ActorParentTester<T> {
   @override
-  Future<void> sendWithAbsolutePath(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeWithAbsolutePath(
+      ActorContextTestData<T> data) async {
     data.actorContext.send('test_system/test_root', 'Hello, test world!');
 
     var message = await data.parentMailbox!.mailboxMessages.first;
@@ -21,11 +22,12 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   }
 
   @override
-  Future<void> sendWithRelativePath(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeWithRelativePath(
+      ActorContextTestData<T> data) async {
     await data.actorContext.initialize();
 
     var subscription =
-        data.actorContext.send('../worker-1', 'Hello, test world!');
+        data.actorContext.sendAndSubscribe('../worker-1', 'Hello, test world!');
 
     var result = await subscription.stream.first;
 
@@ -33,7 +35,7 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   }
 
   @override
-  Future<void> sendToHimself(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeToHimself(ActorContextTestData<T> data) async {
     data.actorContext.send('test_system/test_root/test', 'Hello, test world!');
 
     expect(
@@ -75,8 +77,8 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
 
     var streamQueue = StreamQueue(receivePort);
 
-    data.isolateReceivePort!.sendPort
-        .send(MailboxMessage('Hello, test world!', receivePort.sendPort));
+    data.isolateReceivePort!.sendPort.send(MailboxMessage('Hello, test world!',
+        feedbackPort: receivePort.sendPort));
 
     expect(
         List.of((await streamQueue.take(5))
@@ -95,8 +97,9 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort
-          .send(MailboxMessage('Hello, test world!', receivePort.sendPort));
+      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+          'Hello, test world!',
+          feedbackPort: receivePort.sendPort));
     }
 
     var stopwatch = Stopwatch()..start();
@@ -120,8 +123,9 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort
-          .send(MailboxMessage('Hello, test world!', receivePort.sendPort));
+      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+          'Hello, test world!',
+          feedbackPort: receivePort.sendPort));
     }
 
     var stopwatch = Stopwatch()..start();
@@ -145,8 +149,9 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort
-          .send(MailboxMessage('Hello, test world!', receivePort.sendPort));
+      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+          'Hello, test world!',
+          feedbackPort: receivePort.sendPort));
     }
 
     var stopwatch = Stopwatch()..start();

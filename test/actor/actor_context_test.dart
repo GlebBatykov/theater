@@ -94,22 +94,22 @@ void main() {
         await RootActorContextTester().killTest(data);
       });
 
-      group('.send().', () {
+      group('.sendAndSubscribe().', () {
         test(
             'With absolute path. Creates child actor with name \'test_child\', sends message to him using absolute path to him, receives response.',
             () async {
-          await RootActorContextTester().sendWithAbsolutePath(data);
+          await RootActorContextTester().sendAndSubscribeWithAbsolutePath(data);
         });
 
         test(
             'With relative path. Creates child actor with name \'test_child\', sends message to him using relative path to him, receives response.',
             () async {
-          await RootActorContextTester().sendWithRelativePath(data);
+          await RootActorContextTester().sendAndSubscribeWithRelativePath(data);
         });
 
         test('Send to himself. Sends message to himself using absolute path.',
             () async {
-          await RootActorContextTester().sendToHimself(data);
+          await RootActorContextTester().sendAndSubscribeToHimself(data);
         });
       });
 
@@ -239,18 +239,20 @@ void main() {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
-          await UntypedActorContextTester().sendWithAbsolutePath(data);
+          await UntypedActorContextTester()
+              .sendAndSubscribeWithAbsolutePath(data);
         });
 
         test(
             'With relative path. Creates child actor with name \'test_child\' and sends messege to him using relative path.',
             () async {
-          await UntypedActorContextTester().sendWithRelativePath(data);
+          await UntypedActorContextTester()
+              .sendAndSubscribeWithRelativePath(data);
         });
 
         test('Send to himself. Sends message to himself using absolute path.',
             () async {
-          await UntypedActorContextTester().sendToHimself(data);
+          await UntypedActorContextTester().sendAndSubscribeToHimself(data);
         });
       });
 
@@ -400,7 +402,7 @@ void main() {
         await GroupRounterActorContextTester().killTest(data);
       });
 
-      group('.send().', () {
+      group('.sendAndSubscribe().', () {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
@@ -413,7 +415,8 @@ void main() {
 
           data = createTestData();
 
-          await GroupRounterActorContextTester().sendWithAbsolutePath(data);
+          await GroupRounterActorContextTester()
+              .sendAndSubscribeWithAbsolutePath(data);
         });
 
         test(
@@ -428,7 +431,8 @@ void main() {
 
           data = createTestData();
 
-          await GroupRounterActorContextTester().sendWithRelativePath(data);
+          await GroupRounterActorContextTester()
+              .sendAndSubscribeWithRelativePath(data);
         });
 
         test('Send to himself. Sends message to himself using absolute path.',
@@ -442,11 +446,21 @@ void main() {
 
           data = createTestData();
 
-          await GroupRounterActorContextTester().sendToHimself(data);
+          await GroupRounterActorContextTester()
+              .sendAndSubscribeToHimself(data);
         });
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
+        context = createContext(List.generate(
+            5,
+            (index) => ActorInfo(
+                name: 'test_' + index.toString(),
+                actor: TestUntypedActor_2(),
+                data: {'feedbackPort': feedbackPort.sendPort})));
+
+        data = createTestData();
+
         await GroupRounterActorContextTester().sendToTopicTest(data);
       });
 
@@ -673,7 +687,7 @@ void main() {
         await PoolRouterActorContextTester().killTest(data);
       });
 
-      group('.send().', () {
+      group('.sendAndSubscribe().', () {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
@@ -681,7 +695,8 @@ void main() {
 
           data = createTestData();
 
-          await PoolRouterActorContextTester().sendWithAbsolutePath(data);
+          await PoolRouterActorContextTester()
+              .sendAndSubscribeWithAbsolutePath(data);
         });
 
         test(
@@ -691,7 +706,8 @@ void main() {
 
           data = createTestData();
 
-          await PoolRouterActorContextTester().sendWithRelativePath(data);
+          await PoolRouterActorContextTester()
+              .sendAndSubscribeWithRelativePath(data);
         });
 
         test('Send to himself. Sends message to himself using absolute path.',
@@ -700,11 +716,15 @@ void main() {
 
           data = createTestData();
 
-          await PoolRouterActorContextTester().sendToHimself(data);
+          await PoolRouterActorContextTester().sendAndSubscribeToHimself(data);
         });
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
+        context = createContext();
+
+        data = createTestData();
+
         await PoolRouterActorContextTester().sendToTopicTest(data);
       });
 
@@ -791,6 +811,30 @@ void main() {
       });
     });
 
+    group('system_actor_context', () {
+      test('.kill(). ', () async {});
+
+      group('.sendAndSubscribe().', () {
+        test('With absolute path. ', () async {});
+
+        test('With relative path. ', () async {});
+
+        test('Send to himself. ', () async {});
+      });
+
+      test('.sendToTopic(). ', () async {});
+
+      test('.actorOf(). ', () async {});
+
+      test('.killChildrens(). ', () async {});
+
+      test('.pauseChildrens(). ', () async {});
+
+      test('.resumeChildrens(). ', () async {});
+
+      test('.restartChildrens(). ', () async {});
+    });
+
     group('worker_actor_context', () {
       var actorSystemMessagePort = ReceivePort();
 
@@ -871,22 +915,24 @@ void main() {
         await WorkerActorContextTester().killTest(data);
       });
 
-      group('.send(). ', () {
+      group('.sendAndSubscribe(). ', () {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
-          await WorkerActorContextTester().sendWithAbsolutePath(data);
+          await WorkerActorContextTester()
+              .sendAndSubscribeWithAbsolutePath(data);
         });
 
         test(
             'With relative path. Sends message to child actor (worker don\'t have child actors) with relative path, receive response - instanse of RecipientNotFoundResult.',
             () async {
-          await WorkerActorContextTester().sendWithRelativePath(data);
+          await WorkerActorContextTester()
+              .sendAndSubscribeWithRelativePath(data);
         });
 
         test('Send to himself. Sends message to himself using absolute path.',
             () async {
-          await WorkerActorContextTester().sendToHimself(data);
+          await WorkerActorContextTester().sendAndSubscribeToHimself(data);
         });
       });
 

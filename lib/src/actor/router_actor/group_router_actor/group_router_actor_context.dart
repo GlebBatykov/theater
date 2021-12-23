@@ -4,7 +4,8 @@ part of theater.actor;
 ///
 /// Receive messages from other actors, create a group of child actors and control their life cycle.
 class GroupRouterActorContext
-    extends RouterActorContext<GroupRouterActorProperties> {
+    extends RouterActorContext<GroupRouterActorProperties>
+    with UserActorContextMixin<GroupRouterActorProperties> {
   GroupRouterActorContext(
       IsolateContext isolateContext, GroupRouterActorProperties actorProperties)
       : super(isolateContext, actorProperties) {
@@ -96,8 +97,8 @@ class GroupRouterActorContext
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef
-          .sendMessage(MailboxMessage(message.data, message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(
+          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

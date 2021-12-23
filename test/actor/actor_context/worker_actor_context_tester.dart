@@ -8,7 +8,8 @@ import 'actor_context_tester.dart';
 class WorkerActorContextTester<T extends WorkerActorContext>
     extends ActorContextTester<T> {
   @override
-  Future<void> sendWithAbsolutePath(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeWithAbsolutePath(
+      ActorContextTestData<T> data) async {
     data.actorContext.send('test_system/test_root', 'Hello, test world!');
 
     var message = await data.supervisorMessagePort.first;
@@ -18,9 +19,10 @@ class WorkerActorContextTester<T extends WorkerActorContext>
   }
 
   @override
-  Future<void> sendWithRelativePath(ActorContextTestData<T> data) async {
-    var subscription =
-        data.actorContext.send('../some_actor', 'Hello, test world!');
+  Future<void> sendAndSubscribeWithRelativePath(
+      ActorContextTestData<T> data) async {
+    var subscription = data.actorContext
+        .sendAndSubscribe('../some_actor', 'Hello, test world!');
 
     var response = await subscription.stream.first;
 
@@ -28,7 +30,7 @@ class WorkerActorContextTester<T extends WorkerActorContext>
   }
 
   @override
-  Future<void> sendToHimself(ActorContextTestData<T> data) async {
+  Future<void> sendAndSubscribeToHimself(ActorContextTestData<T> data) async {
     data.actorContext
         .send('test_system/test_root/worker', 'Hello, test world!');
 

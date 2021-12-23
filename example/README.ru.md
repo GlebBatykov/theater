@@ -50,7 +50,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   for (var i = 0; i < 3; i++) {
@@ -161,7 +161,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create server receivers pool router
@@ -206,7 +206,7 @@ abstract class InjectionContainer {
       // Create actor system
       var system = ActorSystem('test_system');
 
-      // Initialize actor system before work with her
+      // Initialize actor system before work with it
       await system.initialize();
 
       return system;

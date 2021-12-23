@@ -4,35 +4,47 @@ part of theater.util;
 ///
 /// Everything that this class does can be implemented independently using [Timer] and [Future.delayed]. This class is a comfortable abstraction.
 class Scheduler {
-  /// Creates an action that is performed at regular intervals.
+  final List<RepeatedlyAction> _repeatedlyActions = [];
+
+  final List<OneShotAction> _oneShotActions = [];
+
+  /// Schedules and runs repeatedly action.
   ///
-  /// The interval is set by the value [interval].
-  /// The initial delay (fires once when the action starts) is set by the value [initDelay].
-  /// To undo a repeat action, you must use [CancellationToken]. One [CancellationToken] can be used by many actions.
-  void scheduleActionRepeatedly(
-      {Duration? initDelay,
-      required Duration? interval,
-      required void Function() action,
-      CancellationToken? cancellationToken}) {
-    if (cancellationToken != null) {
-      if (!cancellationToken.isCanceled) {
-        _runAction(initDelay, interval, action, cancellationToken);
-      }
-    } else {
-      _runAction(initDelay, interval, action, cancellationToken);
-    }
+  /// Delays [initialDelay] before runs action.
+  /// Calls action with an interval of [interval].
+  ///
+  /// Binds scheduled action with [actionToken].
+  ///
+  /// If you stopped action calls [onStop] callback.
+  /// If you resumed action calls [onResume] callback.
+  void scheduleRepeatedlyAction(
+      {Duration? initialDelay,
+      required Duration interval,
+      required RepeatedlyActionCallback action,
+      RepeatedlyActionToken? actionToken,
+      RepeatedlyActionCallback? onStop,
+      RepeatedlyActionCallback? onResume}) {
+    var repeatedlyAction = RepeatedlyAction(
+        interval: interval,
+        action: action,
+        actionToken: actionToken,
+        initialDelay: initialDelay,
+        onStop: onStop,
+        onResume: onResume);
+
+    repeatedlyAction.start();
+
+    _repeatedlyActions.add(repeatedlyAction);
   }
 
-  void _runAction(Duration? initDelay, Duration? interval,
-      void Function() action, CancellationToken? cancellationToken) {
-    Future.delayed(initDelay ?? Duration(), () {
-      var timer = Timer.periodic(interval ?? Duration(), (timer) {
-        action();
-      });
+  /// Schedules one shot action.
+  ///
+  /// Binds scheduled action with [actionToken].
+  void scheduleOneShotAction(
+      {required void Function(OneShotActionContext) action,
+      required OneShotActionToken actionToken}) {
+    var oneShotAction = OneShotAction(action: action, actionToken: actionToken);
 
-      cancellationToken?.addOnCancelListener(() {
-        timer.cancel();
-      });
-    });
+    _oneShotActions.add(oneShotAction);
   }
 }

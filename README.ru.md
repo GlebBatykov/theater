@@ -2,11 +2,13 @@
 
 ![](https://github.com/GlebBatykov/theater/blob/main/logo.png?raw=true)
   
-Реализация модели акторов в Dart
+Акторный фреймворк для Dart
   
 </div>
 
 <div align="center">
+
+[![pub package](https://img.shields.io/pub/v/theater.svg?label=theater&color=blue)](https://pub.dev/packages/theater)
 
 **Языки:**
   
@@ -32,16 +34,21 @@
     - [Приоритетный почтовый ящик](#приоритетный-почтовый-ящик)
   - [Посылка сообщений](#посылка-сообщений)
     - [Отправка по ссылке](#отправка-по-ссылке)
+    - [Получение ссылки](#получение-ссылки)
     - [Отправка без ссылки](#отправка-без-ссылки)
     - [Прием сообщений](#прием-сообщений)
     - [Получение ответа на сообщение](#получение-ответа-на-сообщение)
     - [Прослушивание сообщений системой акторов](#прослушивание-сообщений-системой-акторов)
+    - [Скорость посылки сообщений](#скорость-посылки-сообщений)
   - [Маршрутизаторы](#машрутизаторы)
     - [Маршрутизатор группы](#маршрутизатор-группы)
     - [Маршрутизатор пула](#маршрутизатор-пула)
 - [Наблюдение и обработка ошибок](#наблюдение-и-обработка-ошибок)
 - [Утилиты](#утилиты)
   - [Планировщик](#планировщик)
+    - [Повторяющееся действие](#повторяющееся-действие)
+    - [Остановка и возобновление повторяющегося действия](#остановка-и-возобновление-повторяющегося-действия)
+    - [Одиночное действие](#одиночное-действие)
 - [Дорожная карта](#дорожная-карта)
 
 # Введение
@@ -61,6 +68,7 @@
 Theater - это пакет для упрощения работы с многопоточностью в Dart-е, для упрощения работы с изолятами.
 
 Он предоставляет:
+
 - систему маршрутизации сообщений между акторами (изолятами), которая инкапсулирует в себе работу с Receive и Send портами;
 - систему обработки ошибок на уровне одного актора или группы акторов;
 - возможности настройки маршрутизации сообщений (специальные акторы - маршрутизаторы, позволяющие устанавливать одну из предложенных стратегию маршрутизации сообщений между своими акторами-детьми, возможность задать приоритет сообщениям определенного типа);
@@ -74,7 +82,7 @@ Theater - это пакет для упрощения работы с много
 
 ```dart
 dependencies:
-  theater: ^0.1.3
+  theater: ^0.1.5
 ```
 
 Импортируйте theater в файлы где он должен использоваться:
@@ -94,7 +102,7 @@ import 'package:theater/theater.dart';
 
 У каждого актора есть почтовый ящик. Это то место куда попадают адресованные ему сообщения перед тем как попасть в актор. Об типах почтовых ящиков, можно прочитать [тут](#почтовые-ящики).
 
-Акторы могут создавать акторов-детей. И выступать их руководителями (контролировать их жизненный цикл, обрабатывать ошибки возникающие в них). Жизненный цикл акторов-детей так же зависит от жизненного цикла их родетелей. 
+Акторы могут создавать акторов-детей. И выступать их руководителями (контролировать их жизненный цикл, обрабатывать ошибки возникающие в них). Жизненный цикл акторов-детей так же зависит от жизненного цикла их родетелей.
 
 ## Примечания об акторах
 
@@ -102,7 +110,7 @@ import 'package:theater/theater.dart';
 
 Пример: есть 3 актора А1, А2, А3. А1 создал А2, А2 создал А3. Если А1 ставит на паузу А2 - А3 тоже будет поставлен на паузу. При этом сначала будет установлен на паузу А3, а затем А2.
 
-При уничтожении актора, сначала уничтожаются все его дети. 
+При уничтожении актора, сначала уничтожаются все его дети.
 
 Пример: есть 3 актора А1, А2, А3. А1 создал А2, А2 создал А3. Если А1 уничтожает А2 - А3 тоже будет уничтожен. При этом сначала будет уничтожен А3, а затем А2.
 
@@ -123,6 +131,7 @@ import 'package:theater/theater.dart';
 Система акторов - это савокупность акторов, находящихся в иерархической структуре в виде древа. В пакете система акторов представлена классом ActorSystem. Перед работой с ней (созданием акторов, посылке сообщений и т.д) необходимо проинициализировать её. Во время инициализации система акторов создаст системных акторов, которые необходимы для её работы.
 
 Акторы создаваемые при инициализации системы акторов:
+
 - корневой актор. Уникальный актор создаваемый системой акторов при инициализации. Уникален он тем что не имеет родителя в виде другого актора, его родителем и тем кто контролирует его жизненный цикл является система акторов. При старте создает два актора, опекуна системы и опекуна пользователя;
 - опекун системы. Актор являющийся прородителем всех системных акторов;
 - опекун пользователя. Актор являющийся прородителем всех акторов верхнего уровня созданных пользователем.
@@ -141,10 +150,10 @@ class TestActor extends UntypedActor {
 }
 
 void main(List<String> arguments) async {
-  // Create actor system with name 'test_system'
+  // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -173,12 +182,14 @@ void main(List<String> arguments) async {
 </div>
   
 Акторы в древе делятся на 2 категории:
+
 - руководителей (supervisor). Руководители это те акторы которые могут создавать своих акторов-детей (и сами в свою очередь имеют актора-руководителя);
 - наблюдаемых (observable). Наблюдаемые акторы это те акторы которые не могут создавать акторов-детей.
 
 Акторы-руководители контролируют жизненный цикл своих акторов-детей (уничтожают, останавливают, возобнавляют, запускают), они получают сообщения об ошибках происходящих в акторах-детях и принимают решения в соответствии с установленной стратегией (SupervisorStrategy). Подробнее об обработке ошибок в акторах-детях можно прочитать [тут](#наблюдение-и-обработка-ошибок).
 
 Если переносить эти 2 категории на понятия более близкие к структуре древа, эти категории можно назвать так:
+
 - руководитель это узел (node) древа;
 - наблюдаемый актор это лист (sheet) древа.
 
@@ -200,7 +211,7 @@ void main(List<String> arguments) async {
 
 Маршрутизация сообщений в Theater неотрывно связанна с понятием адреса актора, пути к нему. Следует уточнить что адрес актора является уникальным, то есть не может быть двух акторов с одинаковыми адресами.
 
-Абсолютный путь к актору задается от названия системы акторов. В пути к актору так же помимо названия системы акторов, если речь идет об акторе созданном пользователем, указывается корневой актор (root) и опекун пользователя (user). 
+Абсолютный путь к актору задается от названия системы акторов. В пути к актору так же помимо названия системы акторов, если речь идет об акторе созданном пользователем, указывается корневой актор (root) и опекун пользователя (user).
 
 Пример вывода абсолютного пути к созданному актору верхнего уровня:
 
@@ -216,29 +227,28 @@ class TestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
-  await actorSystem.initialize();
+  // Initialize actor system before work with it
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
 Ожидаемый вывод:
 
 ```dart
-tcp://test_system/root/user/test_actor
+test_system/root/user/test_actor
 ```
-
-В примере видно что полный путь к актору так же имеет в самом начале - "tcp". Что это означает? В данный момент в разработке находится возможность общения через сеть нескольких систем акторов находящихся в разных Dart VM. Приставка в начале пути к актору будет означать сетевой протокол используемый в этой системе акторов для общения с другими системами акторов по сети.
 
 ## Почтовые ящики
 
 Почтовый ящик в Theater есть у каждого актора. Почтовый ящик это то место куда попадают запросы адресованные актору, прежде чем попасть в актор.
 
 Почтовые ящики делятся на 2 типа:
+
 - ненадежные;
 - надежные.
 
@@ -258,7 +268,7 @@ tcp://test_system/root/user/test_actor
 
 В каких ситуациях актор может не получить отправленные ему сообщения?
 
-Если актор был в процессе работы уничтожен он не будет обрабатывать отправленые ему сообщения до тех пор пока снова не будет запущен и эти сообщения в это время будут находится в его почтовом ящике. 
+Если актор был в процессе работы уничтожен он не будет обрабатывать отправленые ему сообщения до тех пор пока снова не будет запущен и эти сообщения в это время будут находится в его почтовом ящике.
 
 Однако, кроме этого есть и другие внутренние средства на уровне каждого актора, которые в случае уничтожения актора позволяют не терять отправленные ему сообщения (они ожидают пока актор не будет снова запущен), использование почтового ящика с подтвержением является дополнительной мерой.
   
@@ -278,7 +288,7 @@ tcp://test_system/root/user/test_actor
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  Future<void> onStart(context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -312,7 +322,7 @@ void main(List<String> arguments) async {
   // Create actor system with name 'test_system'
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor' and get ref to it
@@ -369,7 +379,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -412,7 +422,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -422,15 +432,206 @@ void main(List<String> arguments) async {
 
 Таким образом можно отправлять сообщения в акторы по их ссылкам. Ссылки при желании можно передавать в другие акторы.
 
+### Получение ссылки
+
+В Theater вы можете отправлять сообщения несколькими способами, один из таких это посылка сообщения по ссылке. Получить ссылку на актора можно следующими способами:
+
+- создав актора вы получаете ссылку на него;
+- вы можете передать ссылку на актора в другой актор;
+- вы можете получить ссылку на актора из регистра ссылок.
+
+Получение ссылки на актора при его создании.
+
+Создавая актора при помощи системы акторов или контекста актора вы получаете локальную ссылку на него.
+
+Пример создания актора при помощи системы акторов и получение ссылки на него:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor' and get ref to him
+  var ref = await system.actorOf('test_actor', TestActor());
+}
+```
+
+Пример создания актора при помощи контекста актора и получение ссылки на него:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create child actor with name 'second_test_actor' and get ref to him
+    var ref = context.actorOf('second_test_actor', SecondTestActor());
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor' and get ref to him
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
+Передача ссылки на актора в другой актор.
+
+В Theater при создании актора при помощи системы акторов или контекста актора вы получаете ссылку на актора. При помощи ссылки вы можете отправлять сообщения актору. При необходимости вы можете передать ссылку на актора другому актору в сообщении или при создании актора.
+
+Пример создания двух акторов, передачи ссылки на актора №1 актору №2 при создании актора №2, посылки сообщения из актора №2 актору №1 при помощи ссылки:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  late LocalActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref from actor store
+    _ref = context.store.get<LocalActorRef>('first_test_actor_ref');
+
+    // Send message
+    _ref.send('Hello, from second test actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  var ref = await system.actorOf('first_test_actor', FirstTestActor());
+
+  var data = <String, dynamic>{'first_test_actor_ref': ref};
+
+  // Create top-level actor in actor system with name 'second_test_actor'
+  await system.actorOf('second_test_actor', SecondTestActor(), data: data);
+}
+```
+
+Получение ссылки на актора из регистра ссылок.
+
+В Theater вы можете отправлять сообщения акторам различными способами, при помощи ссылок на них, а так же без ссылки. Ссылку на актора вы получаете при создании актора, а так же можете передать ссылку в другой актор. Однако передача ссылок явно может быть не самым удобным способом получить ссылку на какого либо актора. Поэтому в системе акторов есть место которое хранит ссылки на всех существующих акторов. Это место называется - регистр ссылок. Каждый актор при создании добавляет ссылку на себя в регистр. При помощи системы акторов или контекста актора вы можете получить ссылку на любого актора из регистра.
+
+Пример получения ссылки на актора из регистра при помощи системы акторов:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('test_actor', TestActor());
+
+  // Get ref to actor with relative path '../test_actor' from ref register
+  // We use here relative path, but absolute path to actor with name 'test_actor' equal - 'test_system/root/user/test_actor'
+  var ref = system.getLocalActorRef('../test_actor');
+
+  ref?.send('Hello, from main!');
+}
+```
+
+Пример получения ссылки на актора из регистра при помощи контекста актора:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all String type messages which actor received
+    context.receive<String>((message) async {
+      print(message);
+    });
+
+    // Create child actor with name 'second_test_actor'
+    await context.actorOf('second_test_actor', SecondTestActor());
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get ref to actor with path 'test_system/root/user/first_test_actor' from ref register
+    var ref = await context
+        .getLocalActorRef('test_system/root/user/first_test_actor');
+
+    // If ref exist (not null) send message
+    ref?.send('Hello, from second actor!');
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system with name 'test_system'
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'hello_actor' and get ref to it
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
 ### Отправка без ссылки
 
 В Theater вы можете отправлять сообщения акторам пользуясь ссылкой на актор, ссылку вы получаете когда создаете актор при помощи системы акторов или через контекст актора.
 
 Однако использование ссылки может быть не всегда удобно, к примеру в случаях если актор будет отправлять сообщение акторам находящимся в древе акторов выше его.
 
-Чтобы избежать подобных неудобств в Theater есть особый тип сообщений с указанием адресата. Когда актор получает на свой почтовый ящик сообщение такого типа он сверяет свой адрес и адрес указанный в сообщении. Если сообщение адресовано не ему он в зависмости от указанного адреса передает это сообщение вверх или вниз по древу акторов. 
+Чтобы избежать подобных неудобств в Theater есть особый тип сообщений с указанием адресата. Когда актор получает на свой почтовый ящик сообщение такого типа он сверяет свой адрес и адрес указанный в сообщении. Если сообщение адресовано не ему он в зависмости от указанного адреса передает это сообщение вверх или вниз по древу акторов.
 
 Чтобы отправить такое сообщение нужно использовать метод send системы акторов или контекста актора. Есть 2 типа задаваемого адреса:
+
 - абсолютный;
 - относительный.
 
@@ -457,7 +658,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -487,7 +688,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -528,7 +729,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -566,7 +767,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
@@ -581,6 +782,13 @@ void main(List<String> arguments) async {
 Пример создания класса актора и при старте назначения обработчика приема сообщений типа String и int:
 
 ```dart
+// If you need use your class as message type
+class Dog {
+  final String name;
+
+  Dog(this.name);
+}
+
 // Create actor class
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
@@ -590,10 +798,14 @@ class TestActor extends UntypedActor {
     context.receive<String>((message) async {
       print(message);
     });
-    
+
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+    });
+
+    context.receive<Dog>((message) async {
+      print('Dog name: ' + message.name);
     });
   }
 }
@@ -603,11 +815,12 @@ class TestActor extends UntypedActor {
 
 При отравке сообщений актору по ссылке или без ссылки может возникнуть потребность получить ответ на сообщение, это можно реализовать посылая в самом сообщении SendPort для ответа или заранее при создании актора передать некий SendPort в него. Или так же посылая сообщения без ссылки используя абсолютный или относительные пути вы можете неверно указать путь, это будет означать что сообщение не найдет своего адресата и желательно иметь возможность так же понимать когда такая ситуация возникает. В Theater есть механизм для этого - подписка на сообщение (MessageSubscription).
 
-Посылая сообщение по ссылке или используя путь вы всегда используя метод send системы акторов или контекста актора получаете экземпляр MessageSubscription.
+Посылая сообщение по ссылке или используя путь вы используя метод sendAndSubscribe получаете экземпляр MessageSubscription.
 
 Используя метод onResponse можно назначить обработчик для получения ответа об состоянии сообщения.
 
 Возможные состояния сообщений:
+
 - DeliveredSuccessfullyResult - означает что сообщение успешно доставлено в актор, однако ответ он вам не отправил;
 - RecipientNotFoundResult - означает что актора с таким адресом нет в древе акторов;
 - MessageResult - означает что сообщение успешно доставлено, адресат отправил вам ответ на ваше сообщение.
@@ -635,14 +848,14 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
   var ref = await system.actorOf('actor', TestActor());
 
   // Send message 'Hello, from main!' to actor and get message subscription
-  var subscription = ref.send('Hello, from main!');
+  var subscription = ref.sendAndSubscribe('Hello, from main!');
 
   // Set onResponse handler
   subscription.onResponse((response) {
@@ -660,7 +873,7 @@ Hello, from main!
 Hello, from actor!
 ```
 
-Подписка на сообщение инкапсулирует в себе ReceivePort, обычная подписка на сообщение закрывает свой ReceivePort после получение одного результата на сообщение. 
+Подписка на сообщение инкапсулирует в себе ReceivePort, обычная подписка на сообщение закрывает свой ReceivePort после получение одного результата на сообщение.
 
 Однако к примеру при использовании акторов маршрутизаторов может возникнуть необходимость принимать множество ответов из различных акторов на одно сообщение. Или если вы создали несколько обработчиков для сообщений одного типа и вы рассчитываете получить несколько ответов из обоих обработчиков.
 
@@ -699,7 +912,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create handler to messages as String from topic with name 'test_topic'
@@ -732,7 +945,7 @@ class FirstTestActor extends UntypedActor {
   Future<void> onStart(UntypedActorContext context) async {
     // Send message to actor system topic with name 'first_test_topic' and get subscription to response
     var subscription =
-        context.sendToTopic('first_test_topic', 'This is String');
+        context.sendToTopicAndSubscribe('first_test_topic', 'This is String');
 
     // Set handler to response
     subscription.onResponse((response) {
@@ -757,7 +970,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create handler to messages as String from topic with name 'first_test_topic'
@@ -788,6 +1001,31 @@ Hello, from main!
 246.8
 ```
 
+### Скорость посылки сообщений
+
+В Theater каждый актор выполняется в своем изоляте. Таким образом передача сообщений между ними осуществляется при помощи Send и Receive портов.
+
+У каждого актора есть свой почтовый ящик в который приходят сообщения отправленные ему. Так как почтовый ящик актора находится не в том же изоляте что и сам актор, скорость отправки сообщений между акторами в Theater более низкая чем напрямую через Send и Receive порты из за дополнительной перессылки сообщений между почтовым ящиком актора и самим актором.
+
+Вынесение почтового ящика за пределы изолята актора было сделано для того чтобы уничтожая, перезагружая актор не терялись адресованные ему сообщения, которые еще не были обработанны актором.
+
+Таким образом получаем что отправка сообщений между акторами через средства Theater в лучшем случае медленней чистых Send и Receive портов примерно в 2 раза.
+
+Так же на скорость отправки влияет то что в Theater сообщения между акторами преедаются при помощи экземпляров классов сообщений, что так же снижает скорость в отличии от передачи через Send и Receive порт простых типов (int, double, String и т.д).
+
+В Theater есть несколько способов отправить сообщение актору:
+
+- по ссылке;
+- без ссылки.
+
+В случае отправки сообщения по ссылке отправленное сообщение отправляется в почтовый ящик актора из которого в соответствии с механизмом работы конкретного почтового ящика попадает в актор. Этот способ является рекомендуемым при использовании Theater.
+
+В случае отправки сообщения без ссылки сообщение маршрутизуется между акторами по древу акторов до тех пор пока не настигнет своего адресата. Ранее этот способ отправки сообщений рассматривался мной как основной, однако я не учел потери скорости на каждой перессылке между каждым актором. Особенно потери проявляются в древах акторов с большой глубиной.
+
+В данный момент отправки сообщений без ссылки по прежнему есть в Theater, однако я не рекомендую использовать его там где вам критически важна скорость передачи информации между акторами. Для того чтобы было легче получить ссылку на нужного вам актора был добавлен регистр ссылок, из которого вы можете получить ссылку на любого актора. Хоть изначально концепция регистра ссылок и не лежала в основе Theater.
+
+Если в вашей задаче критически важна скорость обмена информацией между акторами и вас не устраивают так же потери скорости при использовании ссылок на акторов вы можете поверх функционала Theater использовать так же Send и Receive порты в тех местах где вам нужна максимальная скорость передачи информации между изолятами которую может предоставить вам Dart.
+
 ## Машрутизаторы
 
 В Theater существует особый вид акторов - маршрутизаторы.
@@ -795,6 +1033,7 @@ Hello, from main!
 Такие акторы имеют акторов детей создаваемых в соответствии с назначенной им стратегии развертывания. Переадресуют все сообщения адресованные им своим акторам-детям в соответствии с назначенной им стратегией маршрутизации сообщений. Основное назначение акторов данного типа это создание при помощи их балансировки сообщений между акторам.
 
 В Theater существует 2 типа акторов-маршрутизаторов:
+
 - маршрутизатор группы;
 - маршрутизатор пула.
 
@@ -803,6 +1042,7 @@ Hello, from main!
 Маршрутизатор группы - это маршрутизатор который в качестве акторов-детей создает группу акторов-узлов (то есть акторами в этой группе могут выступать UntypedActor-ы или другие маршрутизаторы). В отличии от маршрутизатора пула позволяет присылать сообщения своим акторам-детям напрямую им, то есть не обязательно присылать им сообщения только лишь через маршрутизатор.
 
 Имеет следующие стратегии маршрутизации сообщений:
+
 - широковещательная (broadcast). Сообщение получаемое маршрутизатором пересылается всем акторам в его группе;
 - случайная (random). Сообщение получаемое маршрутизатором пересылается случайному актору из его группы;
 - по кругу (round robin). Сообщения получаемые маршрутизатором отправляется акторам из его группы по кругу. То есть если пришло 3 сообщения, а в группе акторов 2 актора, то 1 сообщение получит - актор №1, второе сообщение - актор №2, третье сообщение - актор №1.
@@ -863,13 +1103,13 @@ class ThirdTestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
-  await actorSystem.initialize();
+  // Initialize actor system before work with it
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
-  await actorSystem.actorOf('first_test_actor', FirstTestActor());
+  await system.actorOf('first_test_actor', FirstTestActor());
 }
 ```
 
@@ -900,6 +1140,7 @@ Second actor received message: First hello!
 Отличия во внутрненней работе выражаются в том что актор работник после каждого обработанного сообщения, после того как он выполнит все назначенные для сообщения обработчики отсылает сообщение-отчет своему актору руководителю. Это создает дополнительный трафик при использовании маршрутизатора пула, однако позволяет использовать свойственную только ему стратегию маршрутизации позволяющую более эффективно балансировать нагрузку между акторами работниками в пуле.
 
 Имеет следующие стратегии маршрутизации сообщений:
+
 - широковещательная (broadcast). Сообщение получаемое маршрутизатором пересылается всем акторам в его группе;
 - случайная (random). Сообщение получаемое маршрутизатором пересылается случайному актору из его группы;
 - по кругу (round robin). Сообщения получаемые маршрутизатором отправляется акторам из его группы по кругу. То есть если пришло 3 сообщения, а в группе акторов 2 актора, то 1 сообщение получит - актор №1, второе сообщение - актор №2, третье сообщение - актор №1;
@@ -956,13 +1197,13 @@ class TestWorkerFactory extends WorkerActorFactory {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
-  await actorSystem.initialize();
+  // Initialize actor system before work with it
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
@@ -991,6 +1232,7 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 У каждого управляющего актора есть стратегия управления (SupervisorStrategy), которая обрабатывает принятую из актора-ребенка ошибку и в соответствии с исключением произошедшем в акторе-ребенке принимает указание (Directive) о том что необходимо сделать с ним.
 
 Виды решений:
+
 - возобновить (resume);
 - перезапустить (restart);
 - пауза (pause);
@@ -998,6 +1240,7 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 - передать вышестоящему актору ошибку (escalate).
 
 Стратегии делятся на 2 типа:
+
 - один за один (OneForOne);
 - один за всех (OneForAll).
 
@@ -1053,7 +1296,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -1075,11 +1318,16 @@ void main(List<String> arguments) async {
 
 Планировщик это класс делающий более удобным создание некоторых задач которые должны повторятся спустя некое время. Каждый контекст актора имеет свой экземпляр планировщика, однако вы и сами можете создать свой экземпляр планировщика.
 
-На самом деле в Dart-е задачи исполняющиеся периодически спустя некоторое время и так очень легко реализовать при помощи Timer, так что в Theater планировщик является лишь удобной абстракцией для этого. К примеру планировщик в Theater позволяет отменять несколько задач сразу при помощи токена отмены (CancellationToken).
+При помощи планировщика можно создавать запланированные действия. Есть два типа действий:
 
-В данный момент планировщик находится в стадии разработки и планируется добавить в него к примеру возможность передачи токенов отмены в другие акторы (в данный момент это невозможно), это позволит отменять запланировнные задачи из других акторов.
+- повторяющееся действие;
+- одиночное действие.
 
-Пример создания задач при помощи планировщика, отмены запланировнных задач спустя 3 секунды при помощи токена отмены:
+### Повторяющееся действие
+
+Иногда возникает необходимость совершать некоторые повторяющиеся действия через заданный промежуток времени. Для таких случаев планировщик в Theater может создавать повторяющиеся действия.
+
+В этом примере мы создам актора который будет каждую секунду выводить в консоль сообщение 'Hello, actor world!':
 
 ```dart
 // Create actor class
@@ -1087,29 +1335,57 @@ class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create cancellation token
-    var cancellationToken = CancellationToken();
-
-    // Create first repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
+    // Create repeatedly action in scheduler
+    context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
-        action: () {
-          print('Hello, from first action!');
-        },
-        cancellationToken: cancellationToken);
+        action: (RepeatedlyActionContext context) {
+          print('Hello, actor world!');
+        });
+  }
+}
 
-    // Create second repeatedly action in scheduler
-    context.scheduler.scheduleActionRepeatedly(
-        initDelay: Duration(seconds: 1),
-        interval: Duration(milliseconds: 500),
-        action: () {
-          print('Hello, from second action!');
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+У действия есть контекст который содержит информацию о действии (например счётчик количества срабатывания действия).
+
+### Остановка и возобновление повторяющегося действия
+
+В процессе использования повторяющихся действий в планировщике Theater-а может возникнуть необходимость остановки запланированного повторяющегося действия.
+
+Для этого существует токен повторяющегося действия. При помощи него можно останавливать и возобновлять запланированные действия.
+
+Пример планирования повторяющегося действия и остановки его через 3 секунды при помощи токена:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
         },
-        cancellationToken: cancellationToken);
+        actionToken: actionToken);
 
     Future.delayed(Duration(seconds: 3), () {
-      // Cancel actions after 3 seconds
-      cancellationToken.cancel();
+      // Stop action
+      actionToken.stop();
     });
   }
 }
@@ -1118,7 +1394,166 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+Вы можете использовать один токен для любого количества повторяющихся действий.
+
+Пример планирования двух повторяющихся действий с одним токеном, их отмена через 2 секунды и возобновление через 3 секунду после остановки:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from first action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('First action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('First action resumed!');
+        },
+        actionToken: actionToken);
+
+    // Create second repeatedly action with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print('Hello, from second action!');
+        },
+        onStop: (RepeatedlyActionContext context) {
+          print('Second action stopped!');
+        },
+        onResume: (RepeatedlyActionContext context) {
+          print('Second action resumed!');
+        },
+        actionToken: actionToken);
+
+    Future.delayed(Duration(seconds: 2), () {
+      // Stop action
+      actionToken.stop();
+
+      Future.delayed(Duration(seconds: 3), () {
+        // Resume action
+        actionToken.resume();
+      });
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+При помощи токена вы можете останавливать и возобновлять повторяющиеся действия в акторе в котором был создан токен. Но для ситуаций в которых вам необходимо останавливать и возобновлять действия в других акторах есть возможность получить ссылку на созданный токен и передать её в другой актор.
+
+Пример планирования повторяющегося действия, получение ссылки на токен, передача ссылки другому актору и отмена действия из другого актора через 5 секунд при помощи ссылки:
+
+```dart
+// Create first actor class
+class FirstTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create repeatedly action token
+    var actionToken = RepeatedlyActionToken();
+
+    // Create repeatedly action in scheduler with repeatedly action token
+    context.scheduler.scheduleRepeatedlyAction(
+        interval: Duration(seconds: 1),
+        action: (RepeatedlyActionContext context) {
+          print(context.counter);
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<RepeatedlyActionTokenRef>('action_token_ref');
+
+    Future.delayed(Duration(seconds: 5), () {
+      // Stop action in other actor
+      ref.stop();
+    });
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'first_test_actor'
+  await system.actorOf('first_test_actor', FirstTestActor());
+}
+```
+
+### Одиночное действие
+
+В планировщике вы можете создавать одиночные действия выполняемые когда их вызывают при помощи токена или при помощи ссылки на него. Такие действия могут быть полезные когда вы хотите запускать какое либо действие или несколько действий (при помощи одного токена) в акторе. Такие действия не предусматривают передачу каких либо параметров для их запуска.
+
+Пример планирования одиночного действия и вызов его при помощи токена:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
@@ -1126,19 +1561,107 @@ void main(List<String> arguments) async {
 }
 ```
 
-Ожидаемый вывод:
+При необходимости вы можете использовать один токен сразу для нескольких одиночных действий, запуская их вместе.
+
+Пример планирования двух одиночных действий с одним токеном, вызов их при помощи токена:
 
 ```dart
-Hello, from first action!
-Hello, from second action!
-Hello, from first action!
-Hello, from second action!
-Hello, from second action!
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create first action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from first action!');
+        },
+        actionToken: actionToken);
+
+    // Create second action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from second action!');
+        },
+        actionToken: actionToken);
+
+    // Call action
+    actionToken.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+Как и при использовании токена для повторяющихся действия вы можете получить ссылку на токен и передать её в другой актор.
+
+Пример планирования одиночного действия, получения ссылки на его токен, передача ссылки другому актору и вызов действия из другого актора при помощи ссылки:
+
+```dart
+// Create first actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create one shot action token
+    var actionToken = OneShotActionToken();
+
+    // Create one shot action in scheduler
+    context.scheduler.scheduleOneShotAction(
+        action: (OneShotActionContext context) {
+          print('Hello, from one shot action!');
+        },
+        actionToken: actionToken);
+
+    var data = <String, dynamic>{'action_token_ref': actionToken.ref};
+
+    // Create child actor with name 'second_test_actor' and pass a ref during initialization
+    await context.actorOf('second_test_actor', SecondTestActor(), data: data);
+  }
+}
+
+// Create second actor class
+class SecondTestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get action token ref from actor store
+    var ref = context.store.get<OneShotActionTokenRef>('action_token_ref');
+
+    // Call action in other actor
+    ref.call();
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
 ```
 
 # Дорожная карта
 
 Сейчас в разработке находятся:
+
+- ~~улучшение планировщика действий~~;
+- ~~улучшение средств для отправки сообщений~~;
+- добавление инструментов для связывания данных в двух и более акторах;
 - общение с системами акторов находящяхся в других Dart VM через сеть (udp, tcp);
-- улучшение системы маршрутизации сообщений (больше функций и если необходимо то оптимизация);
 - улучшение системы обработки ошибок, логирование ошибок.

@@ -147,8 +147,8 @@ void main() {
         await supervisor.initialize();
         await supervisor.start();
 
-        supervisor
-            .send(MailboxMessage('Hello, test world!', receivePort.sendPort));
+        supervisor.send(MailboxMessage('Hello, test world!',
+            feedbackPort: receivePort.sendPort));
 
         expect(supervisor.isInitialized, true);
         expect(supervisor.isStarted, true);

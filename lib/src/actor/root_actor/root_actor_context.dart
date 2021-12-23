@@ -1,8 +1,13 @@
 part of theater.actor;
 
-class RootActorContext<P extends RootActorProperties>
-    extends SupervisorActorContext<P> with NodeActorRefFactory<P> {
-  RootActorContext(IsolateContext isolateContext, P actorProperties)
+class RootActorContext extends SupervisorActorContext<RootActorProperties>
+    with NodeActorRefFactoryMixin<RootActorProperties> {
+  IsolateContext get isolateContext => _isolateContext;
+
+  RootActorProperties get actorProperties => _actorProperties;
+
+  RootActorContext(
+      IsolateContext isolateContext, RootActorProperties actorProperties)
       : super(isolateContext, actorProperties) {
     _isolateContext.messages.listen(_handleMessageFromSupervisor);
 
@@ -20,10 +25,8 @@ class RootActorContext<P extends RootActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef
-            .sendMessage(MailboxMessage(message.data, message.feedbackPort));
-      } else if (message is SystemRoutingMessage) {
-        _handleSystemRoutingMessage(message);
+        _actorProperties.actorRef.sendMessage(
+            MailboxMessage(message.data, feedbackPort: message.feedbackPort));
       }
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
@@ -48,17 +51,6 @@ class RootActorContext<P extends RootActorProperties>
       } else {
         _isolateContext.supervisorMessagePort.send(message);
       }
-    }
-  }
-
-  void _handleSystemRoutingMessage(SystemRoutingMessage message) async {
-    if (message.data is ActorCreateChild) {
-      var action = message.data as ActorCreateChild;
-
-      var ref = await actorOf(action.name, action.actor,
-          data: action.data, onKill: action.onKill);
-
-      message.sendResult(ref);
     }
   }
 }

@@ -1,6 +1,6 @@
 part of theater.dispatch;
 
 class SystemRoutingMessage extends RoutingMessage {
-  SystemRoutingMessage(data, SendPort feedbackPort, ActorPath recipientPath)
-      : super(data, feedbackPort, recipientPath);
+  SystemRoutingMessage(data, ActorPath recipientPath, {SendPort? feedbackPort})
+      : super(data, recipientPath, feedbackPort);
 }

@@ -7,12 +7,9 @@ class ActorError {
 
   final Exception exception;
 
-  final String _stackTraceString;
+  final StackTrace stackTrace;
 
-  StackTrace get stackTrace => StackTrace.fromString(_stackTraceString);
-
-  ActorError(this.path, this.exception, String stackTrace, {this.parent})
-      : _stackTraceString = stackTrace;
+  ActorError(this.path, this.exception, this.stackTrace, {this.parent});
 
   @override
   String toString() {
@@ -22,7 +19,7 @@ class ActorError {
           '\n' +
           exception.toString() +
           '\n' +
-          _stackTraceString +
+          stackTrace.toString() +
           '\n' +
           parent.toString();
     } else {
@@ -30,7 +27,7 @@ class ActorError {
           '\n' +
           exception.toString() +
           '\n' +
-          _stackTraceString;
+          stackTrace.toString();
     }
   }
 }

@@ -24,7 +24,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var system = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await system.initialize();
 
   // Create handler to messages as String from topic with name 'test_topic'

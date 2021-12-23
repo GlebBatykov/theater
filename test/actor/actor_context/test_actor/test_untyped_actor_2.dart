@@ -6,7 +6,7 @@ import 'package:theater/src/dispatch.dart';
 class TestUntypedActor_2 extends UntypedActor {
   @override
   Future<void> onStart(context) async {
-    SendPort feedbackPort = context.data['feedbackPort'];
+    var feedbackPort = context.store.get<SendPort>('feedbackPort');
 
     feedbackPort.send('start');
 
@@ -17,21 +17,21 @@ class TestUntypedActor_2 extends UntypedActor {
 
   @override
   Future<void> onPause(context) async {
-    SendPort feedbackPort = context.data['feedbackPort'];
+    var feedbackPort = context.store.get<SendPort>('feedbackPort');
 
     feedbackPort.send('pause');
   }
 
   @override
   Future<void> onResume(context) async {
-    SendPort feedbackPort = context.data['feedbackPort'];
+    var feedbackPort = context.store.get<SendPort>('feedbackPort');
 
     feedbackPort.send('resume');
   }
 
   @override
   Future<void> onKill(context) async {
-    SendPort feedbackPort = context.data['feedbackPort'];
+    var feedbackPort = context.store.get<SendPort>('feedbackPort');
 
     feedbackPort.send('kill');
   }

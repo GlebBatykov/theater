@@ -12,8 +12,8 @@ class PriorityReliableMailboxTester<T extends PriorityReliableMailbox>
     var testList = ['1', 1.21, 22, 54, 'hello'];
 
     for (var i = 0; i < testList.length; i++) {
-      data.mailbox.sendPort
-          .send(MailboxMessage(testList[i], data.receivePort.sendPort));
+      data.mailbox.sendPort.send(
+          MailboxMessage(testList[i], feedbackPort: data.receivePort.sendPort));
     }
 
     await for (var message in data.mailbox.mailboxMessages) {

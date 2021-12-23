@@ -11,7 +11,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
     var list = <int>[];
 
     for (var i = 0; i < 2; i++) {
-      data.mailbox.sendPort.send(MailboxMessage(i, data.receivePort.sendPort));
+      data.mailbox.sendPort
+          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     await for (var message in data.mailbox.mailboxMessages) {
@@ -30,7 +31,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
   Future<void> resendTest(MailboxTestData<T> data) async {
     var list = <int>[];
 
-    data.mailbox.sendPort.send(MailboxMessage(100, data.receivePort.sendPort));
+    data.mailbox.sendPort
+        .send(MailboxMessage(100, feedbackPort: data.receivePort.sendPort));
 
     await for (var message in data.mailbox.mailboxMessages) {
       list.add(message.data);
@@ -49,7 +51,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
     var list = <int>[];
 
     for (var i = 0; i < 5; i++) {
-      data.mailbox.sendPort.send(MailboxMessage(i, data.receivePort.sendPort));
+      data.mailbox.sendPort
+          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     await for (var message in data.mailbox.mailboxMessages) {
@@ -70,7 +73,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
 
     for (var i = 0; i < 5; i++) {
       data.mailbox.sendPort.send(ActorRoutingMessage(
-          i.toString(), data.receivePort.sendPort, data.recipientPath));
+          i.toString(), data.recipientPath,
+          feedbackPort: data.receivePort.sendPort));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),
@@ -81,8 +85,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
     var streamQueue = StreamQueue(data.mailbox.systemRoutingMessages);
 
     for (var i = 0; i < 5; i++) {
-      data.mailbox.sendPort.send(SystemRoutingMessage(
-          i + 1, data.receivePort.sendPort, data.recipientPath));
+      data.mailbox.sendPort.send(SystemRoutingMessage(i + 1, data.recipientPath,
+          feedbackPort: data.receivePort.sendPort));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),

@@ -107,6 +107,16 @@ class ActorPath {
     }
   }
 
+  String toAbsolutePath() {
+    var absolutePath = address.system;
+
+    for (var segment in segments) {
+      absolutePath += '/' + segment;
+    }
+
+    return absolutePath;
+  }
+
   @override
   String toString() {
     if (parentPath != null) {

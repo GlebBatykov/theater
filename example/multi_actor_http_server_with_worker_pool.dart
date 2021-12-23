@@ -15,7 +15,8 @@ class ServerReceiver extends WorkerActor {
       var number = int.parse(request.requestedUri.queryParameters['number']!);
 
       // Send message to worker pool router
-      var subscription = context.send('test_system/root/user/workers', number);
+      var subscription =
+          context.sendAndSubscribe('test_system/root/user/workers', number);
 
       // Set onResponse handler
       subscription.onResponse((response) {
@@ -87,7 +88,7 @@ void main(List<String> arguments) async {
   // Create actor system
   var actorSystem = ActorSystem('test_system');
 
-  // Initialize actor system before work with her
+  // Initialize actor system before work with it
   await actorSystem.initialize();
 
   // Create server receivers pool router

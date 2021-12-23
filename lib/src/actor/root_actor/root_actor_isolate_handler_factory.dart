@@ -5,7 +5,7 @@ class RootActorIsolateHandlerFactory
         RootActor, RootActorContext> {
   @override
   RootActorIsolateHandler create(IsolateContext isolateContext, RootActor actor,
-      RootActorContext<RootActorProperties> actorContext) {
+      RootActorContext actorContext) {
     return RootActorIsolateHandler(isolateContext, actor, actorContext);
   }
 }

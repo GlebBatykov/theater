@@ -4,7 +4,8 @@ part of theater.actor;
 ///
 /// Receive messages from other actors, create a pool of child actors and control their life cycle.
 class PoolRouterActorContext
-    extends RouterActorContext<PoolRouterActorProperties> {
+    extends RouterActorContext<PoolRouterActorProperties>
+    with UserActorContextMixin<PoolRouterActorProperties> {
   final Map<ActorCell, int> _loadingMap = {};
 
   PoolRouterActorContext(
@@ -129,8 +130,8 @@ class PoolRouterActorContext
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef
-          .sendMessage(MailboxMessage(message.data, message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(
+          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

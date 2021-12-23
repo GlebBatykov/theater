@@ -33,7 +33,7 @@ export 'src/actor.dart'
         PoolRouterActorProperties,
         GroupRouterActorProperties,
         UntypedActorProperties,
-        ActorParent;
+        ActorParentMixin;
 
 export 'src/dispatch.dart'
     show
@@ -55,8 +55,19 @@ export 'src/dispatch.dart'
         MailboxFactory,
         Mailbox,
         MailboxType,
-        LocalActorRef;
+        LocalActorRef,
+        CancellationTokenRef,
+        RepeatedlyActionTokenRef,
+        OneShotActionTokenRef;
 
 export 'src/routing.dart';
 
-export 'src/util.dart' show Scheduler, CancelEvent, CancellationToken;
+export 'src/util.dart'
+    show
+        Scheduler,
+        CancelEvent,
+        CancellationToken,
+        RepeatedlyActionToken,
+        OneShotActionToken,
+        RepeatedlyActionContext,
+        OneShotActionContext;

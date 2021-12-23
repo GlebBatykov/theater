@@ -31,7 +31,7 @@ class UntypedActorCell extends NodeActorCell<UntypedActor> {
         UntypedActorIsolateHandlerFactory(),
         UntypedActorContextFactory(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace.toString()));
+          .add(ActorError(path, error.exception, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
@@ -67,7 +67,7 @@ class UntypedActorCell extends NodeActorCell<UntypedActor> {
               message: 'Receive escalate error from [' +
                   event.error.path.toString() +
                   '].'),
-          StackTrace.current.toString(),
+          StackTrace.current,
           parent: event.error));
     }
   }

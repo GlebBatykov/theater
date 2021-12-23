@@ -4,6 +4,6 @@ part of theater.dispatch;
 ///
 /// It is a message that one actor sends to another without using a link to it.
 class ActorRoutingMessage extends RoutingMessage {
-  ActorRoutingMessage(data, SendPort feedbackPort, ActorPath recipientPath)
-      : super(data, feedbackPort, recipientPath);
+  ActorRoutingMessage(data, ActorPath recipientPath, {SendPort? feedbackPort})
+      : super(data, recipientPath, feedbackPort);
 }

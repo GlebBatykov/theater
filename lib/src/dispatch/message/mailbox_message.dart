@@ -4,5 +4,5 @@ part of theater.dispatch;
 ///
 /// It is a message that one actor sends to another using a link to it.
 class MailboxMessage extends ActorMessage {
-  MailboxMessage(data, SendPort feedbackPort) : super(data, feedbackPort);
+  MailboxMessage(data, {SendPort? feedbackPort}) : super(data, feedbackPort);
 }
