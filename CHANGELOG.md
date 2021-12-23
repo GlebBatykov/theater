@@ -1,4 +1,8 @@
-# 0.1.5
+# 0.1.51
+
+- Fixes errors with missing files when publishing.
+
+## 0.1.5
 
 - Duplicates each method of sending a message to another actor. There is a version with a subscription to the state of the message (and to reply to messages) and without a subscription. It was done because it is not always necessary to monitor the status or response of a message, but this process creates additional traffic and degrades the speed of sending the application, the performance of the application. Therefore, use the subscription only when you need it.
 
