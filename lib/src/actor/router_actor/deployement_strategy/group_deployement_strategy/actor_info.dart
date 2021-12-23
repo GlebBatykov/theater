@@ -1,6 +1,6 @@
 part of theater.actor;
 
-/// Stores information about the actor that will be created in [GroupActorRouter].
+/// Stores information about the actor that will be created in [GroupRouterActor].
 class ActorInfo {
   /// Name of actor.
   final String name;

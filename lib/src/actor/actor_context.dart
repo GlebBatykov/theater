@@ -41,7 +41,7 @@ abstract class ActorContext<P extends ActorProperties>
 
   /// Sends message to actor which in located on [path].
   ///
-  /// If [duration] is not null, message sends after delay equals [duration].
+  /// If [delay] is not null, message sends after delay equals [delay].
   ///
   /// You have two way how point out path to actor:
   ///
@@ -72,7 +72,7 @@ abstract class ActorContext<P extends ActorProperties>
   ///
   /// Use [send] method instead of this methiod if you don't want tracing message status and do not want receive response. Because more message traffic is used to track status and get a response, which degrades throughput.
   ///
-  /// If [duration] is not null, message sends after delay equals [duration].
+  /// If [delay] is not null, message sends after delay equals [delay].
   ///
   /// You have two way how point out path to actor:
   ///
