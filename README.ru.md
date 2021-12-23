@@ -82,7 +82,7 @@ Theater - это пакет для упрощения работы с много
 
 ```dart
 dependencies:
-  theater: ^0.1.3
+  theater: ^0.1.5
 ```
 
 Импортируйте theater в файлы где он должен использоваться:
@@ -815,7 +815,7 @@ class TestActor extends UntypedActor {
 
 При отравке сообщений актору по ссылке или без ссылки может возникнуть потребность получить ответ на сообщение, это можно реализовать посылая в самом сообщении SendPort для ответа или заранее при создании актора передать некий SendPort в него. Или так же посылая сообщения без ссылки используя абсолютный или относительные пути вы можете неверно указать путь, это будет означать что сообщение не найдет своего адресата и желательно иметь возможность так же понимать когда такая ситуация возникает. В Theater есть механизм для этого - подписка на сообщение (MessageSubscription).
 
-Посылая сообщение по ссылке или используя путь вы всегда используя метод send системы акторов или контекста актора получаете экземпляр MessageSubscription.
+Посылая сообщение по ссылке или используя путь вы используя метод sendAndSubscribe получаете экземпляр MessageSubscription.
 
 Используя метод onResponse можно назначить обработчик для получения ответа об состоянии сообщения.
 
@@ -855,7 +855,7 @@ void main(List<String> arguments) async {
   var ref = await system.actorOf('actor', TestActor());
 
   // Send message 'Hello, from main!' to actor and get message subscription
-  var subscription = ref.send('Hello, from main!');
+  var subscription = ref.sendAndSubscribe('Hello, from main!');
 
   // Set onResponse handler
   subscription.onResponse((response) {
@@ -945,7 +945,7 @@ class FirstTestActor extends UntypedActor {
   Future<void> onStart(UntypedActorContext context) async {
     // Send message to actor system topic with name 'first_test_topic' and get subscription to response
     var subscription =
-        context.sendToTopic('first_test_topic', 'This is String');
+        context.sendToTopicAndSubscribe('first_test_topic', 'This is String');
 
     // Set handler to response
     subscription.onResponse((response) {
