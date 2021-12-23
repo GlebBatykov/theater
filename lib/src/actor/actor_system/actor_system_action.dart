@@ -2,6 +2,12 @@ part of theater.actor;
 
 abstract class ActorSystemAction {}
 
+class ActorSystemAddTopicMessage extends ActorSystemAction {
+  final ActorSystemTopicMessage message;
+
+  ActorSystemAddTopicMessage(this.message);
+}
+
 abstract class ActorSystemRegisterLocalActorRef extends ActorSystemAction {
   final LocalActorRef ref;
 

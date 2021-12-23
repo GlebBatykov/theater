@@ -107,14 +107,15 @@ abstract class ActorContext<P extends ActorProperties>
 
   /// Sends message with [data] to actor system topic with name [topicName].
   void sendToTopic(String topicName, dynamic data, {Duration? delay}) {
-    var message = ActorSystemTopicMessage(topicName, data);
+    var action =
+        ActorSystemAddTopicMessage(ActorSystemTopicMessage(topicName, data));
 
     if (delay != null) {
       Future.delayed(delay, () {
-        _actorProperties.actorSystemMessagePort.send(message);
+        _actorProperties.actorSystemMessagePort.send(action);
       });
     } else {
-      _actorProperties.actorSystemMessagePort.send(message);
+      _actorProperties.actorSystemMessagePort.send(action);
     }
   }
 
@@ -125,15 +126,16 @@ abstract class ActorContext<P extends ActorProperties>
       {Duration? delay}) {
     var receivePort = ReceivePort();
 
-    var message = ActorSystemTopicMessage(topicName, data,
-        feedbackPort: receivePort.sendPort);
+    var action = ActorSystemAddTopicMessage(ActorSystemTopicMessage(
+        topicName, data,
+        feedbackPort: receivePort.sendPort));
 
     if (delay != null) {
       Future.delayed(delay, () {
-        _actorProperties.actorSystemMessagePort.send(message);
+        _actorProperties.actorSystemMessagePort.send(action);
       });
     } else {
-      _actorProperties.actorSystemMessagePort.send(message);
+      _actorProperties.actorSystemMessagePort.send(action);
     }
 
     return MessageSubscription(receivePort);

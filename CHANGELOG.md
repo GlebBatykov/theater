@@ -10,6 +10,8 @@
     - Using OneShotActionTokenRef, you can call one shot action from another actor.
     - Using RepatedlyActionTokenRef, you can stop and resume RepeatedlyAction from another actor.
 
+- Adds new place where is the data passed to the actor when the actor is created. The old way to get this data is marked deprecated.
+
 - Adds a new type of actor - system actor (previously, they were not explicitly present).
 
 - Updates documentation.

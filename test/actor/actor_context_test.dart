@@ -452,6 +452,15 @@ void main() {
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
+        context = createContext(List.generate(
+            5,
+            (index) => ActorInfo(
+                name: 'test_' + index.toString(),
+                actor: TestUntypedActor_2(),
+                data: {'feedbackPort': feedbackPort.sendPort})));
+
+        data = createTestData();
+
         await GroupRounterActorContextTester().sendToTopicTest(data);
       });
 
@@ -712,6 +721,10 @@ void main() {
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
+        context = createContext();
+
+        data = createTestData();
+
         await PoolRouterActorContextTester().sendToTopicTest(data);
       });
 

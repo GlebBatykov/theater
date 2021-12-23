@@ -112,7 +112,7 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
 
     await streamQueue.cancel();
 
-    expect(stopwatch.elapsedMilliseconds, inExclusiveRange(100, 250));
+    expect(stopwatch.elapsedMilliseconds, inExclusiveRange(100, 300));
 
     receivePort.close();
   }

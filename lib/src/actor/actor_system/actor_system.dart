@@ -108,6 +108,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
       _handleActorSystemGetLocalActorRefAction(action);
     } else if (action is ActorSystemIsExistLocalActorRef) {
       _handleActorSystemIsExistLocalActorRef(action);
+    } else if (action is ActorSystemAddTopicMessage) {
+      _topicMessageController.sink.add(action.message);
     }
   }
 

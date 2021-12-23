@@ -11,7 +11,7 @@ void main() {
       var path = ActorPath.withParent(parentPath, 'test_child');
 
       expect(path.segments, ['test', 'test_child']);
-      expect(path.toString(), 'theater.tcp://test_system/test/test_child');
+      expect(path.toString(), 'test_system/test/test_child');
       expect(path.depthLevel, 1);
     });
 
@@ -21,7 +21,7 @@ void main() {
       var path = ActorPath.parceAbsolute('test_system/test/test_child');
 
       expect(path.segments, ['test', 'test_child']);
-      expect(path.toString(), 'theater.tcp://test_system/test/test_child');
+      expect(path.toString(), 'test_system/test/test_child');
       expect(path.depthLevel, 1);
     });
 
@@ -31,7 +31,7 @@ void main() {
       var path = ActorPath.parceRelative('../test_child', parentPath);
 
       expect(path.segments, ['test', 'test_child']);
-      expect(path.toString(), 'theater.tcp://test_system/test/test_child');
+      expect(path.toString(), 'test_system/test/test_child');
       expect(path.depthLevel, 1);
     });
 
@@ -39,7 +39,7 @@ void main() {
       var path = parentPath.createChild('test_child');
 
       expect(path.segments, ['test', 'test_child']);
-      expect(path.toString(), 'theater.tcp://test_system/test/test_child');
+      expect(path.toString(), 'test_system/test/test_child');
       expect(path.depthLevel, 1);
     });
 
@@ -52,7 +52,7 @@ void main() {
     });
 
     test('.toString(). Converts actor path to string and check it.', () {
-      expect(parentPath.toString(), 'theater.tcp://test_system/test');
+      expect(parentPath.toString(), 'test_system/test');
     });
   });
 
@@ -60,7 +60,7 @@ void main() {
     test('.toString(). Converts address to string and check it.', () {
       var address = Address('test_system', host: '127.0.0.1', port: 8555);
 
-      expect(address.toString(), 'theater.udp://test_system@127.0.0.1:8555');
+      expect(address.toString(), 'test_system@127.0.0.1:8555');
     });
   });
 }
