@@ -20,6 +20,8 @@ class RepeatedlyAction extends SchedulerAction {
 
   Timer? timer;
 
+  StreamSubscription? _initialDelaySubscription;
+
   RepeatedlyAction(
       {required Duration interval,
       required RepeatedlyActionCallback action,
@@ -50,22 +52,35 @@ class RepeatedlyAction extends SchedulerAction {
     }
   }
 
-  void start() {
+  void start() async {
     timer?.cancel();
 
-    Future.delayed(_initialDelay ?? Duration(), () {
-      timer = Timer.periodic(_interval, (timer) {
-        var context = RepeatedlyActionContext(counter);
+    if (_initialDelay != null) {
+      await _initialDelaySubscription?.cancel();
 
-        _action(context);
+      _initialDelaySubscription =
+          Future.delayed(_initialDelay!).asStream().listen((event) async {
+        timer = Timer.periodic(_interval, _runTimer);
 
-        counter++;
+        await _initialDelaySubscription?.cancel();
       });
-    });
+    } else {
+      timer = Timer.periodic(_interval, _runTimer);
+    }
   }
 
-  void stop() {
+  void _runTimer(Timer timer) {
+    var context = RepeatedlyActionContext(counter);
+
+    _action(context);
+
+    counter++;
+  }
+
+  void stop() async {
     timer?.cancel();
+
+    await _initialDelaySubscription?.cancel();
 
     _onStop?.call(RepeatedlyActionContext(counter));
   }

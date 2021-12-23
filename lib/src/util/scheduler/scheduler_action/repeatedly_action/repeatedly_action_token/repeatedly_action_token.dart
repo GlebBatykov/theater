@@ -1,17 +1,21 @@
 part of theater.util;
 
-///
+/// Used in scheduler to stop and resume repeatedly actions.
 class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
     RepeatedlyActionTokenRef> {
   RepeatedlyActionStatus _status = RepeatedlyActionStatus.running;
 
-  ///
+  /// Displays status actions which bonded to this token.
   RepeatedlyActionStatus get status => _status;
 
+  /// Displays status actions which bonded to this token.
   ///
+  /// If actions is running return true, else return false.
   bool get isRunning => _status == RepeatedlyActionStatus.running;
 
+  /// Displays status actions which bonded to this token.
   ///
+  /// If actions is stoped return true, else return false.
   bool get isStoped => _status == RepeatedlyActionStatus.stopped;
 
   @override
@@ -39,7 +43,7 @@ class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
     }
   }
 
-  ///
+  /// Add listener to stop event.
   StreamSubscription<RepeatedlyActionEvent> addOnStopListener(
       void Function() listener) {
     return _eventController.stream
@@ -47,7 +51,7 @@ class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
         .listen((event) => listener());
   }
 
-  ///
+  /// Add listener to resume event.
   StreamSubscription<RepeatedlyActionEvent> addOnResumeListener(
       void Function() listener) {
     return _eventController.stream
@@ -55,14 +59,14 @@ class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
         .listen((event) => listener());
   }
 
-  ///
+  /// Stops all action which bonded with this token.
   void stop() {
     _eventController.sink.add(RepeatedlyActionStop());
 
     _status = RepeatedlyActionStatus.stopped;
   }
 
-  ///
+  /// Resumes all action which bonded with this token.
   void resume() {
     _eventController.sink.add(RepeatedlyActionResume());
 

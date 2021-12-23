@@ -1,6 +1,6 @@
 part of theater.util;
 
-///
+/// Used in the scheduler to call one shot actions.
 class OneShotActionToken
     extends SchedulerActionToken<OneShotActionEvent, OneShotActionTokenRef> {
   @override
@@ -24,12 +24,12 @@ class OneShotActionToken
     }
   }
 
-  ///
+  /// Calls all action which bonded with this token.
   void call() {
     _eventController.sink.add(OneShotActionEventCall());
   }
 
-  ///
+  /// Add listener to call event.
   void addOnCallListener(void Function() listener) {
     _eventController.stream
         .where((event) => event is OneShotActionEventCall)
