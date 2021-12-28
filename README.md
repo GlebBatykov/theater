@@ -226,13 +226,13 @@ class TestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
