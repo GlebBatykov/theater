@@ -162,7 +162,7 @@ class IsolateSupervisor {
       }
     }, (exception, stackTrace) {
       message.supervisorErrorPort
-          .send(IsolateError(exception as Exception, stackTrace.toString()));
+          .send(IsolateError(exception as Exception, stackTrace));
     });
   }
 
