@@ -1,6 +1,6 @@
 part of theater.core;
 
-extension ListEqual on List {
+extension ListEqualExtension on List {
   bool equal(List other) {
     if (other.length != length) {
       return false;
