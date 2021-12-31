@@ -43,6 +43,7 @@
   - [Маршрутизаторы](#машрутизаторы)
     - [Маршрутизатор группы](#маршрутизатор-группы)
     - [Маршрутизатор пула](#маршрутизатор-пула)
+- [Передача данных в актор](#передача-данных-в-актор)
 - [Наблюдение и обработка ошибок](#наблюдение-и-обработка-ошибок)
 - [Утилиты](#утилиты)
   - [Планировщик](#планировщик)
@@ -72,9 +73,8 @@ Theater - это пакет для упрощения работы с много
 - систему маршрутизации сообщений между акторами (изолятами), которая инкапсулирует в себе работу с Receive и Send портами;
 - систему обработки ошибок на уровне одного актора или группы акторов;
 - возможности настройки маршрутизации сообщений (специальные акторы - маршрутизаторы, позволяющие устанавливать одну из предложенных стратегию маршрутизации сообщений между своими акторами-детьми, возможность задать приоритет сообщениям определенного типа);
-- возможность балансировки нагрузки (сообщений) между акторами, создание пулов из акторов.
-
-Сейчас в разработке находится возможность отправлять сообщение по сети в системы акторов находящиеся в других Dart VM.
+- возможность балансировки нагрузки (сообщений) между акторами, создание пулов из акторов;
+- возможность планировать задачи выполняемые периодически спустя время, отменять их и возобновлять.
 
 # Установка
 
@@ -288,7 +288,7 @@ test_system/root/user/test_actor
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(context) async {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -832,7 +832,7 @@ class TestActor extends UntypedActor {
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(context) async {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       // Print message
@@ -1224,6 +1224,8 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-2, message: Hello message №3
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №4
 ```
+
+# Передача данных в актор
 
 # Наблюдение и обработка ошибок
 

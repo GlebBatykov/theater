@@ -71,9 +71,8 @@ It provides:
 - a system for routing messages between actors (isolates), which encapsulates work with Receive and Send ports;
 - error handling system at the level of one actor or a group of actors;
 - the ability to configure message routing (special actors - routers that allow you to set one of the proposed message routing strategy between their child actors, the ability to set priority to messages of a certain type);
-- ability to load balance (messages) between actors, creating pools of actors.
-
-Currently in development is the ability to send a message over the network to actor systems located in other Dart VMs.
+- ability to load balance (messages) between actors, creating pools of actors;
+- the ability to schedule tasks performed periodically after a time, cancel them and resume.
 
 # Installing
 
@@ -831,7 +830,7 @@ An example of sending a message to an actor, receiving a response from it:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(context) async {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       // Print message
