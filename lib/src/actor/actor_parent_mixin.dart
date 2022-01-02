@@ -102,7 +102,9 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
 
     if (_actorProperties.supervisorStrategy is OneForOneStrategy) {
       await actorCell.pause();
-    } else {}
+    } else {
+      await pauseChildren();
+    }
 
     _isolateContext.supervisorMessagePort.send(ActorErrorEscalated(error));
   }
