@@ -4,8 +4,7 @@ part of theater.actor;
 ///
 /// Receive messages from other actors, create a pool of child actors and control their life cycle.
 class PoolRouterActorContext
-    extends RouterActorContext<PoolRouterActorProperties>
-    with UserActorContextMixin<PoolRouterActorProperties> {
+    extends RouterActorContext<PoolRouterActorProperties> {
   final Map<ActorCell, int> _loadingMap = {};
 
   PoolRouterActorContext(

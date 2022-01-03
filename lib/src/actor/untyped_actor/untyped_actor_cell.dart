@@ -1,6 +1,7 @@
 part of theater.actor;
 
-class UntypedActorCell extends NodeActorCell<UntypedActor> {
+class UntypedActorCell extends NodeActorCell<UntypedActor>
+    with UserActorCellMixin<UntypedActor> {
   UntypedActorCell(ActorPath path, UntypedActor actor, LocalActorRef parentRef,
       SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,

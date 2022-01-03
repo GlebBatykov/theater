@@ -1,6 +1,7 @@
 part of theater.actor;
 
-class PoolRouterActorCell extends RouterActorCell<PoolRouterActor> {
+class PoolRouterActorCell extends RouterActorCell<PoolRouterActor>
+    with UserActorCellMixin<PoolRouterActor> {
   PoolRouterActorCell(ActorPath path, PoolRouterActor actor,
       LocalActorRef parentRef, SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,

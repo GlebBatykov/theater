@@ -39,6 +39,9 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   // ignore: unused_field
   late final ActorPath _systemGuardianPath;
 
+  /// [LocalActorRef] instance pointing to mailbox of user guardian.
+  late LocalActorRef _userGuardianRef;
+
   /// [RootActorCell] instance of root actor.
   late final RootActorCell _root;
 
@@ -97,11 +100,15 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     await _root.initialize();
 
     await _root.start();
+
+    _userGuardianRef = _systemActorRegister.getRefByPath(_userGuardianPath)!;
   }
 
   void _handleActorSystemAction(ActorSystemAction action) {
     if (action is ActorSystemRegisterLocalActorRef) {
       _handleActorSystemRegisterLocalActorRefAction(action);
+    } else if (action is ActorSystemRemoveLocalActorRef) {
+      _handleActorSystemRemoveLocalActorRefAction(action);
     } else if (action is ActorSystemGetLocalActorRef) {
       _handleActorSystemGetLocalActorRefAction(action);
     } else if (action is ActorSystemIsExistLocalActorRef) {
@@ -117,6 +124,15 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
       _userActorRegister.registerRef(action.ref);
     } else if (action is ActorSystemRegisterSystemLocalActorRef) {
       _systemActorRegister.registerRef(action.ref);
+    }
+  }
+
+  void _handleActorSystemRemoveLocalActorRefAction(
+      ActorSystemRemoveLocalActorRef action) {
+    if (action is ActorSystemRemoveUserLocalActorRef) {
+      _userActorRegister.removeByPath(action.path);
+    } else if (action is ActorSystemRemoveSystemLocalActorRef) {
+      _systemActorRegister.removeByPath(action.path);
     }
   }
 
@@ -180,7 +196,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
       var action = UserGuardianCreateTopLevelActor(name, actor, data, onKill);
 
-      _root.ref.sendMessage(SystemRoutingMessage(action, _userGuardianPath,
+      _userGuardianRef.sendMessage(SystemRoutingMessage(
+          action, _userGuardianPath,
           feedbackPort: receivePort.sendPort));
 
       late LocalActorRef actorRef;

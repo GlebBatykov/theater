@@ -1,6 +1,7 @@
 part of theater.actor;
 
-class GroupRouterActorCell extends RouterActorCell<GroupRouterActor> {
+class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
+    with UserActorCellMixin<GroupRouterActor> {
   GroupRouterActorCell(ActorPath path, GroupRouterActor actor,
       LocalActorRef parentRef, SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,
