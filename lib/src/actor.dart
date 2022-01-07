@@ -54,6 +54,8 @@ part 'actor/user_actor_cell_mixin.dart';
 part 'actor/actor_system/actor_system.dart';
 part 'actor/actor_system/actor_system_action.dart';
 part 'actor/actor_system/actor_system_event.dart';
+part 'actor/actor_system/builder/actor_system_builder.dart';
+part 'actor/actor_system/builder/actor_system_async_builder.dart';
 
 part 'actor/supervisor_actor/supervisor_actor.dart';
 part 'actor/supervisor_actor/supervisor_actor_cell.dart';
