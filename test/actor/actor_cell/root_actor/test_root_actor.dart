@@ -1,6 +1,7 @@
 import 'dart:isolate';
 
 import 'package:theater/src/actor.dart';
+import 'package:theater/src/remote.dart';
 
 class TestRootActor_1 extends RootActor {
   @override

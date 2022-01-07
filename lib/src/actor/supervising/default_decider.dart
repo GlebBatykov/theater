@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.actor.supervising;
 
 class DefaultDecider extends Decider {
   @override

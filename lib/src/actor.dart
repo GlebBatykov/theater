@@ -11,6 +11,11 @@ import 'package:theater/src/remote.dart';
 import 'package:theater/src/routing.dart';
 import 'package:theater/src/util.dart';
 import 'package:theater/src/core.dart';
+import 'actor/supervising.dart';
+import 'dispatch.dart';
+import 'routing.dart';
+import 'util.dart';
+import 'core.dart';
 
 part 'actor/isolate/isolate_error.dart';
 part 'actor/actor_event.dart';
@@ -19,13 +24,6 @@ part 'actor/isolate/isolate_spawn_message.dart';
 part 'actor/isolate/isolate_supervisor.dart';
 part 'actor/exception/isolate_supervisor_exception.dart';
 part 'actor/isolate/isolate_context.dart';
-
-part 'actor/supervisor_strategy/directive.dart';
-part 'actor/supervisor_strategy/supervisor_strategy.dart';
-part 'actor/supervisor_strategy/all_for_one_strategy.dart';
-part 'actor/supervisor_strategy/one_for_one_strategy.dart';
-part 'actor/supervisor_strategy/decider.dart';
-part 'actor/supervisor_strategy/default_decider.dart';
 
 part 'actor/exception/actor_child_exception.dart';
 part 'actor/exception/actor_system_exception.dart';
@@ -38,7 +36,6 @@ part 'actor/actor_cell.dart';
 part 'actor/actor_cell_factory.dart';
 part 'actor/actor_context.dart';
 part 'actor/actor_isolate_handler.dart';
-part 'actor/supervisor_strategy/supervisor_strategy_creater.dart';
 part 'actor/actor_context_factory.dart';
 part 'actor/actor_isolate_handler_factory.dart';
 part 'actor/actor_error.dart';

@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.actor.supervising;
 
 /// The class used by [SupervisorStrategy] to decide what to do with the happened exception.
 abstract class Decider {

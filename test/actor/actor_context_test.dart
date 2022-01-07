@@ -4,6 +4,7 @@ import 'package:test/scaffolding.dart';
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
 import 'package:theater/src/routing.dart';
+import 'package:theater/src/actor/supervising.dart';
 
 import 'actor_context/actor_context_test_data.dart';
 import 'actor_context/group_router_actor/group_router_actor_context_tester.dart';
