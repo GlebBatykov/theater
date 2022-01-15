@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.actor_system;
 
 ///
 abstract class ActorSystemAsyncBuilder {

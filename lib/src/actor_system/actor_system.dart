@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.actor_system;
 
 /// Class is used for creating group of actor.
 ///
@@ -22,6 +22,12 @@ part of theater.actor;
 class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Name of actor system. Used in [ActorPath] of everyone actors.
   final String name;
+
+  /// Instance of [RemoteTransportConfiguration] which used for configuration actor system server.
+  final RemoteTransportConfiguration _remoteConfiguration;
+
+  ///
+  final List<RemoteSource> _remoteSources = [];
 
   /// Instanse of [ReceivePort] of actor system.
   late ReceivePort _messagePort;
@@ -64,7 +70,9 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Shows the status of dispose.
   bool get isDisposed => _isDisposed;
 
-  ActorSystem(this.name) {
+  ActorSystem(this.name, {RemoteTransportConfiguration? remoteConfiguration})
+      : _remoteConfiguration = remoteConfiguration ??
+            RemoteTransportConfiguration(isRemoteTransportEnabled: false) {
     _rootPath = ActorPath(Address(name), 'root', 0);
 
     _userGuardianPath = _rootPath.createChild('user');
@@ -86,7 +94,10 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
       }
     });
 
-    _root = RootActorCell(_rootPath, DefaultRootActor(), _messagePort.sendPort);
+    _root = RootActorCell(
+        _rootPath,
+        DefaultRootActor(remoteConfiguration: _remoteConfiguration),
+        _messagePort.sendPort);
 
     // If root actor escalate error. Prints stackTrace and dispose actor system.
     _root.errors.listen((error) {
@@ -114,7 +125,13 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     } else if (action is ActorSystemIsExistLocalActorRef) {
       _handleActorSystemIsExistLocalActorRef(action);
     } else if (action is ActorSystemAddTopicMessage) {
-      _topicMessageController.sink.add(action.message);
+      _handleActorSystemAddTopicMessage(action);
+    } else if (action is ActorSystemSetRemoteSources) {
+      _handleActorSystemSetRemoteSources(action);
+    } else if (action is ActorSystemCreateRemoteActorRef) {
+      _handleActorSystemCreateRemoteActorRef(action);
+    } else if (action is ActorSystemRouteActorRemoteMessage) {
+      _handleActorSystemRouteActorRemoteMessage(action);
     }
   }
 
@@ -162,6 +179,48 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
+  void _handleActorSystemAddTopicMessage(ActorSystemAddTopicMessage action) {
+    _topicMessageController.sink.add(action.message);
+  }
+
+  void _handleActorSystemSetRemoteSources(ActorSystemSetRemoteSources action) {
+    _remoteSources.clear();
+    _remoteSources.addAll(action.remoteSources);
+  }
+
+  void _handleActorSystemCreateRemoteActorRef(
+      ActorSystemCreateRemoteActorRef action) {
+    RemoteSource? remoteSource;
+
+    for (var source in _remoteSources) {
+      if (source.connectionName == action.connectionName) {
+        remoteSource = source;
+        break;
+      }
+    }
+
+    if (remoteSource != null) {
+      var ref = remoteSource.createRemoteRef(action.path);
+
+      action.feedbackPort.send(ActorSystemCreateRemoteActorRefSuccess(ref));
+    } else {
+      action.feedbackPort
+          .send(ActorSystemCreateRemoteActorRefConnectionNotExist());
+    }
+  }
+
+  void _handleActorSystemRouteActorRemoteMessage(
+      ActorSystemRouteActorRemoteMessage action) {
+    var message = action.message;
+
+    for (var ref in _userActorRegister.refs) {
+      if (ref.path == message.path) {
+        ref.send(message.data);
+        break;
+      }
+    }
+  }
+
   /// Pauses all actors in actor system.
   Future<void> pause() async {
     await _root.pause();
@@ -176,6 +235,18 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   Future<void> kill() async {
     await _root.kill();
   }
+
+  ///
+  Future<void> pauseTopLevelActor(String path) async {}
+
+  ///
+  Future<void> resumeTopLevelActor(String path) async {}
+
+  ///
+  Future<void> killTopLevelActor(String path) async {}
+
+  ///
+  Future<void> deleteTopLevelActor(String path) async {}
 
   /// Creates new top-level actor in [ActorSystem] and returns [LocalActorRef] pointing to his [Mailbox].
   ///

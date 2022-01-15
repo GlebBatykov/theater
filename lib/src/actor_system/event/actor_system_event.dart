@@ -1,14 +1,14 @@
-part of theater.actor;
+part of theater.actor_system;
 
 abstract class ActorSystemEvent {}
 
-class ActorSystemGetLocalActorRefResult {
+class ActorSystemGetLocalActorRefResult extends ActorSystemEvent {
   final LocalActorRef? ref;
 
   ActorSystemGetLocalActorRefResult(this.ref);
 }
 
-class ActorSystemIsExistLocalActorRefResult {
+class ActorSystemIsExistLocalActorRefResult extends ActorSystemEvent {
   final bool isExist;
 
   ActorSystemIsExistLocalActorRefResult(this.isExist);
