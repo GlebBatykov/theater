@@ -1,4 +1,4 @@
-part of theater.actor.supervising;
+part of theater.supervising;
 
 /// Implementation of [SupervisorStrategy] which applies to all child actors.
 ///

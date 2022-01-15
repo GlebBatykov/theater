@@ -1,4 +1,4 @@
-part of theater.actor.supervising;
+part of theater.supervising;
 
 abstract class SupervisorStrategyCreater {
   SupervisorStrategy createSupervisorStrategy();

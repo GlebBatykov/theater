@@ -1,4 +1,4 @@
-part of theater.actor.supervising;
+part of theater.supervising;
 
 /// A directive is a decision made in [SupervisorStrategy] in the process of handling an error coming from the child actor.
 ///

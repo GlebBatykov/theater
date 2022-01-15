@@ -1,4 +1,4 @@
-library theater.actor.supervising;
+library theater.supervising;
 
 part 'supervising/directive.dart';
 part 'supervising/supervisor_strategy.dart';
