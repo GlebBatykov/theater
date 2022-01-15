@@ -86,14 +86,14 @@ class ServerWorkerPoolRouter extends PoolRouterActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create server receivers pool router
-  await actorSystem.actorOf('receivers', ServerReceiverPoolRouter());
+  await system.actorOf('receivers', ServerReceiverPoolRouter());
 
   // Create server workers pool router
-  await actorSystem.actorOf('workers', ServerWorkerPoolRouter());
+  await system.actorOf('workers', ServerWorkerPoolRouter());
 }

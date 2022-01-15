@@ -1,4 +1,4 @@
-import 'package:theater/src/actor.dart';
+import 'package:theater/theater.dart';
 
 // Create actor class
 class TestActor extends UntypedActor {
