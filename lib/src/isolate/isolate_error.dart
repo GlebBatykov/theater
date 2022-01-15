@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.isolate;
 
 class IsolateError {
   final Exception exception;

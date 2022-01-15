@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.isolate;
 
 class IsolateSupervisor {
   final StreamController _messageController = StreamController.broadcast();
@@ -27,7 +27,7 @@ class IsolateSupervisor {
 
   final ActorIsolateHandlerFactory _isolateHandlerFactory;
 
-  final ActorContextFactory _contextFactory;
+  final ActorContextBuilder _contextBuilder;
 
   final Map<String, dynamic> _data;
 
@@ -59,14 +59,14 @@ class IsolateSupervisor {
       Actor actor,
       ActorProperties actorProperties,
       ActorIsolateHandlerFactory isolateHandlerFactory,
-      ActorContextFactory contextFactory,
+      ActorContextBuilder contextBuilder,
       {Map<String, dynamic>? data,
       void Function(IsolateError)? onError,
       void Function()? onKill})
       : _actor = actor,
         _actorProperties = actorProperties,
         _isolateHandlerFactory = isolateHandlerFactory,
-        _contextFactory = contextFactory,
+        _contextBuilder = contextBuilder,
         _data = data ?? {},
         _onKill = onKill {
     if (onError != null) {
@@ -104,7 +104,7 @@ class IsolateSupervisor {
           _actor,
           _actorProperties,
           _isolateHandlerFactory,
-          _contextFactory,
+          _contextBuilder,
           _data);
 
       _isolate = await Isolate.spawn(_isolateEntryPoint, spawnMessage,
@@ -146,14 +146,12 @@ class IsolateSupervisor {
       var isolateContext = IsolateContext(receivePort,
           message.supervisorMessagePort, message.supervisorErrorPort);
 
-      var actorContext = message.contextFactory
-          .create(isolateContext, message.actorProperties);
-
-      message.isolateHandlerFactory
-          .create(isolateContext, message.actor, actorContext);
-
       try {
-        await actorContext._initialize();
+        var actorContext = await message.contextBuilder
+            .build(isolateContext, message.actorProperties);
+
+        message.isolateHandlerFactory
+            .create(isolateContext, message.actor, actorContext);
       } catch (_) {
         rethrow;
       } finally {

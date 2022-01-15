@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.isolate;
 
 class IsolateSpawnMessage {
   final SendPort supervisorMessagePort;
@@ -11,7 +11,7 @@ class IsolateSpawnMessage {
 
   final ActorIsolateHandlerFactory isolateHandlerFactory;
 
-  final ActorContextFactory contextFactory;
+  final ActorContextBuilder contextBuilder;
 
   final Map<String, dynamic> data;
 
@@ -21,6 +21,6 @@ class IsolateSpawnMessage {
       this.actor,
       this.actorProperties,
       this.isolateHandlerFactory,
-      this.contextFactory,
+      this.contextBuilder,
       this.data);
 }
