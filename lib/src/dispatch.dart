@@ -5,6 +5,8 @@ import 'dart:collection';
 
 import 'dart:isolate';
 
+import 'package:theater/src/core.dart';
+import 'package:theater/src/remote.dart';
 import 'package:theater/src/routing.dart';
 import 'package:theater/src/util.dart';
 
@@ -47,3 +49,4 @@ part 'dispatch/ref/ref_register/actor_ref_register/local_actor_ref_register.dart
 
 part 'dispatch/exception/actor_ref_exception.dart';
 part 'dispatch/exception/cancellation_token_ref_exception.dart';
+part 'dispatch/exception/remote_actor_ref_exception.dart';

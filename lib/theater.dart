@@ -1,8 +1,10 @@
 library theater;
 
+export 'src/actor_system.dart'
+    show ActorSystem, ActorSystemBuilder, ActorSystemAsyncBuilder;
+
 export 'src/actor.dart'
     show
-        ActorSystem,
         Actor,
         SupervisorActor,
         ObservableActor,
@@ -21,19 +23,22 @@ export 'src/actor.dart'
         GroupRouterActorContext,
         PoolRouterActorContext,
         WorkerActorFactory,
-        Decider,
-        AllForOneStrategy,
-        OneForOneStrategy,
         PoolDeployementStrategy,
         GroupDeployementStrategy,
         ActorInfo,
-        SupervisorStrategy,
-        Directive,
         WorkerActorProperties,
         PoolRouterActorProperties,
         GroupRouterActorProperties,
         UntypedActorProperties,
         ActorParentMixin;
+
+export 'src/supervising.dart'
+    show
+        SupervisorStrategy,
+        Directive,
+        Decider,
+        AllForOneStrategy,
+        OneForOneStrategy;
 
 export 'src/dispatch.dart'
     show
@@ -70,7 +75,13 @@ export 'src/util.dart'
         RepeatedlyActionToken,
         OneShotActionToken,
         RepeatedlyActionContext,
-        OneShotActionContext;
+        OneShotActionContext,
+        Shared,
+        SharedInt,
+        SharedNInt,
+        IntSharedExtension,
+        NIntSharedExtension;
+
 export 'src/remote.dart'
     show
         RemoteTransportConfiguration,
