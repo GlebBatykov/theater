@@ -38,13 +38,18 @@
     - [Отправка без ссылки](#отправка-без-ссылки)
     - [Прием сообщений](#прием-сообщений)
     - [Получение ответа на сообщение](#получение-ответа-на-сообщение)
-    - [Прослушивание сообщений системой акторов](#прослушивание-сообщений-системой-акторов)
+    - [Просшуливание сообщений системой акторов](#просшуливание-сообщений-системой-акторов)
     - [Скорость посылки сообщений](#скорость-посылки-сообщений)
-  - [Маршрутизаторы](#машрутизаторы)
+  - [Машрутизаторы](#машрутизаторы)
     - [Маршрутизатор группы](#маршрутизатор-группы)
     - [Маршрутизатор пула](#маршрутизатор-пула)
 - [Передача данных в актор](#передача-данных-в-актор)
 - [Наблюдение и обработка ошибок](#наблюдение-и-обработка-ошибок)
+- [Удаленное взаимодействие [Бета]](#удаленное-взаимодействие-бета)
+  - [Настройка системы акторов](#настройка-системы-акторов)
+    - [Сериализация](#сериализация)
+  - [Получение удаленной ссылки](#получение-удаленной-ссылки)
+  - [Пример](#пример)
 - [Утилиты](#утилиты)
   - [Планировщик](#планировщик)
     - [Повторяющееся действие](#повторяющееся-действие)
@@ -1313,6 +1318,355 @@ void main(List<String> arguments) async {
 ![](https://i.ibb.co/KwfMwwq/error-handling-example.png)
 
 </div>
+
+# Удаленное взаимодействие [Бета]
+
+В Theater вы можете отправлять создавать акторы которые выполняются каждый в отдельном изоляте и отправлять сообщения этим акторам. Такая отправка сообщения происходит локально, то есть в той системе акторов того приложения что вы запустили. 
+
+Но что насчёт других систем акторов, которые запущенны как локально, так и удаленно на других ПК в других Dart VM?
+
+В Theater вы можете посылать сообщения как локальным акторам, тем что находятся в одной с ними системе акторов. Так и удаленным, которые находятся с ними на одном устройстве или на другом.
+
+На данный момент удаленное взаимодействие доступно при помощи протоколов:
+-tcp.
+
+## Настройка системы акторов
+
+Настройка системы акторов осуществляется в момент её создания при помощи класса RemoteTransportConfiguration.
+
+Обмен сообщениями между системами акторов осуществляется односторонний, то есть в случае когда две системы акторов удаленно обмениваются сообщениями, обе системы акторов разворачивают у себя на сервера и каждая из них создает независимое друг от друга подключение к другой системе акторов. То есть сервера выполняют роль приемников сообщений, а подключения необходимы для отправки.
+
+Пример системы акторов c развернутым Tcp сервером, созданным подключением к другой системе акторов:
+
+```dart
+void main() {
+  // Create RemoteTransportConfiguration
+  var remoteConfiguration = RemoteTransportConfiguration(
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6656)
+        ]);
+
+  // Create actor system
+  var system = ActorSystem('test_system', remoteConfiguration: remoteConfiguration);
+}
+```
+
+При создании подключения указывается название подключение, оно должно быть уникально и впоследствии используется для получения ссылки на удаленного актора.
+
+### Сериализация
+
+Так как сообщения передаваемые между системами акторов вне зависимости от выбранного протокола передаются в JSON формате было бы неудобно при отправке сообщений постоянно самостоятельно приводить их к String.
+
+В Dart отсутствует какой либо сериализатор/десериализатор в JSON работающий с объектами без необходимости самостоятельно прописывать toJson и fromJson методы, основанный не на генерации кода.
+
+Подобный сериализатор можно реализовать при помощи библиотеки dart:mirros, однако она не доступна при AOT компиляции и соответственно в Flutter приложениях она и пакеты использующие её недоступны. А так же dart:mirros в данный момент по сути не поддерживается и при помощи неё практически невозможно нормально работать с nullable типами.
+
+Поэтому я решил добавить возможность обозначать один раз при создании системы акторов логику сериализации и десериализации входящих и исходящих из системы акторов сообщений. Каждое сообщение попадающее или отправляемое из системы акторов проходит стадию сериализации и десериализации.
+
+Каждое сообщение входящие и исходящие из системы акторов помимо содержимого сообщения так же имеет тег для более удобной серилизации и десериализации.
+
+Пример создания системы акторов, настройка RemoteTransportConfiguration с созданными сериализатором и десериализатором, созданным подключением:
+
+```dart
+// If you need create some class to use as a message
+class User {
+  final String name;
+
+  final int age;
+
+  User.fromJson(Map<String, dynamic> json)
+    : name = json['name'],
+      age = json['age'];
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'age': age
+  };
+}
+
+// Create serializer class
+class TestSerializer extends ActorMessageTransportSerializer {
+  @override
+  String serialize(String tag, dynamic data) {
+    if (data is User) {
+      return jsonEncode(data.toJson());
+    } else {
+      return data.toString();
+    }
+  }
+}
+
+// Create deserializer class
+class TestDeserializer extends ActorMessageTransportDeserializer {
+  @override
+  dynamic deserialize(String tag, String data) {
+    if (tag == 'user') {
+      return User.fromJson(jsonDecode(data));
+    }
+  }
+}
+
+void main() {
+  // Create RemoteTransportConfiguration
+  var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TestSerializer(),
+        deserializer: TestDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ]);
+
+  // Create actor system
+  var system = ActorSystem('test_system', remoteConfiguration: remoteConfiguration);
+}
+```
+
+Если при создании системы акторов при настройке RemoteTransportConfiguration не были указанны сериализаторы и десериализаторы то применяются их версии по умолчанию. Версия сериализатора по умолчанию пытается привести отправляемый объект в String, а десериализатор по умолчанию возвращает исходную полученную String.
+
+## Получение удаленной ссылки
+
+В Theater вы можете отправлять сообщения локальным акторам при помощи ссылок на локальных акторов.
+
+По аналогии с ссылками на локальных акторов, чтобы отправить сообщение удаленному актору вы должны создать ссылку на удаленного актора.
+
+Сделать это можно при помощи экземпляра класса системы акторов или при помощи контекста актора.
+
+Пример получения ссылки на удаленного актора при помощи контекста актора:
+
+```dart
+
+class TestActor extends UntypedActor {
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create remote actor ref by connecting with name 'other_actor_system'
+    // to actor with actor path 'other_actor_system/root/user/test_actor'
+    var ref = await context.createRemoteActorRef('other_actor_system', 'other_actor_system/root/user/test_actor');
+  }
+}
+
+```
+
+В приведенном примере для получения ссылки на удаленного актора нам необходимо имя нашего подключения к удаленной системе акторов, а так же мы должны указать абсолютный путь к тому актору которому мы отправляем сообщение.
+
+Пример получения ссылки на удаленного актора при помощи системы акторов:
+
+```dart
+void main() async {
+  // Create remote transport configuration.
+  var remoteConfiguration = RemoteTransportConfiguration(connectors: [
+    TcpConnectorConfiguration(
+        name: 'server_actor_system', address: '127.0.0.1', port: 6655)
+  ]);
+
+  // Create actor system
+  var system = ActorSystem('client_actor_system', remoteConfiguration: remoteConfiguration);
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create remote actor ref by connecting with name 'server_actor_system'
+  // to actor with actor path 'server_actor_system/root/user/test_actor'
+  var ref = system.createRemoteActorRef(
+      'server_actor_system', 'server_actor_system/root/user/test_actor');
+
+  // Send message
+  ref.send('test_message', 'Hello, from client!');
+}
+```
+
+## Пример
+
+В качестве примера взаимодействия систем акторов при помощи Theater Remote рассмотрим ситуацию в которой две системы акторов обмениваются сообщениями, одна посылает другой ping сообщение, а вторая отвечает ей pong сообщением.
+
+В качестве сообщений мы будем пересылать экземпляры классов Ping и Pong, которые будут проходить стадии сериализации и десериализации.
+
+Создание класса сериализатора и десериализатора:
+
+```dart
+class Message {
+  final String data;
+
+  Message(this.data);
+
+  Message.fromJson(Map<String, dynamic> json) : data = json['data'];
+
+  Map<String, dynamic> toJson() => {'data': data};
+}
+
+class Ping extends Message {
+  Ping(String data) : super(data);
+
+  Ping.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+}
+
+class Pong extends Message {
+  Pong(String data) : super(data);
+
+  Pong.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+}
+
+// Create serializer class
+class TransportSerializer extends ActorMessageTransportSerializer {
+  // Override serialize method
+  @override
+  String serialize(String tag, dynamic data) {
+    if (data is Message) {
+      return jsonEncode(data.toJson());
+    } else {
+      return data.toString();
+    }
+  }
+}
+
+// Create deserializer class
+class TransportDeserializer extends ActorMessageTransportDeserializer {
+  // Override deserialize method
+  @override
+  dynamic deserialize(String tag, String data) {
+    if (tag == 'ping') {
+      return Ping.fromJson(jsonDecode(data));
+    } else if (tag == 'pong') {
+      return Pong.fromJson(jsonDecode(data));
+    } else {
+      return data;
+    }
+  }
+}
+```
+
+Создание первой системы акторов:
+
+```dart
+// Create actor system builder class
+class FirstActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'first_actor_system';
+
+    // Create remote transport configuration.
+    // Create in it connector and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6656)
+        ]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor class
+class TestActor extends UntypedActor {
+  late final RemoteActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all Pong type messages which actor received
+    context.receive<Pong>((message) async {
+      print(message.data);
+    });
+
+    // Create remote actor ref by connecting with name 'second_actor_system'
+    // to actor with actor path 'second_actor_system/root/user/test_actor'
+    _ref = await context.createRemoteActorRef(
+        'second_actor_system', 'second_actor_system/root/user/test_actor');
+
+    // Send message with tag 'ping'
+    _ref.send('ping', Ping('Ping message from first actor system!'));
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = FirstActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+В примере для создания системы акторов был создан ActorSystemBuilder класс, это не обязательная мера. Добавлено лишь для того чтобы вынести логику создания и настройки системы акторов в отдельный класс.
+
+Из примера видно что первая система акторов создает актора, который прослушивает сообщения типа Pong, создает ссылку на удаленного актора и отправляет ему Ping сообщение.
+
+Создание второй системы акторов:
+
+```dart
+// Create actor system builder class
+class SecondActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'second_actor_system';
+
+    // Create remote transport configuration.
+    // Create in it connector and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'first_actor_system', address: '127.0.0.1', port: 6656)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6655)
+        ]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor class
+class TestActor extends UntypedActor {
+  late final RemoteActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all Ping type messages which actor received
+    context.receive<Ping>((message) async {
+      print(message.data);
+
+      // Send message with tag 'pong'
+      _ref.send('pong', Pong('Pong message from second actor system!'));
+    });
+
+    // Create remote actor ref by connecting with name 'first_actor_system'
+    // to actor with actor path 'first_actor_system/root/user/test_actor'
+    _ref = await context.createRemoteActorRef(
+        'first_actor_system', 'first_actor_system/root/user/test_actor');
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = SecondActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+Вторая система акторов создает актора, который прослушивает сообщения типа Ping, создает ссылку на удаленного актора и при получении сообщения типа Ping отправляет экземпляр Pong при помощи ссылки на удаленного актора.
 
 # Утилиты
 

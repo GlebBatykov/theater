@@ -42,7 +42,13 @@ Actor framework for Dart
   - [Routers](#routers)
     - [Group router](#group-router)
     - [Pool router](#pool-router)
+- [Transfer data to actor](#transfer-data-to-actor)
 - [Supervising and error handling](#supervising-and-error-handling)
+- [Remoting [Beta]](#remoting-[beta])
+  - [Setup actor system](#setup-actor-system)
+    - [Serialization](#serialization)
+  - [Getting remote link](#getting-remote-link)
+  - [Example](#example)
 - [Utilities](#utilities)
   - [Scheduler](#scheduler)
     - [Repeatedly action](#repeatedly-action)
@@ -1223,6 +1229,8 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №4
 ```
 
+# Transfer data to actor
+
 # Supervising and error handling
 
 In Theater, each actor, with the exception of the root one, has a parent actor who manages its life cycle and handles errors coming from it, as well as each actor with child actors acts as a superivor for its child actors.
@@ -1309,6 +1317,16 @@ In this example, the tree of actors and what happens in it when an error occurs 
 ![](https://i.ibb.co/KwfMwwq/error-handling-example.png)
 
 </div>
+
+# Remoting [Beta]
+
+## Setup actor system
+
+### Serialization
+
+## Getting remote link
+
+## Example
 
 # Utilities
 
