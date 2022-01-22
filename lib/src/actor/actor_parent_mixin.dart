@@ -15,7 +15,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
       await actorCell.pause();
     }
 
-    var directive = _actorProperties.supervisorStrategy.decide(error.exception);
+    var directive = _actorProperties.supervisorStrategy.decide(error.object);
 
     if (directive == Directive.restart) {
       await _restartChild(actorCell);
