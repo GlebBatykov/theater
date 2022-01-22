@@ -4,7 +4,8 @@ part of theater.actor;
 class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
     with
         NodeActorRefFactoryMixin,
-        ActorMessageReceiverMixin<UntypedActorProperties> {
+        ActorMessageReceiverMixin<UntypedActorProperties>,
+        UserActorContextMixin<UntypedActorProperties> {
   UntypedActorContext(
       IsolateContext isolateContext, UntypedActorProperties actorProperties)
       : super(isolateContext, actorProperties) {

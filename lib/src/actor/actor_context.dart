@@ -16,16 +16,16 @@ abstract class ActorContext<P extends ActorProperties>
   /// Instanse of [Scheduler] of this actor context.
   final Scheduler scheduler = Scheduler();
 
+  ///
   late final ActorDataStore store;
 
   /// Path to current actor in actor system.
   ActorPath get path => _actorProperties.path;
 
-  /// The data which was transferred to actor during initialization.
-  @Deprecated('Now use actor store to get data')
-  Map<String, dynamic> get data => Map.unmodifiable(_actorProperties.data);
+  /// The ref that points to the mailbox of the actor to which this context belongs.
+  LocalActorRef get itself => _actorProperties.actorRef;
 
-  ActorContext(IsolateContext isolateContext, P actorProperties)
+  ActorContext._(IsolateContext isolateContext, P actorProperties)
       : _isolateContext = isolateContext,
         _actorProperties = actorProperties {
     store = ActorDataStore(_actorProperties.data);

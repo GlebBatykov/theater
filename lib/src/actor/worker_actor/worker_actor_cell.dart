@@ -28,9 +28,9 @@ class WorkerActorCell extends SheetActorCell<WorkerActor> {
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         WorkerActorIsolateHandlerFactory(),
-        WorkerActorContextFactory(), onError: (error) {
+        WorkerActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

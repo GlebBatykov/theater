@@ -1,10 +1,14 @@
 part of theater.actor;
 
-class WorkerActorContextFactory extends SheetActorContextFactory<
+class WorkerActorContextBuilder extends SheetActorContextBuilder<
     WorkerActorContext, WorkerActorProperties> {
   @override
-  WorkerActorContext create(
-      IsolateContext isolateContext, WorkerActorProperties actorProperties) {
-    return WorkerActorContext(isolateContext, actorProperties);
+  Future<WorkerActorContext> build(IsolateContext isolateContext,
+      WorkerActorProperties actorProperties) async {
+    var context = WorkerActorContext(isolateContext, actorProperties);
+
+    await context._initialize();
+
+    return context;
   }
 }

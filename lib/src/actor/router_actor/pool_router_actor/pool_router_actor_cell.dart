@@ -31,9 +31,9 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor>
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RouterActorIsolateHandlerFactory(),
-        PoolRouterActorContextFactory(), onError: (error) {
+        PoolRouterActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

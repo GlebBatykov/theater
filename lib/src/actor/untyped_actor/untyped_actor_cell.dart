@@ -30,9 +30,9 @@ class UntypedActorCell extends NodeActorCell<UntypedActor>
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         UntypedActorIsolateHandlerFactory(),
-        UntypedActorContextFactory(), onError: (error) {
+        UntypedActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

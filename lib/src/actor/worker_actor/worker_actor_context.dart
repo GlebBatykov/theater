@@ -2,7 +2,7 @@ part of theater.actor;
 
 /// The class used by [WorkerActor] to communicate with other actors in the actor system, receive messages from other actors.
 class WorkerActorContext<P extends WorkerActorProperties>
-    extends SheetActorContext<P> {
+    extends SheetActorContext<P> with UserActorContextMixin<P> {
   final Map<Type, List<Function>> _receiveHandlers = {};
 
   WorkerActorContext(IsolateContext isolateContext, P actorProperties)

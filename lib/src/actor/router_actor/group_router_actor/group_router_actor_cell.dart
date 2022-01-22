@@ -31,9 +31,9 @@ class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RouterActorIsolateHandlerFactory(),
-        GroupRouterActorContextFactory(), onError: (error) {
+        GroupRouterActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

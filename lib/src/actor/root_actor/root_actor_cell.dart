@@ -27,7 +27,7 @@ class RootActorCell extends SupervisorActorCell<RootActor> {
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RootActorIsolateHandlerFactory(),
-        RootActorContextFactory());
+        RootActorContextBuilder());
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
 
