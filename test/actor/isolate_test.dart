@@ -4,6 +4,7 @@ import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
+import 'package:theater/src/isolate.dart';
 import 'package:theater/src/routing.dart';
 
 import 'isolate/test_actor_1.dart';
@@ -53,7 +54,7 @@ void main() {
                 actorSystemMessagePort: actorSystemMessagePort.sendPort,
                 data: {'feedbackPort': receivePort.sendPort}),
             UntypedActorIsolateHandlerFactory(),
-            UntypedActorContextFactory());
+            UntypedActorContextBuilder());
       });
 
       tearDown(() async {

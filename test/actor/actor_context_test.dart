@@ -3,8 +3,9 @@ import 'dart:isolate';
 import 'package:test/scaffolding.dart';
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
+import 'package:theater/src/isolate.dart';
 import 'package:theater/src/routing.dart';
-import 'package:theater/src/actor/supervising.dart';
+import 'package:theater/src/supervising.dart';
 
 import 'actor_context/actor_context_test_data.dart';
 import 'actor_context/group_router_actor/group_router_actor_context_tester.dart';
@@ -314,28 +315,29 @@ void main() {
 
       late IsolateContext isolateContext;
 
-      late TestGroupRouterActorContext context;
+      late GroupRouterActorContext context;
 
-      late ActorContextTestData<TestGroupRouterActorContext> data;
+      late ActorContextTestData<GroupRouterActorContext> data;
 
       late ReceivePort feedbackPort;
 
-      TestGroupRouterActorContext createContext(List<ActorInfo> group,
-              [GroupRoutingStrategy strategy =
-                  GroupRoutingStrategy.broadcast]) =>
-          TestGroupRouterActorContext(
-              isolateContext,
-              GroupRouterActorProperties(
-                  parentRef: parentRef,
-                  actorRef: actorRef,
-                  deployementStrategy: GroupDeployementStrategy(
-                      routingStrategy: strategy, group: group),
-                  supervisorStrategy:
-                      OneForOneStrategy(decider: DefaultDecider()),
-                  mailboxType: MailboxType.unreliable,
-                  actorSystemMessagePort: actorSystemMessagePort.sendPort));
+      Future<GroupRouterActorContext> createContext(List<ActorInfo> group,
+          [GroupRoutingStrategy strategy =
+              GroupRoutingStrategy.broadcast]) async {
+        var properties = GroupRouterActorProperties(
+            parentRef: parentRef,
+            actorRef: actorRef,
+            deployementStrategy: GroupDeployementStrategy(
+                routingStrategy: strategy, group: group),
+            supervisorStrategy: OneForOneStrategy(decider: DefaultDecider()),
+            mailboxType: MailboxType.unreliable,
+            actorSystemMessagePort: actorSystemMessagePort.sendPort);
 
-      ActorContextTestData<TestGroupRouterActorContext> createTestData() =>
+        return await GroupRouterActorContextBuilder()
+            .build(isolateContext, properties);
+      }
+
+      ActorContextTestData<GroupRouterActorContext> createTestData() =>
           ActorContextTestData(
               context,
               mailbox,
@@ -391,7 +393,7 @@ void main() {
       test(
           '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
           () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -407,7 +409,7 @@ void main() {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
-          context = createContext(List.generate(
+          context = await createContext(List.generate(
               5,
               (index) => ActorInfo(
                   name: 'test_' + index.toString(),
@@ -423,7 +425,7 @@ void main() {
         test(
             'With relative path. Sends message to child actor in actor group with relative path to him.',
             () async {
-          context = createContext(List.generate(
+          context = await createContext(List.generate(
               5,
               (index) => ActorInfo(
                   name: 'test_' + index.toString(),
@@ -438,7 +440,7 @@ void main() {
 
         test('Send to himself. Sends message to himself using absolute path.',
             () async {
-          context = createContext(List.generate(
+          context = await createContext(List.generate(
               5,
               (index) => ActorInfo(
                   name: 'test_' + index.toString(),
@@ -453,7 +455,7 @@ void main() {
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -469,7 +471,7 @@ void main() {
         test(
             'With broadcast routing strategy. Creates actor group with 5 child actors, set .broadcast routing strategy and send message to himselft. Receives 5 response from actors in actor group.',
             () async {
-          context = createContext(
+          context = await createContext(
               List.generate(
                   5,
                   (index) => ActorInfo(
@@ -486,7 +488,7 @@ void main() {
         test(
             'With random routing strategy. Creates actor group with 5 child actors, set .random routing strategy and send 5 messages to himself. Receives 5 response from actors in actor group and checks time spent processing messages.',
             () async {
-          context = createContext(
+          context = await createContext(
               List.generate(
                   5,
                   (index) => ActorInfo(
@@ -503,7 +505,7 @@ void main() {
         test(
             'With round robin routing strategy. Creates actor group with 5 child actors, set .roundRobin routing strategy and send 5 messages to himself. Receives 5 response from actors in actor group and checks time spent processsing messages.',
             () async {
-          context = createContext(
+          context = await createContext(
               List.generate(
                   5,
                   (index) => ActorInfo(
@@ -521,7 +523,7 @@ void main() {
       test(
           '.killChildren(). Creates 5 child actors in actor group, kills all child actor and receives messages from their.',
           () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -536,7 +538,7 @@ void main() {
       test(
           '.pauseChildren(). Creates 5 child actors in actor group, pauses all child actor and receives messages from their.',
           () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -551,7 +553,7 @@ void main() {
       test(
           '.resumeChildren(). Creates 5 child actors in actor group, resumes all child actor and receives messages from their.',
           () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -566,7 +568,7 @@ void main() {
       test(
           '.restartChildren(). Creates 5 child actors in actor group, restarts all child actor and receievs messages from their.',
           () async {
-        context = createContext(List.generate(
+        context = await createContext(List.generate(
             5,
             (index) => ActorInfo(
                 name: 'test_' + index.toString(),
@@ -602,30 +604,32 @@ void main() {
 
       late IsolateContext isolateContext;
 
-      late TestPoolRouterActorContext context;
+      late PoolRouterActorContext context;
 
-      late ActorContextTestData<TestPoolRouterActorContext> data;
+      late ActorContextTestData<PoolRouterActorContext> data;
 
       late ReceivePort feedbackPort;
 
-      TestPoolRouterActorContext createContext(
-              [PoolRoutingStrategy strategy = PoolRoutingStrategy.broadcast]) =>
-          TestPoolRouterActorContext(
-              isolateContext,
-              PoolRouterActorProperties(
-                  parentRef: parentRef,
-                  actorRef: actorRef,
-                  deployementStrategy: PoolDeployementStrategy(
-                      workerFactory: TestWorkerActorFactory_1(),
-                      poolSize: 5,
-                      routingStrategy: strategy,
-                      data: {'feedbackPort': feedbackPort.sendPort}),
-                  supervisorStrategy:
-                      OneForOneStrategy(decider: DefaultDecider()),
-                  mailboxType: MailboxType.unreliable,
-                  actorSystemMessagePort: actorSystemMessagePort.sendPort));
+      Future<PoolRouterActorContext> createContext(
+          [PoolRoutingStrategy strategy =
+              PoolRoutingStrategy.broadcast]) async {
+        var properties = PoolRouterActorProperties(
+            parentRef: parentRef,
+            actorRef: actorRef,
+            deployementStrategy: PoolDeployementStrategy(
+                workerFactory: TestWorkerActorFactory_1(),
+                poolSize: 5,
+                routingStrategy: strategy,
+                data: {'feedbackPort': feedbackPort.sendPort}),
+            supervisorStrategy: OneForOneStrategy(decider: DefaultDecider()),
+            mailboxType: MailboxType.unreliable,
+            actorSystemMessagePort: actorSystemMessagePort.sendPort);
 
-      ActorContextTestData<TestPoolRouterActorContext> createTestData() =>
+        return await PoolRouterActorContextBuilder()
+            .build(isolateContext, properties);
+      }
+
+      ActorContextTestData<PoolRouterActorContext> createTestData() =>
           ActorContextTestData(
               context,
               mailbox,
@@ -681,7 +685,7 @@ void main() {
       test(
           '.kill(). Calls .kill() method and receives [ActorWantsToDie] event in him supervisor port.',
           () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
@@ -692,7 +696,7 @@ void main() {
         test(
             'With absolute path. Sends message to parent actor using absolute path to him.',
             () async {
-          context = createContext();
+          context = await createContext();
 
           data = createTestData();
 
@@ -703,7 +707,7 @@ void main() {
         test(
             'With relative path. Sends message to child actor with relative path, receive response - instanse of RecipientNotFoundResult.',
             () async {
-          context = createContext();
+          context = await createContext();
 
           data = createTestData();
 
@@ -713,7 +717,7 @@ void main() {
 
         test('Send to himself. Sends message to himself using absolute path.',
             () async {
-          context = createContext();
+          context = await createContext();
 
           data = createTestData();
 
@@ -722,7 +726,7 @@ void main() {
       });
 
       test('.sendToTopic(). Sends message to actor system topic.', () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
@@ -733,7 +737,7 @@ void main() {
         test(
             'With broadcast routing strategy. Creates worker pool with 5 workers, set .broadcast routing strategy and send message to himselft. Receives 5 response from workers in worker pool.',
             () async {
-          context = createContext();
+          context = await createContext();
 
           data = createTestData();
 
@@ -743,7 +747,7 @@ void main() {
         test(
             'With random routing strategy. Creates worker pool with 5 workers, set .random routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processing messages.',
             () async {
-          context = createContext(PoolRoutingStrategy.random);
+          context = await createContext(PoolRoutingStrategy.random);
 
           data = createTestData();
 
@@ -753,7 +757,7 @@ void main() {
         test(
             'With round robing routing strategy. Creates worker pool with 5 child workers, set .roundRobin routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processsing messages.',
             () async {
-          context = createContext(PoolRoutingStrategy.roundRobin);
+          context = await createContext(PoolRoutingStrategy.roundRobin);
 
           data = createTestData();
 
@@ -763,7 +767,7 @@ void main() {
         test(
             'With balancing routing strategy. Creates worker pool with 5 child workers, set .balancing routing strategy and send 5 messages to himself. Receives 5 response from workers in worker pool and checks time spent processsing messages.',
             () async {
-          context = createContext(PoolRoutingStrategy.roundRobin);
+          context = await createContext(PoolRoutingStrategy.roundRobin);
 
           data = createTestData();
 
@@ -774,7 +778,7 @@ void main() {
       test(
           '.killChildren(). Creates 5 workers in worker pool, kills all child actor (workers) and receives messages from their.',
           () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
@@ -784,7 +788,7 @@ void main() {
       test(
           '.pauseChildren(). Creates 5 workers in worker pool, pauses all child actor (workers) and receives messages from their.',
           () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
@@ -794,7 +798,7 @@ void main() {
       test(
           '.resumeChildren(). Creates 5 workers in worker pool, resumes all child actor (workers) and receives messages from their.',
           () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
@@ -804,7 +808,7 @@ void main() {
       test(
           '.restartChildren(). Creates 5 workers in worker pool, restarts all child actor (workers) and receievs messages from their.',
           () async {
-        context = createContext();
+        context = await createContext();
 
         data = createTestData();
 
