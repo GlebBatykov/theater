@@ -1,16 +1,18 @@
 part of theater.dispatch;
 
+///
 class RemoteActorRef extends ActorRef {
-  @override
-  void send(dynamic message, {Duration? duration}) {}
+  ///
+  final dynamic address;
 
-  @override
-  MessageSubscription sendAndSubscribe(message, {Duration? duration}) {
-    throw UnimplementedError();
-  }
+  ///
+  final int port;
 
-  @override
-  void sendMessage(ActorMessage message, {Duration? duration}) {
-    throw UnimplementedError();
+  RemoteActorRef(ActorPath path, this.address, this.port, SendPort sendPort)
+      : super(path, sendPort);
+
+  ///
+  void send(String tag, dynamic message, {Duration? delay}) {
+    _sendPort.send(ActorRemoteMessage(path, tag, message));
   }
 }

@@ -6,6 +6,6 @@ class OneShotActionTokenRef extends SchedulerActionTokenRef {
 
   ///
   void call() {
-    _tokenSendPort.send(OneShotActionTokenCall());
+    _sendPort.send(OneShotActionTokenCall());
   }
 }

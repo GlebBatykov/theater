@@ -2,14 +2,8 @@ part of theater.dispatch;
 
 /// Used by sending message to local mailbox actor (located in the same actor system).
 class LocalActorRef extends ActorRef {
-  /// Path to the actor whose mailbox the ref point to.
-  final ActorPath path;
+  LocalActorRef(ActorPath path, SendPort sendPort) : super(path, sendPort);
 
-  final SendPort _sendPort;
-
-  LocalActorRef(this.path, SendPort sendPort) : _sendPort = sendPort;
-
-  @override
   void send(dynamic message, {Duration? duration}) {
     if (message is ActorMessage) {
       throw ActorRefException(
@@ -26,7 +20,6 @@ class LocalActorRef extends ActorRef {
     }
   }
 
-  @override
   MessageSubscription sendAndSubscribe(dynamic message, {Duration? duration}) {
     if (message is ActorMessage) {
       throw ActorRefException(
@@ -49,7 +42,6 @@ class LocalActorRef extends ActorRef {
     }
   }
 
-  @override
   void sendMessage(ActorMessage message, {Duration? duration}) {
     if (duration != null) {
       Future.delayed(duration, () {
