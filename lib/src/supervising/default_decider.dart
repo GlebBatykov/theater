@@ -2,7 +2,7 @@ part of theater.supervising;
 
 class DefaultDecider extends Decider {
   @override
-  Directive decide(Exception exception) {
+  Directive decide(Object object) {
     return Directive.escalate;
   }
 }

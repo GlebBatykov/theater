@@ -158,9 +158,8 @@ class IsolateSupervisor {
         message.supervisorMessagePort
             .send(ActorInitialized(receivePort.sendPort));
       }
-    }, (exception, stackTrace) {
-      message.supervisorErrorPort
-          .send(IsolateError(exception as Exception, stackTrace));
+    }, (object, stackTrace) {
+      message.supervisorErrorPort.send(IsolateError(object, stackTrace));
     });
   }
 

@@ -21,5 +21,5 @@ abstract class SupervisorStrategy {
       : _decider = decider;
 
   /// Decides which directive to return depending on [exception].
-  Directive decide(Exception exception) => _decider.decide(exception);
+  Directive decide(Object object) => _decider.decide(object);
 }

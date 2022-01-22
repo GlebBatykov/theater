@@ -5,11 +5,11 @@ class ActorError {
 
   final ActorPath path;
 
-  final Exception exception;
+  final Object object;
 
   final StackTrace stackTrace;
 
-  ActorError(this.path, this.exception, this.stackTrace, {this.parent});
+  ActorError(this.path, this.object, this.stackTrace, {this.parent});
 
   @override
   String toString() {
@@ -17,7 +17,7 @@ class ActorError {
       return 'Actor path: ' +
           path.toString() +
           '\n' +
-          exception.toString() +
+          object.toString() +
           '\n' +
           stackTrace.toString() +
           '\n' +
@@ -25,7 +25,7 @@ class ActorError {
     } else {
       return path.toString() +
           '\n' +
-          exception.toString() +
+          object.toString() +
           '\n' +
           stackTrace.toString();
     }

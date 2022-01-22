@@ -1,9 +1,9 @@
 part of theater.isolate;
 
 class IsolateError {
-  final Exception exception;
+  final Object object;
 
   final StackTrace stackTrace;
 
-  IsolateError(this.exception, this.stackTrace);
+  IsolateError(this.object, this.stackTrace);
 }
