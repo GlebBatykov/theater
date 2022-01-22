@@ -414,6 +414,40 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     return _userActorRegister.isExistsByPath(actorPath);
   }
 
+  /// Creates remote actor ref using connection to remote system with [connectionName].
+  ///
+  /// The [path] is specified only absolute, with the name of the system of actors, the root actor, the user guardian.
+  ///
+  /// Example: 'test_system/root/user/test_actor'.
+  ///
+  /// The created ref points to actor with absolute path [path].
+  ///
+  /// If actor system has no connection to remote system with [connectionName] an exception will be thrown.
+  RemoteActorRef createRemoteActorRef(String connectionName, String path) {
+    if (_root.isInitialized) {
+      RemoteSource? remoteSource;
+
+      for (var source in _remoteSources) {
+        if (source.connectionName == connectionName) {
+          remoteSource = source;
+          break;
+        }
+      }
+
+      if (remoteSource != null) {
+        var actorPath = ActorPath.parceAbsolute(path);
+
+        return remoteSource.createRemoteRef(actorPath);
+      } else {
+        throw ActorSystemException(
+            message:
+                'actor system has no connection with name: $connectionName.');
+      }
+    } else {
+      throw ActorSystemException(message: 'actor system is not initialized.');
+    }
+  }
+
   /// Kills all actors in actor system and frees all resources, close all streams that were used by the actor system.
   Future<void> dispose() async {
     await _root.dispose();
