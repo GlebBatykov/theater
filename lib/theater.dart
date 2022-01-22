@@ -71,3 +71,14 @@ export 'src/util.dart'
         OneShotActionToken,
         RepeatedlyActionContext,
         OneShotActionContext;
+export 'src/remote.dart'
+    show
+        RemoteTransportConfiguration,
+        ConnectorConfiguration,
+        ServerConfiguration,
+        SecurityConfiguration,
+        TcpSecurityConfiguration,
+        TcpServerConfiguration,
+        TcpConnectorConfiguration,
+        ActorMessageTransportSerializer,
+        ActorMessageTransportDeserializer;
