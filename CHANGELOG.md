@@ -1,4 +1,15 @@
-# 0.1.52
+# 0.2.0
+
+- Added the possibility of remote interaction of actors - Theater Remote. Theater Remote is currently in beta.
+- Adds the ability to manage the lifecycle of actors. Adds methods for managing the lifecycle of child actors to the context of the actor. Adds the ability to completely remove actors from the actor tree.
+- Changes and fixes of the register of refs.
+- Makes corrections and fixes errors in the error handling system.
+- Add examples.
+- Updates README files.
+- Updates documentation.
+- Other minor changes.
+
+## 0.1.52
 
 - Updates README.md and README.ru.md.
 
