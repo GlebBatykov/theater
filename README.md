@@ -101,7 +101,7 @@ An actor is an entity that has a behavior and is executed in a separate isolate.
 
 - onStart(). Called after the actor starts;
 - onPause(). Called before the actor is paused;
-- onResume(). Called after the actor is revived;
+- onResume(). Called after the actor is resumed;
 - onKill(). Called before the actor is killed.
 
 Each actor has a mailbox. This is the place where the messages addressed to him get to before getting into the actor. About the types of mailboxes, you can read [here](#mailboxes).
