@@ -3,7 +3,6 @@ import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:test/test.dart';
-import 'package:theater/src/actor.dart';
 import 'package:theater/src/actor_system.dart';
 import 'package:theater/src/dispatch.dart';
 
