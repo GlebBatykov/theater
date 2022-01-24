@@ -15,7 +15,7 @@ class RootActorContext extends SupervisorActorContext<RootActorProperties>
         .listen((error) => _handleChildError(error));
   }
 
-  void _handleMessageFromSupervisor(ActorMessage message) {
+  void _handleMessageFromSupervisor(Message message) {
     if (message is RoutingMessage) {
       _handleRoutingMessage(message);
     }
@@ -25,8 +25,8 @@ class RootActorContext extends SupervisorActorContext<RootActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef.sendMessage(
-            MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+        _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+            feedbackPort: message.feedbackPort));
       }
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&

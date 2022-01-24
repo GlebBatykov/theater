@@ -5,8 +5,8 @@ part of theater.actor;
 /// Created after [ActorSystem] initialized.
 class UserGuardian extends SystemActor {
   @override
-  Future<void> handleRoutingSystemMessage(
-      SystemActorContext context, SystemRoutingMessage message) async {
+  Future<void> handleSystemMessage(
+      SystemActorContext context, SystemMessage message) async {
     var action = message.data;
 
     if (action is UserGuardianCreateTopLevelActor) {

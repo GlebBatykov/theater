@@ -42,8 +42,8 @@ class ReliableMailbox extends Mailbox {
   /// Handles all received [ActorRoutingMessage].
   void _handleActorRoutingMessage(ActorRoutingMessage message) {
     if (message.recipientPath == path) {
-      _handleMailboxMessage(
-          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+      _handleMailboxMessage(ActorMailboxMessage(message.data,
+          feedbackPort: message.feedbackPort));
     } else {
       _actorRoutingMessageController.sink.add(message);
     }

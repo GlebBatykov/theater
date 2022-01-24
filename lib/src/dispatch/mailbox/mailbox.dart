@@ -2,7 +2,7 @@ part of theater.dispatch;
 
 /// Mailbox is a base class for all mailbox classes.
 abstract class Mailbox {
-  /// Instance of [StreamController] for [MailboxMessage]-s received from this mailbox.
+  /// Instance of [StreamController] for [ActorMailboxMessage]-s received from this mailbox.
   final StreamController<MailboxMessage> _mailboxMessageController =
       StreamController.broadcast();
 
@@ -17,7 +17,7 @@ abstract class Mailbox {
   /// Instance of [StreamController] for all [ActorMessage] which received from [_receivePort].
   ///
   /// Used for initial receipt [ActorMessage] from [_receivePort] and their subsequent division.
-  final StreamController<ActorMessage> _internalMessageController =
+  final StreamController<Message> _internalMessageController =
       StreamController.broadcast();
 
   /// Instance of [ReceivePort] used by receive messages to current mailbox.
@@ -41,7 +41,7 @@ abstract class Mailbox {
   /// Displays whether the mailbox has been disposed.
   bool get isDisposed => _isDisposed;
 
-  /// Stream of [MailboxMessage] from mailbox.
+  /// Stream of [ActorMailboxMessage] from mailbox.
   Stream<MailboxMessage> get mailboxMessages =>
       _mailboxMessageController.stream;
 
@@ -61,7 +61,7 @@ abstract class Mailbox {
 
   /// Receives messages from [_receivePort].
   void _receiveMessage(message) {
-    if (message is ActorMessage) {
+    if (message is Message) {
       _internalMessageController.sink.add(message);
     }
   }

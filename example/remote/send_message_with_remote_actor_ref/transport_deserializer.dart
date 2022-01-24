@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:theater/theater.dart';
 
-import 'message.dart';
+import 'test_message.dart';
 
 // Create deserializer class
 class TransportDeserializer extends ActorMessageTransportDeserializer {
@@ -10,7 +10,7 @@ class TransportDeserializer extends ActorMessageTransportDeserializer {
   @override
   dynamic deserialize(String tag, String data) {
     if (tag == 'test_message') {
-      return Message.fromJson(jsonDecode(data));
+      return TestMessage.fromJson(jsonDecode(data));
     } else {
       return data;
     }

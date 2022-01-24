@@ -6,7 +6,7 @@ class IsolateContext {
   final StreamController<ActorAction> _actionController =
       StreamController.broadcast();
 
-  final StreamController<ActorMessage> _messageController =
+  final StreamController<Message> _messageController =
       StreamController.broadcast();
 
   final SendPort supervisorErrorPort;
@@ -17,7 +17,7 @@ class IsolateContext {
 
   Stream<ActorAction> get actions => _actionController.stream;
 
-  Stream<ActorMessage> get messages => _messageController.stream;
+  Stream<Message> get messages => _messageController.stream;
 
   IsolateContext(ReceivePort receivePort, this.supervisorMessagePort,
       this.supervisorErrorPort)
@@ -26,7 +26,7 @@ class IsolateContext {
     _receiveStream.listen((event) {
       if (event is ActorAction) {
         _actionController.sink.add(event);
-      } else if (event is ActorMessage) {
+      } else if (event is Message) {
         _messageController.sink.add(event);
       }
     });

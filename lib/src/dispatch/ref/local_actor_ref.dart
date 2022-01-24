@@ -12,10 +12,10 @@ class LocalActorRef extends ActorRef {
     } else {
       if (duration != null) {
         Future.delayed(duration, () {
-          _sendPort.send(MailboxMessage(message));
+          _sendPort.send(ActorMailboxMessage(message));
         });
       } else {
-        _sendPort.send(MailboxMessage(message));
+        _sendPort.send(ActorMailboxMessage(message));
       }
     }
   }
@@ -31,18 +31,18 @@ class LocalActorRef extends ActorRef {
       if (duration != null) {
         Future.delayed(duration, () {
           _sendPort.send(
-              MailboxMessage(message, feedbackPort: receivePort.sendPort));
+              ActorMailboxMessage(message, feedbackPort: receivePort.sendPort));
         });
       } else {
-        _sendPort
-            .send(MailboxMessage(message, feedbackPort: receivePort.sendPort));
+        _sendPort.send(
+            ActorMailboxMessage(message, feedbackPort: receivePort.sendPort));
       }
 
       return MessageSubscription(receivePort);
     }
   }
 
-  void sendMessage(ActorMessage message, {Duration? duration}) {
+  void sendMessage(Message message, {Duration? duration}) {
     if (duration != null) {
       Future.delayed(duration, () {
         _sendPort.send(message);

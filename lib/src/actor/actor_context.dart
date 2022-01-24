@@ -4,7 +4,7 @@ part of theater.actor;
 abstract class ActorContext<P extends ActorProperties>
     implements ActorMessageSender {
   /// Instance of [StreamController] who gets everything all [MailboxMessage] received.
-  final StreamController<MailboxMessage> _messageController =
+  final StreamController<ActorMailboxMessage> _messageController =
       StreamController.broadcast();
 
   /// Instance of [IsolateContext]. Contains ports for communication with isolate supervisor.

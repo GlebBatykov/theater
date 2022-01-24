@@ -67,7 +67,8 @@ class GroupRounterActorContextTester<T extends GroupRouterActorContext>
 
     var streamQueue = StreamQueue(receivePort);
 
-    data.isolateReceivePort!.sendPort.send(MailboxMessage('Hello, test world!',
+    data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
+        'Hello, test world!',
         feedbackPort: receivePort.sendPort));
 
     expect(
@@ -85,7 +86,7 @@ class GroupRounterActorContextTester<T extends GroupRouterActorContext>
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }
@@ -109,7 +110,7 @@ class GroupRounterActorContextTester<T extends GroupRouterActorContext>
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }

@@ -1,6 +1,6 @@
 import 'package:theater/theater.dart';
 
-import '../message.dart';
+import '../test_message.dart';
 import 'server_actor_system_builder.dart';
 
 // Create actor which will receive messages
@@ -9,7 +9,7 @@ class ServerActor extends UntypedActor {
   @override
   Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all Message type messages which actor received
-    context.receive<Message>((message) async {
+    context.receive<TestMessage>((message) async {
       print(message.data);
     });
   }

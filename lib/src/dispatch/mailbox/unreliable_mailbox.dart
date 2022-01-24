@@ -17,16 +17,15 @@ class UnreliableMailbox extends Mailbox {
   void _handleRoutingMessage(RoutingMessage message) {
     if (message is ActorRoutingMessage) {
       _handleActorRoutingMessage(message);
-    }
-    if (message is SystemRoutingMessage) {
+    } else if (message is SystemRoutingMessage) {
       _handleSystemRoutingMessage(message);
     }
   }
 
   void _handleActorRoutingMessage(ActorRoutingMessage message) {
     if (message.recipientPath == path) {
-      _mailboxMessageController.sink.add(
-          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+      _mailboxMessageController.sink.add(ActorMailboxMessage(message.data,
+          feedbackPort: message.feedbackPort));
     } else {
       _actorRoutingMessageController.sink.add(message);
     }

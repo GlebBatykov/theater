@@ -1,7 +1,7 @@
 import 'package:theater/src/dispatch.dart';
 import 'package:theater/theater.dart';
 
-import '../message.dart';
+import '../test_message.dart';
 import 'client_actor_system_builder.dart';
 
 // Create actor who will send messages
@@ -17,7 +17,7 @@ class ClientActor extends UntypedActor {
         'test_server', 'test_server_system/root/user/test_server_actor');
 
     // Send message with tag 'test_message'
-    _ref.send('test_message', Message('Hello, from client!'));
+    _ref.send('test_message', TestMessage('Hello, from client!'));
   }
 }
 
