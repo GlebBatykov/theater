@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 class DefaultRootActor extends RootActor {
   DefaultRootActor({required RemoteTransportConfiguration remoteConfiguration})
@@ -7,7 +7,7 @@ class DefaultRootActor extends RootActor {
   @override
   Future<void> onStart(RootActorContext context) async {
     await context.actorOf(
-        'system', SystemGuardian(remoteConfiguration: _remoteConfiguration));
+        'system', SystemGuardian(remoteConfiguration: remoteConfiguration));
 
     await context.actorOf('user', UserGuardian());
   }

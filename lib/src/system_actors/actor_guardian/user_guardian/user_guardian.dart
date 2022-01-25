@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 /// [UserGuardian] is a system top-level actor in actors tree. Is a supervisor for all user actors.
 ///
@@ -14,6 +14,11 @@ class UserGuardian extends SystemActor {
           data: action.data, onKill: action.onKill);
 
       message.sendResult(ref);
+    } else if (action is UserGuardianDeleteTopLevelActor) {
+    } else if (action is UserGuardianKillTopLevelActor) {
+    } else if (action is UserGuardianPauseTopLevelActor) {
+    } else if (action is UserGuardianResumeTopLevelActor) {
+    } else if (action is UserGuardianStartTopLevelActor) {
     } else {
       message.successful();
     }

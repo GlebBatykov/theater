@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 class TcpServerActor extends SystemActor {
   final ActorMessageTransportDeserializer _deserializer;

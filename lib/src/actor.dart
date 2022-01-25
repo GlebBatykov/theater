@@ -72,7 +72,6 @@ part 'actor/root_actor/root_actor_context_builder.dart';
 part 'actor/root_actor/root_actor_isolate_handler.dart';
 part 'actor/root_actor/root_actor_isolate_handler_factory.dart';
 part 'actor/root_actor/root_actor_properties.dart';
-part 'actor/root_actor/default_root_actor.dart';
 
 part 'actor/node_actor/node_actor.dart';
 part 'actor/node_actor/node_actor_cell.dart';
@@ -151,15 +150,3 @@ part 'actor/system_actor/system_actor_context_builder.dart';
 part 'actor/system_actor/system_actor_isolate_handler.dart';
 part 'actor/system_actor/system_actor_isolate_handler_factory.dart';
 part 'actor/system_actor/system_actor_properties.dart';
-
-part 'actor/system_actor/actor_guardian/system_guardian.dart';
-
-part 'actor/system_actor/actor_guardian/user_guardian/user_guardian_action.dart';
-part 'actor/system_actor/actor_guardian/user_guardian/user_guardian.dart';
-
-part 'actor/system_actor/actor_server/actor_system_server_actor.dart';
-part 'actor/system_actor/actor_server/actor_system_server_actor_action.dart';
-
-part 'actor/system_actor/actor_server/tcp/exception/tcp_connector_actor_exception.dart';
-part 'actor/system_actor/actor_server/tcp/tcp_server/tcp_server_actor.dart';
-part 'actor/system_actor/actor_server/tcp/tcp_connector_actor/tcp_connector_actor.dart';

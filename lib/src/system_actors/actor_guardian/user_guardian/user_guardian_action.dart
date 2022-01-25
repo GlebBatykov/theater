@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 abstract class UserGuardianAction extends ActorAction {}
 

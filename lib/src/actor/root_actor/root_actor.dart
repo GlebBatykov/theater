@@ -1,8 +1,7 @@
 part of theater.actor;
 
 abstract class RootActor extends SupervisorActor<RootActorContext> {
-  final RemoteTransportConfiguration _remoteConfiguration;
+  final RemoteTransportConfiguration remoteConfiguration;
 
-  RootActor(RemoteTransportConfiguration remoteConfiguration)
-      : _remoteConfiguration = remoteConfiguration;
+  RootActor(this.remoteConfiguration);
 }

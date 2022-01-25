@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 class TcpConnectorActor extends SystemActor {
   final LocalActorRef _actorServerRef;

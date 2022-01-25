@@ -3,6 +3,8 @@ library theater.actor_system;
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:theater/src/system_actors.dart';
+
 import 'actor.dart';
 import 'dispatch.dart';
 import 'remote.dart';

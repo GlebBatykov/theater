@@ -1,4 +1,4 @@
-part of theater.actor;
+part of theater.system_actors;
 
 /// [SystemGuardian] is a system top-level actor in actors tree. Is a supervisor for all system actors.
 ///
