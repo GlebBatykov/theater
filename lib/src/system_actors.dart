@@ -2,6 +2,8 @@ library theater.system_actors;
 
 import 'dart:async';
 
+import 'package:theater/src/routing.dart';
+
 import 'actor.dart';
 import 'actor_system.dart';
 import 'remote.dart';

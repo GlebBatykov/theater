@@ -128,17 +128,40 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> killChild(String path) async {
     var actorPath = _parcePath(path);
 
-    ActorCell? actorCell;
-
-    for (var child in _children) {
-      if (child.path == actorPath) {
-        actorCell = child;
-        break;
-      }
-    }
+    var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
       await actorCell.kill();
+    } else {
+      throw ActorContextException(
+          message:
+              'actor has no child with path ' + actorPath.toString() + '.');
+    }
+  }
+
+  /// Starts child with [path].
+  ///
+  /// You have two way how point out path to actor:
+  ///
+  /// - relative;
+  /// - absolute.
+  ///
+  /// The relative path is set from current actor.
+  ///
+  /// For example current actor has the name "my_actor", you can point out this path "system/root/user/my_actor/my_child" like "../my_child".
+  ///
+  /// Absolute path given by the full path to the actor from the name of the system of actors.
+  Future<void> startChild(String path) async {
+    var actorPath = _parcePath(path);
+
+    var actorCell = _findChild(actorPath);
+
+    if (actorCell != null) {
+      if (!actorCell.isInitialized) {
+        await actorCell.initialize();
+      }
+
+      await actorCell.start();
     } else {
       throw ActorContextException(
           message:
@@ -161,14 +184,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> pauseChild(String path) async {
     var actorPath = _parcePath(path);
 
-    ActorCell? actorCell;
-
-    for (var child in _children) {
-      if (child.path == actorPath) {
-        actorCell = child;
-        break;
-      }
-    }
+    var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
       await actorCell.pause();
@@ -194,14 +210,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> resumeChild(String path) async {
     var actorPath = _parcePath(path);
 
-    ActorCell? actorCell;
-
-    for (var child in _children) {
-      if (child.path == actorPath) {
-        actorCell = child;
-        break;
-      }
-    }
+    var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
       await actorCell.resume();
@@ -227,14 +236,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> restartChild(String path) async {
     var actorPath = _parcePath(path);
 
-    ActorCell? actorCell;
-
-    for (var child in _children) {
-      if (child.path == actorPath) {
-        actorCell = child;
-        break;
-      }
-    }
+    var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
       await actorCell.kill();
@@ -262,14 +264,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> deleteChild(String path) async {
     var actorPath = _parcePath(path);
 
-    ActorCell? actorCell;
-
-    for (var child in _children) {
-      if (child.path == actorPath) {
-        actorCell = child;
-        break;
-      }
-    }
+    var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
       await actorCell.kill();
@@ -282,6 +277,14 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
     }
   }
 
+  ActorCell? _findChild(ActorPath path) {
+    for (var child in _children) {
+      if (child.path == path) {
+        return child;
+      }
+    }
+  }
+
   /// Kills all actor children.
   ///
   /// Kills child actors isolate, but does not delete their mailboxes, does not remove actors from the actor system.
@@ -290,6 +293,13 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   Future<void> killChildren() async {
     for (var child in _children) {
       await child.kill();
+    }
+  }
+
+  /// Starts all actor childern.
+  Future<void> startChildren() async {
+    for (var child in _children) {
+      await child.start();
     }
   }
 

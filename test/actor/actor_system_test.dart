@@ -9,6 +9,7 @@ import 'package:theater/src/dispatch.dart';
 import 'actor_system/test_actor_1.dart';
 import 'actor_system/test_actor_2.dart';
 import 'actor_system/test_actor_3.dart';
+import 'actor_system/test_actor_4.dart';
 
 void main() {
   group('actor_system', () {
@@ -21,7 +22,9 @@ void main() {
     });
 
     tearDown(() async {
-      await actorSystem.dispose();
+      if (!actorSystem.isDisposed) {
+        await actorSystem.dispose();
+      }
     });
 
     test(
@@ -138,6 +141,85 @@ void main() {
       await actorSystem.kill();
 
       expect(await streamQueue.next, 'kill');
+
+      receivePort.close();
+    });
+
+    test('.killTopLevelActor(). ', () async {
+      var receivePort = ReceivePort();
+
+      var streamQueue = StreamQueue(receivePort.asBroadcastStream());
+
+      var ref = await actorSystem.actorOf('test_actor', TestActor_4(),
+          data: {'feedbackPort': receivePort.sendPort});
+
+      await actorSystem.killTopLevelActor(ref.path.toString());
+
+      expect(await streamQueue.take(2), ['start', 'kill']);
+
+      receivePort.close();
+    });
+
+    test('.pauseTopLevelActor(). ', () async {
+      var receivePort = ReceivePort();
+
+      var streamQueue = StreamQueue(receivePort.asBroadcastStream());
+
+      var ref = await actorSystem.actorOf('test_actor', TestActor_4(),
+          data: {'feedbackPort': receivePort.sendPort});
+
+      await actorSystem.pauseTopLevelActor(ref.path.toString());
+
+      expect(await streamQueue.take(2), ['start', 'pause']);
+
+      receivePort.close();
+    });
+
+    test('.deleteTopLevelActor(). ', () async {
+      var receivePort = ReceivePort();
+
+      var streamQueue = StreamQueue(receivePort.asBroadcastStream());
+
+      var ref = await actorSystem.actorOf('test_actor', TestActor_4(),
+          data: {'feedbackPort': receivePort.sendPort});
+
+      await actorSystem.deleteTopLevelActor(ref.path.toString());
+
+      expect(await streamQueue.take(2), ['start', 'kill']);
+
+      receivePort.close();
+    });
+
+    test('.resumeTopLevelActor(). ', () async {
+      var receivePort = ReceivePort();
+
+      var streamQueue = StreamQueue(receivePort.asBroadcastStream());
+
+      var ref = await actorSystem.actorOf('test_actor', TestActor_4(),
+          data: {'feedbackPort': receivePort.sendPort});
+
+      await actorSystem.pauseTopLevelActor(ref.path.toString());
+
+      await actorSystem.resumeTopLevelActor(ref.path.toString());
+
+      expect(await streamQueue.take(3), ['start', 'pause', 'resume']);
+
+      receivePort.close();
+    });
+
+    test('.startTopLevelActor(). ', () async {
+      var receivePort = ReceivePort();
+
+      var streamQueue = StreamQueue(receivePort.asBroadcastStream());
+
+      var ref = await actorSystem.actorOf('test_actor', TestActor_4(),
+          data: {'feedbackPort': receivePort.sendPort});
+
+      await actorSystem.killTopLevelActor(ref.path.toString());
+
+      await actorSystem.startTopLevelActor(ref.path.toString());
+
+      expect(await streamQueue.take(3), ['start', 'kill', 'start']);
 
       receivePort.close();
     });

@@ -237,16 +237,129 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   }
 
   ///
-  Future<void> pauseTopLevelActor(String path) async {}
+  Future<void> startTopLevelActor(String path) async {
+    var actorPath = _parcePath(path);
+
+    if (_isTopLevelActorExist(actorPath)) {
+      var receivePort = ReceivePort();
+
+      _userGuardianRef.sendMessage(SystemMailboxMessage(
+          UserGuardianStartTopLevelActor(actorPath),
+          feedbackPort: receivePort.sendPort));
+
+      await for (var message in receivePort) {
+        if (message is MessageResult) {
+          break;
+        }
+      }
+    } else {
+      throw ActorSystemException(
+          message:
+              'actor system does not contain top level actor with path: $path.');
+    }
+  }
 
   ///
-  Future<void> resumeTopLevelActor(String path) async {}
+  Future<void> pauseTopLevelActor(String path) async {
+    var actorPath = _parcePath(path);
+
+    if (_isTopLevelActorExist(actorPath)) {
+      var receivePort = ReceivePort();
+
+      _userGuardianRef.sendMessage(SystemMailboxMessage(
+          UserGuardianPauseTopLevelActor(actorPath),
+          feedbackPort: receivePort.sendPort));
+
+      await for (var message in receivePort) {
+        if (message is MessageResult) {
+          break;
+        }
+      }
+    } else {
+      throw ActorSystemException(
+          message:
+              'actor system does not contain top level actor with path: $path.');
+    }
+  }
 
   ///
-  Future<void> killTopLevelActor(String path) async {}
+  Future<void> resumeTopLevelActor(String path) async {
+    var actorPath = _parcePath(path);
+
+    if (_isTopLevelActorExist(actorPath)) {
+      var receivePort = ReceivePort();
+
+      _userGuardianRef.sendMessage(SystemMailboxMessage(
+          UserGuardianResumeTopLevelActor(actorPath),
+          feedbackPort: receivePort.sendPort));
+
+      await for (var message in receivePort) {
+        if (message is MessageResult) {
+          break;
+        }
+      }
+    } else {
+      throw ActorSystemException(
+          message:
+              'actor system does not contain top level actor with path: $path.');
+    }
+  }
 
   ///
-  Future<void> deleteTopLevelActor(String path) async {}
+  Future<void> killTopLevelActor(String path) async {
+    var actorPath = _parcePath(path);
+
+    if (_isTopLevelActorExist(actorPath)) {
+      var receivePort = ReceivePort();
+
+      _userGuardianRef.sendMessage(SystemMailboxMessage(
+          UserGuardianKillTopLevelActor(actorPath),
+          feedbackPort: receivePort.sendPort));
+
+      await for (var message in receivePort) {
+        if (message is MessageResult) {
+          break;
+        }
+      }
+    } else {
+      throw ActorSystemException(
+          message:
+              'actor system does not contain top level actor with path: $path.');
+    }
+  }
+
+  ///
+  Future<void> deleteTopLevelActor(String path) async {
+    var actorPath = _parcePath(path);
+
+    if (_isTopLevelActorExist(actorPath)) {
+      var receivePort = ReceivePort();
+
+      _userGuardianRef.sendMessage(SystemMailboxMessage(
+          UserGuardianDeleteTopLevelActor(actorPath),
+          feedbackPort: receivePort.sendPort));
+
+      await for (var message in receivePort) {
+        if (message is MessageResult) {
+          break;
+        }
+      }
+    } else {
+      throw ActorSystemException(
+          message:
+              'actor system does not contain top level actor with path: $path.');
+    }
+  }
+
+  bool _isTopLevelActorExist(ActorPath path) {
+    for (var name in _topLevelActorNames) {
+      if (_userGuardianPath.createChild(name) == path) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   /// Creates new top-level actor in [ActorSystem] and returns [LocalActorRef] pointing to his [Mailbox].
   ///
@@ -267,9 +380,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
       var action = UserGuardianCreateTopLevelActor(name, actor, data, onKill);
 
-      _userGuardianRef.sendMessage(SystemRoutingMessage(
-          action, _userGuardianPath,
-          feedbackPort: receivePort.sendPort));
+      _userGuardianRef.sendMessage(
+          SystemMailboxMessage(action, feedbackPort: receivePort.sendPort));
 
       late LocalActorRef actorRef;
 
@@ -280,6 +392,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
         }
       }
 
+      _topLevelActorNames.add(name);
       receivePort.close();
 
       return actorRef;

@@ -15,10 +15,25 @@ class UserGuardian extends SystemActor {
 
       message.sendResult(ref);
     } else if (action is UserGuardianDeleteTopLevelActor) {
+      await context.deleteChild(action.path.toString());
+
+      message.sendResult(UserGuardianDeleteTopLevelActorSuccess());
     } else if (action is UserGuardianKillTopLevelActor) {
+      await context.killChild(action.path.toString());
+
+      message.sendResult(UserGuardianKillTopLevelActorSuccess());
     } else if (action is UserGuardianPauseTopLevelActor) {
+      await context.pauseChild(action.path.toString());
+
+      message.sendResult(UserGuardianPauseTopLevelActorSuccess());
     } else if (action is UserGuardianResumeTopLevelActor) {
+      await context.resumeChild(action.path.toString());
+
+      message.sendResult(UserGuardianResumeTopLevelActorSuccess());
     } else if (action is UserGuardianStartTopLevelActor) {
+      await context.startChild(action.path.toString());
+
+      message.sendResult(UserGuardianStartTopLevelActorSuccess());
     } else {
       message.successful();
     }

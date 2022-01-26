@@ -2,13 +2,11 @@ part of theater.system_actors;
 
 abstract class UserGuardianAction extends ActorAction {}
 
-abstract class UserGuardianTopLevelActorAction extends UserGuardianAction {
-  final String name;
-
-  UserGuardianTopLevelActorAction(this.name);
-}
+abstract class UserGuardianTopLevelActorAction extends UserGuardianAction {}
 
 class UserGuardianCreateTopLevelActor extends UserGuardianTopLevelActorAction {
+  final String name;
+
   final NodeActor actor;
 
   final Map<String, dynamic>? data;
@@ -16,26 +14,35 @@ class UserGuardianCreateTopLevelActor extends UserGuardianTopLevelActorAction {
   final void Function()? onKill;
 
   UserGuardianCreateTopLevelActor(
-      String name, this.actor, this.data, this.onKill)
-      : super(name);
+      this.name, this.actor, this.data, this.onKill);
 }
 
 class UserGuardianKillTopLevelActor extends UserGuardianTopLevelActorAction {
-  UserGuardianKillTopLevelActor(String name) : super(name);
+  final ActorPath path;
+
+  UserGuardianKillTopLevelActor(this.path);
 }
 
 class UserGuardianPauseTopLevelActor extends UserGuardianTopLevelActorAction {
-  UserGuardianPauseTopLevelActor(String name) : super(name);
+  final ActorPath path;
+
+  UserGuardianPauseTopLevelActor(this.path);
 }
 
 class UserGuardianResumeTopLevelActor extends UserGuardianTopLevelActorAction {
-  UserGuardianResumeTopLevelActor(String name) : super(name);
+  final ActorPath path;
+
+  UserGuardianResumeTopLevelActor(this.path);
 }
 
 class UserGuardianStartTopLevelActor extends UserGuardianTopLevelActorAction {
-  UserGuardianStartTopLevelActor(String name) : super(name);
+  final ActorPath path;
+
+  UserGuardianStartTopLevelActor(this.path);
 }
 
 class UserGuardianDeleteTopLevelActor extends UserGuardianTopLevelActorAction {
-  UserGuardianDeleteTopLevelActor(String name) : super(name);
+  final ActorPath path;
+
+  UserGuardianDeleteTopLevelActor(this.path);
 }

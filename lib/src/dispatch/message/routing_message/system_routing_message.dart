@@ -6,5 +6,5 @@ class SystemRoutingMessage extends SystemMessage with RoutingMessage {
 
   SystemRoutingMessage(dynamic data, this.recipientPath,
       {SendPort? feedbackPort})
-      : super(data, feedbackPort);
+      : super(data, feedbackPort: feedbackPort);
 }
