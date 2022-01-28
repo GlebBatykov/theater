@@ -185,12 +185,12 @@ void main(List<String> arguments) async {
 Создадим общие для этих двух систем классы, отвечающие за сериализацию и десериализацию данных:
 
 ```dart
-class Message {
+class TestMessage {
   final String data;
 
-  Message(this.data);
+  TestMessage(this.data);
 
-  Message.fromJson(Map<String, dynamic> json) : data = json['data'];
+  TestMessage.fromJson(Map<String, dynamic> json) : data = json['data'];
 
   Map<String, dynamic> toJson() => {'data': data};
 }
@@ -200,7 +200,7 @@ class TransportSerializer extends ActorMessageTransportSerializer {
   // Override serialize method
   @override
   String serialize(String tag, dynamic data) {
-    if (data is Message) {
+    if (data is TestMessage) {
       return jsonEncode(data.toJson());
     } else {
       return data.toString();
@@ -214,7 +214,7 @@ class TransportDeserializer extends ActorMessageTransportDeserializer {
   @override
   dynamic deserialize(String tag, String data) {
     if (tag == 'test_message') {
-      return Message.fromJson(jsonDecode(data));
+      return TestMessage.fromJson(jsonDecode(data));
     } else {
       return data;
     }
