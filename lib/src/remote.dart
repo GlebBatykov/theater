@@ -19,6 +19,8 @@ part 'remote/serialization/remote_transport_message_serializer.dart';
 part 'remote/serialization/remote_transport_message_deserializer.dart';
 part 'remote/serialization/remote_transport_event_deserializer.dart';
 part 'remote/serialization/remote_transport_event_serializer.dart';
+part 'remote/serialization/default_actor_message_transport_deserializer.dart';
+part 'remote/serialization/default_actor_message_transport_serializer.dart';
 
 part 'remote/exception/connector_exception.dart';
 

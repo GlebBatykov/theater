@@ -5,13 +5,3 @@ abstract class ActorMessageTransportDeserializer {
 
   dynamic deserialize(String tag, String data);
 }
-
-class DefaultActorMessageTransportDeserializer
-    extends ActorMessageTransportDeserializer {
-  const DefaultActorMessageTransportDeserializer();
-
-  @override
-  dynamic deserialize(String tag, String data) {
-    return data;
-  }
-}
