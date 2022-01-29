@@ -75,20 +75,13 @@ export 'src/util.dart'
         RepeatedlyActionToken,
         OneShotActionToken,
         RepeatedlyActionContext,
-        OneShotActionContext,
-        Shared,
-        SharedInt,
-        SharedNInt,
-        IntSharedExtension,
-        NIntSharedExtension;
+        OneShotActionContext;
 
 export 'src/remote.dart'
     show
         RemoteTransportConfiguration,
-        ConnectorConfiguration,
-        ServerConfiguration,
-        SecurityConfiguration,
-        TcpSecurityConfiguration,
+        TcpServerSecurityConfiguration,
+        TcpConnectorSecurityConfiguration,
         TcpServerConfiguration,
         TcpConnectorConfiguration,
         ActorMessageTransportSerializer,
