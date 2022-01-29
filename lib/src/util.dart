@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'dart:isolate';
 
+import 'package:theater/src/core.dart';
 import 'package:theater/src/dispatch.dart';
 
 part 'util/cancellation_token/cancel_event.dart';

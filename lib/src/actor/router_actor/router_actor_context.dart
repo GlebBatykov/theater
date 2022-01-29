@@ -1,7 +1,7 @@
 part of theater.actor;
 
 abstract class RouterActorContext<P extends RouterActorProperties>
-    extends NodeActorContext<P> {
+    extends NodeActorContext<P> with UserActorContextMixin<P> {
   int _nextRoundRobinWorker = 0;
 
   int? _lastRandomWorker;

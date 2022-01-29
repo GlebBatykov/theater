@@ -17,7 +17,7 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
         .listen((error) => _handleChildError(error));
   }
 
-  void _handleMessageFromSupervisor(ActorMessage message) {
+  void _handleMessageFromSupervisor(Message message) {
     if (message is MailboxMessage) {
       _handleMailboxMessage(message);
     } else if (message is RoutingMessage) {
@@ -26,10 +26,14 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
   }
 
   void _handleMailboxMessage(MailboxMessage message) {
-    _messageController.sink.add(message);
+    if (message is ActorMailboxMessage) {
+      _messageController.sink.add(message);
 
-    if (_actorProperties.mailboxType == MailboxType.reliable) {
-      _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      if (_actorProperties.mailboxType == MailboxType.reliable) {
+        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      }
+    } else if (message is SystemMailboxMessage) {
+      _actorProperties.actor.handleSystemMessage(this, message);
     }
   }
 
@@ -37,10 +41,10 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef.sendMessage(
-            MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+        _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+            feedbackPort: message.feedbackPort));
       } else if (message is SystemRoutingMessage) {
-        _actorProperties.actor.handleRoutingSystemMessage(this, message);
+        _actorProperties.actor.handleSystemMessage(this, message);
       }
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&

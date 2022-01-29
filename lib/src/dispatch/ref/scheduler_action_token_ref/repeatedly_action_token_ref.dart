@@ -2,13 +2,13 @@ part of theater.dispatch;
 
 ///
 class RepeatedlyActionTokenRef extends SchedulerActionTokenRef {
-  RepeatedlyActionTokenRef(SendPort tokenSendPort) : super(tokenSendPort);
+  RepeatedlyActionTokenRef(SendPort sendPort) : super(sendPort);
 
   ///
   Future<RepeatedlyActionStatus> getStatus() async {
     var receivePort = ReceivePort();
 
-    _tokenSendPort.send(RepeatedlyActionTokenGetStatus(receivePort.sendPort));
+    _sendPort.send(RepeatedlyActionTokenGetStatus(receivePort.sendPort));
 
     var response = (await receivePort.first) as RepeatedlyActionTokenStatus;
 
@@ -33,11 +33,11 @@ class RepeatedlyActionTokenRef extends SchedulerActionTokenRef {
 
   ///
   void stop() {
-    _tokenSendPort.send(RepeatedlyActionTokenStop());
+    _sendPort.send(RepeatedlyActionTokenStop());
   }
 
   ///
   void resume() {
-    _tokenSendPort.send(RepeatedlyActionTokenResume());
+    _sendPort.send(RepeatedlyActionTokenResume());
   }
 }

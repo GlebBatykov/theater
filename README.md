@@ -42,7 +42,15 @@ Actor framework for Dart
   - [Routers](#routers)
     - [Group router](#group-router)
     - [Pool router](#pool-router)
+- [Transfer data to actor](#transfer-data-to-actor)
 - [Supervising and error handling](#supervising-and-error-handling)
+- [Remoting [Beta]](#remoting-beta)
+  - [Setup actor system](#setup-actor-system)
+    - [Serialization](#serialization)
+  - [Getting remote link](#getting-remote-link)
+  - [Example](#example)
+  - [Network security](#network-security)
+  - [Protocol TCP](#protocol-tcp)
 - [Utilities](#utilities)
   - [Scheduler](#scheduler)
     - [Repeatedly action](#repeatedly-action)
@@ -71,9 +79,9 @@ It provides:
 - a system for routing messages between actors (isolates), which encapsulates work with Receive and Send ports;
 - error handling system at the level of one actor or a group of actors;
 - the ability to configure message routing (special actors - routers that allow you to set one of the proposed message routing strategy between their child actors, the ability to set priority to messages of a certain type);
-- ability to load balance (messages) between actors, creating pools of actors.
-
-Currently in development is the ability to send a message over the network to actor systems located in other Dart VMs.
+- ability to load balance (messages) between actors, creating pools of actors;
+- the ability to schedule tasks performed periodically after a time, cancel them and resume;
+- possibility of remote interaction between actor systems.
 
 # Installing
 
@@ -81,7 +89,7 @@ Add Theater to your pubspec.yaml file:
 
 ```dart
 dependencies:
-  theater: ^0.1.52
+  theater: ^0.2.0
 ```
 
 Import theater in files that it will be used:
@@ -96,7 +104,7 @@ An actor is an entity that has a behavior and is executed in a separate isolate.
 
 - onStart(). Called after the actor starts;
 - onPause(). Called before the actor is paused;
-- onResume(). Called after the actor is revived;
+- onResume(). Called after the actor is resumed;
 - onKill(). Called before the actor is killed.
 
 Each actor has a mailbox. This is the place where the messages addressed to him get to before getting into the actor. About the types of mailboxes, you can read [here](#mailboxes).
@@ -226,13 +234,13 @@ class TestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
@@ -831,7 +839,7 @@ An example of sending a message to an actor, receiving a response from it:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(context) async {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       // Print message
@@ -1224,6 +1232,77 @@ Received by the worker with path: tcp://test_system/root/user/test_actor/test_ro
 Received by the worker with path: tcp://test_system/root/user/test_actor/test_router/worker-1, message: Hello message №4
 ```
 
+# Transfer data to actor
+
+In Theater, each actor has their own isolate. It follows from this that the data between the actors is not shared, but is transmitted by copying. And also the fact that when transferring data between actors, we have the same limitations as when using the Send and Receive ports directly.
+
+You can send data using messages from one actor to another, but there are situations when we would like to immediately transfer some data to it when creating an actor.
+
+This can be done in two ways:
+
+- using the actor data store;
+- using the actor class.
+
+When creating an actor using the actor system or actor context, you can pass data to the actor using the data parameter. The passed data in the actor can be retrieved using the actor data store.
+
+An example of passing data to an actor using the data parameter and the actor data store:
+
+```dart
+// Create actor class
+class TestActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Get message from actor store
+    var message = context.store.get<String>('message');
+
+    print(message);
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  var data = <String, dynamic>{'message': 'Hello, actor world'};
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor(), data: data);
+}
+```
+
+I position the method of passing data to an actor using the data parameter and the actor data store as the main one (in the future I will improve it), but there is another way to pass data to the actor when it is created. This is the transfer of data to the actor class at the time of the creation of this class.
+
+An example of passing data to an actor using an actor class:
+
+```dart
+class TestActor extends UntypedActor {
+  final String _message;
+
+  TestActor({required String message}) : _message = message;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    print(_message);
+  }
+}
+
+void main(List<String> arguments) async {
+  // Create actor system
+  var system = ActorSystem('test_system');
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', TestActor(message: 'Hello, actor world!'));
+}
+```
+
 # Supervising and error handling
 
 In Theater, each actor, with the exception of the root one, has a parent actor who manages its life cycle and handles errors coming from it, as well as each actor with child actors acts as a superivor for its child actors.
@@ -1268,8 +1347,8 @@ class FirstTestActor extends UntypedActor {
 // Create decider class
 class TestDecider extends Decider {
   @override
-  Directive decide(Exception exception) {
-    if (exception is FormatException) {
+  Directive decide(Object object) {
+    if (object is FormatException) {
       return Directive.restart;
     } else {
       return Directive.escalate;
@@ -1310,6 +1389,370 @@ In this example, the tree of actors and what happens in it when an error occurs 
 ![](https://i.ibb.co/KwfMwwq/error-handling-example.png)
 
 </div>
+
+# Remoting [Beta]
+
+In Theater, you can create actors that run in separate isolates and send messages to those actors. Such a message is sent locally, that is, in the actor system of the application that you launched.
+
+But what about other actor systems that are running both locally and remotely on other devices in other Dart VMs?
+
+In Theater, you can send messages to local actors that are in the same actor system. And remote, which are with them on one device or on another.
+
+At the moment, remote interaction is available using the following protocols:
+
+- tcp.
+
+## Setup actor system
+
+The actor system is configured at the time of its creation using the RemoteTransportConfiguration class.
+
+The exchange of messages between actor systems is carried out one-way, that is, in the case when two actor systems exchange messages remotely, both actor systems are deployed to their servers and each of them creates an independent connection to the other actor system. That is, servers act as receivers of messages, and connections are necessary for sending.
+
+An example of an actor system with a deployed Tcp server, created connection to another actor system:
+
+```dart
+void main() {
+  // Create RemoteTransportConfiguration
+  var remoteConfiguration = RemoteTransportConfiguration(
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6656)
+        ]);
+
+  // Create actor system
+  var system = ActorSystem('test_system', remoteConfiguration: remoteConfiguration);
+}
+```
+
+### Serialization
+
+Since messages transmitted between actor systems, regardless of the selected protocol, are transmitted in JSON format, it would be inconvenient when sending messages to constantly convert them to String on their own.
+
+Dart lacks any JSON serializer/deserializer that works with objects without the need to write toJson and fromJson methods yourself, based on non-code generation.
+
+Such a serializer can be implemented using the dart:mirros library, however, it is not available during AOT compilation and, accordingly, it and packages using it are not available in Flutter applications. Also, dart:mirros is not currently supported, and it's almost impossible to work with nullable types properly with it.
+
+Therefore, I decided to add the ability to designate once, when creating an actor system, the logic of serialization and deserialization of messages incoming and outgoing from the actor system. Every message that enters or leaves the actor system goes through serialization and deserialization stage.
+
+Each message incoming and outgoing from the actor system, in addition to the message content, also has a tag for more convenient serialization and deserialization.
+
+An example of creating an actor system, setting up a RemoteTransportConfiguration with created serializer and deserializer, created by the connection:
+
+```dart
+// If you need create some class to use as a message
+class User {
+  final String name;
+
+  final int age;
+
+  User.fromJson(Map<String, dynamic> json)
+    : name = json['name'],
+      age = json['age'];
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'age': age
+  };
+}
+
+// Create serializer class
+class TestSerializer extends ActorMessageTransportSerializer {
+  @override
+  String serialize(String tag, dynamic data) {
+    if (data is User) {
+      return jsonEncode(data.toJson());
+    } else {
+      return data.toString();
+    }
+  }
+}
+
+// Create deserializer class
+class TestDeserializer extends ActorMessageTransportDeserializer {
+  @override
+  dynamic deserialize(String tag, String data) {
+    if (tag == 'user') {
+      return User.fromJson(jsonDecode(data));
+    }
+  }
+}
+
+void main() {
+  // Create RemoteTransportConfiguration
+  var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TestSerializer(),
+        deserializer: TestDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ]);
+
+  // Create actor system
+  var system = ActorSystem('test_system', remoteConfiguration: remoteConfiguration);
+}
+```
+
+If serializers and deserializers were not specified when creating the actor system when setting up RemoteTransportConfiguration, then their default versions are used. The default version of the serializer tries to cast the sent object to a String, while the default deserializer returns the original received String.
+
+## Getting remote link
+
+In Theater, you can send messages to local actors using local actor link.
+
+Similar to local actor references, in order to send a message to a remote actor, you must create a ref to the remote actor.
+
+You can do this with an instance of the actor system or with an actor context.
+
+An example of getting a ref to a remote actor using an actor context:
+
+```dart
+class TestActor extends UntypedActor {
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create remote actor ref by connection with name 'other_actor_system'
+    // to actor with actor path 'other_actor_system/root/user/test_actor'
+    var ref = await context.createRemoteActorRef('other_actor_system', 'other_actor_system/root/user/test_actor');
+  }
+}
+```
+
+In the above example, to get a ref to a remote actor, we need the name of our connection to the remote system of actors, and we must also specify the absolute path to the actor to which we send the message.
+
+An example of getting a ref to a remote actor using an actor system:
+
+```dart
+void main() async {
+  // Create remote transport configuration.
+  var remoteConfiguration = RemoteTransportConfiguration(connectors: [
+    TcpConnectorConfiguration(
+        name: 'server_actor_system', address: '127.0.0.1', port: 6655)
+  ]);
+
+  // Create actor system
+  var system = ActorSystem('client_actor_system', remoteConfiguration: remoteConfiguration);
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create remote actor ref by connection with name 'server_actor_system'
+  // to actor with actor path 'server_actor_system/root/user/test_actor'
+  var ref = system.createRemoteActorRef(
+      'server_actor_system', 'server_actor_system/root/user/test_actor');
+
+  // Send message
+  ref.send('test_message', 'Hello, from client!');
+}
+```
+
+## Example
+
+As an example of interaction between actor systems using Theater Remote, consider a situation in which two actor systems exchange messages, one sends a ping message to the other, and the second replies to it with a pong message.
+
+As messages, we will send instances of the Ping and Pong classes, which will go through the stages of serialization and deserialization.
+
+Creating a serializer and deserializer classes:
+
+```dart
+class Message {
+  final String data;
+
+  Message(this.data);
+
+  Message.fromJson(Map<String, dynamic> json) : data = json['data'];
+
+  Map<String, dynamic> toJson() => {'data': data};
+}
+
+// Create Ping class
+class Ping extends Message {
+  Ping(String data) : super(data);
+
+  Ping.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+}
+
+// Create Pong class
+class Pong extends Message {
+  Pong(String data) : super(data);
+
+  Pong.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+}
+
+// Create serializer class
+class TransportSerializer extends ActorMessageTransportSerializer {
+  // Override serialize method
+  @override
+  String serialize(String tag, dynamic data) {
+    if (data is Message) {
+      return jsonEncode(data.toJson());
+    } else {
+      return data.toString();
+    }
+  }
+}
+
+// Create deserializer class
+class TransportDeserializer extends ActorMessageTransportDeserializer {
+  // Override deserialize method
+  @override
+  dynamic deserialize(String tag, String data) {
+    if (tag == 'ping') {
+      return Ping.fromJson(jsonDecode(data));
+    } else if (tag == 'pong') {
+      return Pong.fromJson(jsonDecode(data));
+    } else {
+      return data;
+    }
+  }
+}
+```
+
+Creation of the first actor system:
+
+```dart
+// Create actor system builder class
+class FirstActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'first_actor_system';
+
+    // Create remote transport configuration.
+    // Create in it connector and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'second_actor_system', address: '127.0.0.1', port: 6655)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6656)
+        ]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor class
+class TestActor extends UntypedActor {
+  late final RemoteActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all Pong type messages which actor received
+    context.receive<Pong>((message) async {
+      print(message.data);
+    });
+
+    // Create remote actor ref by connection with name 'second_actor_system'
+    // to actor with actor path 'second_actor_system/root/user/test_actor'
+    _ref = await context.createRemoteActorRef(
+        'second_actor_system', 'second_actor_system/root/user/test_actor');
+
+    // Send message with tag 'ping'
+    _ref.send('ping', Ping('Ping message from first actor system!'));
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = FirstActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+In the example, an ActorSystemBuilder class was created to create the actor system, this is not a mandatory measure. Added only to move the logic of creating and configuring the actor system into a separate class.
+
+It can be seen from the example that the first actor system creates an actor that listens for messages of the Pong type, creates a ref to the remote actor and sends a Ping message to it.
+
+Creation of the second system of actors:
+
+```dart
+// Create actor system builder class
+class SecondActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'second_actor_system';
+
+    // Create remote transport configuration.
+    // Create in it connector and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'first_actor_system', address: '127.0.0.1', port: 6656)
+        ],
+        servers: [
+          TcpServerConfiguration(address: '127.0.0.1', port: 6655)
+        ]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor class
+class TestActor extends UntypedActor {
+  late final RemoteActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all Ping type messages which actor received
+    context.receive<Ping>((message) async {
+      print(message.data);
+
+      // Send message with tag 'pong'
+      _ref.send('pong', Pong('Pong message from second actor system!'));
+    });
+
+    // Create remote actor ref by connection with name 'first_actor_system'
+    // to actor with actor path 'first_actor_system/root/user/test_actor'
+    _ref = await context.createRemoteActorRef(
+        'first_actor_system', 'first_actor_system/root/user/test_actor');
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = SecondActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_actor'
+  await system.actorOf('test_actor', TestActor());
+}
+```
+
+The second actor system creates an actor that listens for Ping messages, creates a ref to the remote actor, and when a Ping message is received, sends a Pong instance with a ref to the remote actor.
+
+## Network security
+
+Using Theater Remote, you can set network security settings for remote connections using the securityConfiguration parameter in the configuration classes for servers and connections. Depending on the type of protocol used in the created server or connection, the security settings that you can configure also change.
+
+### Protocol TCP
+
+The security settings for TCP servers and connections contain the following settings:
+
+- securityContext;
+- key;
+- timeout.
+
+With the help of securityContext you can set certificates and settings that the SecurityContext class in dart:io offers you for TCP connections.
+
+However, in addition to the security features that the SecurityContext offers, there is also the ability to configure authorization for incoming connections using a key. The timeout parameter is responsible for how long such authorization will take before, in case of an unsuccessful authorization attempt, an error will be raised and the connection will be terminated.
 
 # Utilities
 

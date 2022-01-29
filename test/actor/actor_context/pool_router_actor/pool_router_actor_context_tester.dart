@@ -9,7 +9,7 @@ import '../actor_context_test_data.dart';
 import '../actor_context_tester.dart';
 import '../actor_parent_tester.dart';
 
-class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
+class PoolRouterActorContextTester<T extends PoolRouterActorContext>
     extends ActorContextTester<T> with ActorParentTester<T> {
   @override
   Future<void> sendAndSubscribeWithAbsolutePath(
@@ -24,8 +24,6 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   @override
   Future<void> sendAndSubscribeWithRelativePath(
       ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var subscription =
         data.actorContext.sendAndSubscribe('../worker-1', 'Hello, test world!');
 
@@ -44,40 +42,31 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
 
   @override
   Future<void> killChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.killChildrenTest(data);
   }
 
   @override
   Future<void> pauseChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.pauseChildrenTest(data);
   }
 
   @override
   Future<void> resumeChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.resumeChildrenTest(data);
   }
 
   @override
   Future<void> restartChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.restartChildrenTest(data);
   }
 
   Future<void> routingBroadcastTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
-    data.isolateReceivePort!.sendPort.send(MailboxMessage('Hello, test world!',
+    data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
+        'Hello, test world!',
         feedbackPort: receivePort.sendPort));
 
     expect(
@@ -90,14 +79,12 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   }
 
   Future<void> routingRandomTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }
@@ -116,14 +103,12 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   }
 
   Future<void> routingRoundRobinTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }
@@ -142,14 +127,12 @@ class PoolRouterActorContextTester<T extends TestPoolRouterActorContext>
   }
 
   Future<void> routingBalancingTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }

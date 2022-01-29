@@ -1,6 +1,7 @@
 part of theater.actor;
 
-class UntypedActorCell extends NodeActorCell<UntypedActor> {
+class UntypedActorCell extends NodeActorCell<UntypedActor>
+    with UserActorCellMixin<UntypedActor> {
   UntypedActorCell(ActorPath path, UntypedActor actor, LocalActorRef parentRef,
       SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,
@@ -29,9 +30,9 @@ class UntypedActorCell extends NodeActorCell<UntypedActor> {
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         UntypedActorIsolateHandlerFactory(),
-        UntypedActorContextFactory(), onError: (error) {
+        UntypedActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

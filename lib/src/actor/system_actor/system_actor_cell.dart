@@ -30,9 +30,9 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         SystemActorIsolateHandlerFactory(),
-        SystemActorContextFactory(), onError: (error) {
+        SystemActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);
@@ -48,6 +48,8 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
     _mailbox.systemRoutingMessages.listen((message) {
       _isolateSupervisor.send(message);
     });
+
+    _actorSystemMessagePort.send(ActorSystemRegisterSystemLocalActorRef(ref));
   }
 
   void _handleMessageFromIsolate(message) {
@@ -71,5 +73,12 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
           StackTrace.current,
           parent: event.error));
     }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await super.dispose();
+
+    _actorSystemMessagePort.send(ActorSystemRemoveSystemLocalActorRef(path));
   }
 }

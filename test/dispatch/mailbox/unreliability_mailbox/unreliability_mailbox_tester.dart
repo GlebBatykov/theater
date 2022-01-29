@@ -11,8 +11,8 @@ class UnreliableMailboxTester<T extends UnreliableMailbox>
     var streamQueue = StreamQueue(data.mailbox.mailboxMessages);
 
     for (var i = 0; i < 5; i++) {
-      data.mailbox.sendPort
-          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
+      data.mailbox.sendPort.send(
+          ActorMailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     expect(List.of((await streamQueue.take(5)).map((e) => e.data)),

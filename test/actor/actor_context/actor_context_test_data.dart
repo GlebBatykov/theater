@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
+import 'package:theater/src/isolate.dart';
 
 class ActorContextTestData<T extends ActorContext> {
   final T actorContext;

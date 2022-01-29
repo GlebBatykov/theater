@@ -2,16 +2,14 @@ part of theater.dispatch;
 
 //
 class CancellationTokenRef extends Ref {
-  final SendPort _tokenSendPort;
-
-  CancellationTokenRef(SendPort tokenSendPort) : _tokenSendPort = tokenSendPort;
+  CancellationTokenRef(SendPort sendPort) : super(sendPort);
 
   /// Sends cancel event to the instance of [CancellationToken] refers to.
   Future<void> cancel() async {
     var value = await isCanceled();
 
     if (!value) {
-      _tokenSendPort.send(RemoteCancelToken());
+      _sendPort.send(RemoteCancelToken());
     } else {
       throw CancellationTokenRefException(
           message: 'token has already been canceled.');
@@ -22,7 +20,7 @@ class CancellationTokenRef extends Ref {
   Future<bool> isCanceled() async {
     var receivePort = ReceivePort();
 
-    _tokenSendPort.send(GetTokenStatus(receivePort.sendPort));
+    _sendPort.send(GetTokenStatus(receivePort.sendPort));
 
     var event = await receivePort.first as TokenStatus;
 

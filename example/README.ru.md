@@ -10,6 +10,7 @@
 - [Сервер](#сервер)
   - [Многопоточный сервер](#многопоточный-сервер)
   - [Многопоточный сервер с пулом работников](#многопоточный-сервер-с-пулом-работников)
+  - [Удаленное взаимодействие при помощи Theater Remote](#удаленное-взаимодействие-при-помощи-theater-remote)
 - [Flutter](#flutter)
 
 Различные более простые примеры использования пакета (создание актора, отправка сообщений, прием сообщений и т.д) вы можете увидеть в README или в папке example на github.
@@ -48,15 +49,14 @@ class ServerReceiver extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   for (var i = 0; i < 3; i++) {
     // Create receiver actor class
-    await actorSystem.actorOf(
-        'receiver-' + (i + 1).toString(), ServerReceiver());
+    await system.actorOf('receiver-' + (i + 1).toString(), ServerReceiver());
   }
 }
 ```
@@ -159,16 +159,166 @@ class ServerWorkerPoolRouter extends PoolRouterActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create server receivers pool router
-  await actorSystem.actorOf('receivers', ServerReceiverPoolRouter());
+  await system.actorOf('receivers', ServerReceiverPoolRouter());
 
   // Create server workers pool router
-  await actorSystem.actorOf('workers', ServerWorkerPoolRouter());
+  await system.actorOf('workers', ServerWorkerPoolRouter());
+}
+```
+
+## Удаленное взаимодействие при помощи Theater Remote
+
+В Theater помимо возможности отправки сообщений локальным акторам так же есть средства для удаленного взаимодействия систем акторов.
+
+Это можно использовать для организации распределенных вычислений, к примеру разместив две системы акторов на двух разных устройствах и использовать Theater Remote для общениях их между друг другом.
+
+Больше информации об Theater Remote есть в README.
+
+В качестве примера рассмотрим ситуацию в которой участвуют две системы акторов, одна выступает в их общении в качестве сервера просшуливающего сообщения от других систем акторов, а вторая создает подключение к первой.
+
+Создадим общие для этих двух систем классы, отвечающие за сериализацию и десериализацию данных:
+
+```dart
+class TestMessage {
+  final String data;
+
+  TestMessage(this.data);
+
+  TestMessage.fromJson(Map<String, dynamic> json) : data = json['data'];
+
+  Map<String, dynamic> toJson() => {'data': data};
+}
+
+// Create serializer class
+class TransportSerializer extends ActorMessageTransportSerializer {
+  // Override serialize method
+  @override
+  String serialize(String tag, dynamic data) {
+    if (data is TestMessage) {
+      return jsonEncode(data.toJson());
+    } else {
+      return data.toString();
+    }
+  }
+}
+
+// Create deserializer class
+class TransportDeserializer extends ActorMessageTransportDeserializer {
+  // Override deserialize method
+  @override
+  dynamic deserialize(String tag, String data) {
+    if (tag == 'test_message') {
+      return TestMessage.fromJson(jsonDecode(data));
+    } else {
+      return data;
+    }
+  }
+}
+```
+
+Создади систему выступающую в качестве сервера:
+
+```dart
+// Create actor system builder class for server
+class ServerActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'test_server_system';
+
+    // Create remote transport configuration.
+    // Create in it server and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        servers: [TcpServerConfiguration(address: '127.0.0.1', port: 6655)]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor which will receive messages
+class ServerActor extends UntypedActor {
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Set handler to all Message type messages which actor received
+    context.receive<Message>((message) async {
+      print(message.data);
+    });
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = ServerActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_server_actor'
+  await system.actorOf('test_server_actor', ServerActor());
+}
+```
+
+Создадим систему выступающую в качестве клиента отсылающего сообщения первой системе акторов:
+
+```dart
+// Create actor system builder class for client
+class ClientActorSystemBuilder extends ActorSystemBuilder {
+  // Override build method
+  @override
+  ActorSystem build() {
+    var name = 'test_client_system';
+
+    // Create remote transport configuration.
+    // Create in it connector and set serializer and deserializer.
+    var remoteConfiguration = RemoteTransportConfiguration(
+        serializer: TransportSerializer(),
+        deserializer: TransportDeserializer(),
+        connectors: [
+          TcpConnectorConfiguration(
+              name: 'test_server', address: '127.0.0.1', port: 6655)
+        ]);
+
+    // Create actor system
+    return ActorSystem(name, remoteConfiguration: remoteConfiguration);
+  }
+}
+
+// Create actor who will send messages
+class ClientActor extends UntypedActor {
+  late final RemoteActorRef _ref;
+
+  // Override onStart method which will be executed at actor startup
+  @override
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create remote actor ref by connecting with name 'test_server'
+    // to actor with actor path 'test_server_system/root/user/test_server_actor'
+    _ref = await context.createRemoteActorRef(
+        'test_server', 'test_server_system/root/user/test_server_actor');
+
+    // Send message with tag 'test_message'
+    _ref.send('test_message', Message('Hello, from client!'));
+  }
+}
+
+void main() async {
+  // Create actor system with actor system builder
+  var system = ClientActorSystemBuilder().build();
+
+  // Initialize actor system before work with it
+  await system.initialize();
+
+  // Create top level actor with name 'test_client_actor'
+  await system.actorOf('test_client_actor', ClientActor());
 }
 ```
 

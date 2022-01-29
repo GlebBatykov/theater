@@ -1,6 +1,6 @@
-import 'package:theater/src/actor.dart';
-
 // Create first actor class
+import 'package:theater/theater.dart';
+
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override

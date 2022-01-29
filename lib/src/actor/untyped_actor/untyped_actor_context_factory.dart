@@ -1,10 +1,14 @@
 part of theater.actor;
 
-class UntypedActorContextFactory extends NodeActorContextFactory<
+class UntypedActorContextBuilder extends NodeActorContextBuilder<
     UntypedActorContext, UntypedActorProperties> {
   @override
-  UntypedActorContext create(
-      IsolateContext isolateContext, UntypedActorProperties actorProperties) {
-    return UntypedActorContext(isolateContext, actorProperties);
+  Future<UntypedActorContext> build(IsolateContext isolateContext,
+      UntypedActorProperties actorProperties) async {
+    var context = UntypedActorContext(isolateContext, actorProperties);
+
+    await context._initialize();
+
+    return context;
   }
 }

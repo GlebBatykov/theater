@@ -1,9 +1,9 @@
 part of theater.core;
 
-class TheaterException implements Exception {
+abstract class TheaterException implements Exception {
   final String? message;
 
-  TheaterException({String? message}) : message = message;
+  TheaterException([this.message]);
 
   @override
   String toString() {

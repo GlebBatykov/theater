@@ -1,6 +1,7 @@
 part of theater.actor;
 
-class GroupRouterActorCell extends RouterActorCell<GroupRouterActor> {
+class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
+    with UserActorCellMixin<GroupRouterActor> {
   GroupRouterActorCell(ActorPath path, GroupRouterActor actor,
       LocalActorRef parentRef, SendPort actorSystemMessagePort,
       {Map<String, dynamic>? data,
@@ -30,9 +31,9 @@ class GroupRouterActorCell extends RouterActorCell<GroupRouterActor> {
             actorSystemMessagePort: _actorSystemMessagePort,
             data: data),
         RouterActorIsolateHandlerFactory(),
-        GroupRouterActorContextFactory(), onError: (error) {
+        GroupRouterActorContextBuilder(), onError: (error) {
       _errorController.sink
-          .add(ActorError(path, error.exception, error.stackTrace));
+          .add(ActorError(path, error.object, error.stackTrace));
     });
 
     _isolateSupervisor.messages.listen(_handleMessageFromIsolate);

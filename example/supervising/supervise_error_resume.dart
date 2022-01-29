@@ -37,8 +37,8 @@ class FirstTestActor extends UntypedActor {
 // Create decider class
 class TestDecider extends Decider {
   @override
-  Directive decide(Exception exception) {
-    if (exception is FormatException) {
+  Directive decide(Object object) {
+    if (object is FormatException) {
       return Directive.resume;
     } else {
       return Directive.escalate;

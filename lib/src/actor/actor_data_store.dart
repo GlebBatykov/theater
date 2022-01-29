@@ -15,7 +15,20 @@ class ActorDataStore {
   ///
   /// If instanse is not exist in store an exception will be thrown.
   T get<T>(String instanceName) {
-    return _data[instanceName] as T;
+    dynamic object;
+
+    try {
+      object = _data[instanceName];
+
+      return object as T;
+    } on TypeError {
+      throw ActorDataStoreException(
+          message: 'failed to convert type [' +
+              object.runtimeType.toString() +
+              '] to [' +
+              T.toString() +
+              '].');
+    }
   }
 
   /// Get instanse of type [T] by name [instanceName].

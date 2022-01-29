@@ -11,8 +11,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
     var list = <int>[];
 
     for (var i = 0; i < 2; i++) {
-      data.mailbox.sendPort
-          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
+      data.mailbox.sendPort.send(
+          ActorMailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     await for (var message in data.mailbox.mailboxMessages) {
@@ -31,8 +31,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
   Future<void> resendTest(MailboxTestData<T> data) async {
     var list = <int>[];
 
-    data.mailbox.sendPort
-        .send(MailboxMessage(100, feedbackPort: data.receivePort.sendPort));
+    data.mailbox.sendPort.send(
+        ActorMailboxMessage(100, feedbackPort: data.receivePort.sendPort));
 
     await for (var message in data.mailbox.mailboxMessages) {
       list.add(message.data);
@@ -51,8 +51,8 @@ class ReliabilityMailboxTester<T extends ReliableMailbox>
     var list = <int>[];
 
     for (var i = 0; i < 5; i++) {
-      data.mailbox.sendPort
-          .send(MailboxMessage(i, feedbackPort: data.receivePort.sendPort));
+      data.mailbox.sendPort.send(
+          ActorMailboxMessage(i, feedbackPort: data.receivePort.sendPort));
     }
 
     await for (var message in data.mailbox.mailboxMessages) {

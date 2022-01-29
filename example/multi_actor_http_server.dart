@@ -29,14 +29,13 @@ class ServerReceiver extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   for (var i = 0; i < 3; i++) {
     // Create receiver actor class
-    await actorSystem.actorOf(
-        'receiver-' + (i + 1).toString(), ServerReceiver());
+    await system.actorOf('receiver-' + (i + 1).toString(), ServerReceiver());
   }
 }

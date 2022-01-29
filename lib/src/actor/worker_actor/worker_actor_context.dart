@@ -2,7 +2,7 @@ part of theater.actor;
 
 /// The class used by [WorkerActor] to communicate with other actors in the actor system, receive messages from other actors.
 class WorkerActorContext<P extends WorkerActorProperties>
-    extends SheetActorContext<P> {
+    extends SheetActorContext<P> with UserActorContextMixin<P> {
   final Map<Type, List<Function>> _receiveHandlers = {};
 
   WorkerActorContext(IsolateContext isolateContext, P actorProperties)
@@ -30,7 +30,7 @@ class WorkerActorContext<P extends WorkerActorProperties>
     });
   }
 
-  void _handleMessageFromSupervisor(ActorMessage message) {
+  void _handleMessageFromSupervisor(Message message) {
     if (message is MailboxMessage) {
       _handleMailboxMessage(message);
     } else if (message is RoutingMessage) {
@@ -39,18 +39,20 @@ class WorkerActorContext<P extends WorkerActorProperties>
   }
 
   void _handleMailboxMessage(MailboxMessage message) {
-    _messageController.sink.add(message);
+    if (message is ActorMailboxMessage) {
+      _messageController.sink.add(message);
 
-    if (_actorProperties.mailboxType == MailboxType.reliable) {
-      _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      if (_actorProperties.mailboxType == MailboxType.reliable) {
+        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      }
     }
   }
 
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef.sendMessage(
-          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+          feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

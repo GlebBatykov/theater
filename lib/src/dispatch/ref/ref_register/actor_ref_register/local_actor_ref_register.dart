@@ -5,6 +5,10 @@ class LocalActorRefRegister extends RefRegister<LocalActorRef> {
     _refs.add(ref);
   }
 
+  void removeByPath(ActorPath path) {
+    _refs.removeWhere((element) => element.path == path);
+  }
+
   bool isExistsByPath(ActorPath path) {
     return _refs.where((element) => element.path == path).isNotEmpty;
   }

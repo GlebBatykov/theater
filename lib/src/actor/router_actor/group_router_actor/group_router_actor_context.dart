@@ -4,8 +4,7 @@ part of theater.actor;
 ///
 /// Receive messages from other actors, create a group of child actors and control their life cycle.
 class GroupRouterActorContext
-    extends RouterActorContext<GroupRouterActorProperties>
-    with UserActorContextMixin<GroupRouterActorProperties> {
+    extends RouterActorContext<GroupRouterActorProperties> {
   GroupRouterActorContext(
       IsolateContext isolateContext, GroupRouterActorProperties actorProperties)
       : super(isolateContext, actorProperties) {
@@ -78,7 +77,7 @@ class GroupRouterActorContext
     }
   }
 
-  void _handleMessageFromSupervisor(ActorMessage message) {
+  void _handleMessageFromSupervisor(Message message) {
     if (message is MailboxMessage) {
       _handleMailboxMessage(message);
     } else if (message is RoutingMessage) {
@@ -87,18 +86,20 @@ class GroupRouterActorContext
   }
 
   void _handleMailboxMessage(MailboxMessage message) {
-    _messageController.sink.add(message);
+    if (message is ActorMailboxMessage) {
+      _messageController.sink.add(message);
 
-    if (_actorProperties.mailboxType == MailboxType.reliable) {
-      _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      if (_actorProperties.mailboxType == MailboxType.reliable) {
+        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+      }
     }
   }
 
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef.sendMessage(
-          MailboxMessage(message.data, feedbackPort: message.feedbackPort));
+      _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+          feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
           List.of(message.recipientPath.segments

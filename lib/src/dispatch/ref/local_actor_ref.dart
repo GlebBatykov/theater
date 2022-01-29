@@ -2,14 +2,8 @@ part of theater.dispatch;
 
 /// Used by sending message to local mailbox actor (located in the same actor system).
 class LocalActorRef extends ActorRef {
-  /// Path to the actor whose mailbox the ref point to.
-  final ActorPath path;
+  LocalActorRef(ActorPath path, SendPort sendPort) : super(path, sendPort);
 
-  final SendPort _sendPort;
-
-  LocalActorRef(this.path, SendPort sendPort) : _sendPort = sendPort;
-
-  @override
   void send(dynamic message, {Duration? duration}) {
     if (message is ActorMessage) {
       throw ActorRefException(
@@ -18,15 +12,14 @@ class LocalActorRef extends ActorRef {
     } else {
       if (duration != null) {
         Future.delayed(duration, () {
-          _sendPort.send(MailboxMessage(message));
+          _sendPort.send(ActorMailboxMessage(message));
         });
       } else {
-        _sendPort.send(MailboxMessage(message));
+        _sendPort.send(ActorMailboxMessage(message));
       }
     }
   }
 
-  @override
   MessageSubscription sendAndSubscribe(dynamic message, {Duration? duration}) {
     if (message is ActorMessage) {
       throw ActorRefException(
@@ -38,19 +31,18 @@ class LocalActorRef extends ActorRef {
       if (duration != null) {
         Future.delayed(duration, () {
           _sendPort.send(
-              MailboxMessage(message, feedbackPort: receivePort.sendPort));
+              ActorMailboxMessage(message, feedbackPort: receivePort.sendPort));
         });
       } else {
-        _sendPort
-            .send(MailboxMessage(message, feedbackPort: receivePort.sendPort));
+        _sendPort.send(
+            ActorMailboxMessage(message, feedbackPort: receivePort.sendPort));
       }
 
       return MessageSubscription(receivePort);
     }
   }
 
-  @override
-  void sendMessage(ActorMessage message, {Duration? duration}) {
+  void sendMessage(Message message, {Duration? duration}) {
     if (duration != null) {
       Future.delayed(duration, () {
         _sendPort.send(message);

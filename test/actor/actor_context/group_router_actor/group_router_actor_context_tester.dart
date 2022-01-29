@@ -9,7 +9,7 @@ import '../actor_context_test_data.dart';
 import '../actor_context_tester.dart';
 import '../actor_parent_tester.dart';
 
-class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
+class GroupRounterActorContextTester<T extends GroupRouterActorContext>
     extends ActorContextTester<T> with ActorParentTester<T> {
   @override
   Future<void> sendAndSubscribeWithAbsolutePath(
@@ -24,8 +24,6 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
   @override
   Future<void> sendAndSubscribeWithRelativePath(
       ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var subscription =
         data.actorContext.sendAndSubscribe('../test_1', 'Hello, test world!');
 
@@ -46,40 +44,31 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
 
   @override
   Future<void> killChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.killChildrenTest(data);
   }
 
   @override
   Future<void> pauseChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.pauseChildrenTest(data);
   }
 
   @override
   Future<void> resumeChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.resumeChildrenTest(data);
   }
 
   @override
   Future<void> restartChildrenTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     await super.restartChildrenTest(data);
   }
 
   Future<void> routingBroadcastTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
-    data.isolateReceivePort!.sendPort.send(MailboxMessage('Hello, test world!',
+    data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
+        'Hello, test world!',
         feedbackPort: receivePort.sendPort));
 
     expect(
@@ -92,14 +81,12 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
   }
 
   Future<void> routingRandomTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }
@@ -118,14 +105,12 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
   }
 
   Future<void> routingRoundRobinTest(ActorContextTestData<T> data) async {
-    await data.actorContext.initialize();
-
     var receivePort = ReceivePort();
 
     var streamQueue = StreamQueue(receivePort);
 
     for (var i = 0; i < 5; i++) {
-      data.isolateReceivePort!.sendPort.send(MailboxMessage(
+      data.isolateReceivePort!.sendPort.send(ActorMailboxMessage(
           'Hello, test world!',
           feedbackPort: receivePort.sendPort));
     }
@@ -138,7 +123,7 @@ class GroupRounterActorContextTester<T extends TestGroupRouterActorContext>
 
     await streamQueue.cancel();
 
-    expect(stopwatch.elapsedMilliseconds, inExclusiveRange(100, 150));
+    expect(stopwatch.elapsedMilliseconds, inExclusiveRange(80, 150));
 
     receivePort.close();
   }
