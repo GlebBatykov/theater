@@ -81,7 +81,8 @@ Theater - это пакет для упрощения работы с много
 - систему обработки ошибок на уровне одного актора или группы акторов;
 - возможности настройки маршрутизации сообщений (специальные акторы - маршрутизаторы, позволяющие устанавливать одну из предложенных стратегию маршрутизации сообщений между своими акторами-детьми, возможность задать приоритет сообщениям определенного типа);
 - возможность балансировки нагрузки (сообщений) между акторами, создание пулов из акторов;
-- возможность планировать задачи выполняемые периодически спустя время, отменять их и возобновлять.
+- возможность планировать задачи выполняемые периодически спустя время, отменять их и возобновлять;
+- возможность удаленного взаимодействия между системами акторов.
 
 # Установка
 
@@ -89,7 +90,7 @@ Theater - это пакет для упрощения работы с много
 
 ```dart
 dependencies:
-  theater: ^0.1.52
+  theater: ^0.2.0
 ```
 
 Импортируйте theater в файлы где он должен использоваться:
@@ -1512,7 +1513,7 @@ void main() {
 class TestActor extends UntypedActor {
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create remote actor ref by connecting with name 'other_actor_system'
+    // Create remote actor ref by connection with name 'other_actor_system'
     // to actor with actor path 'other_actor_system/root/user/test_actor'
     var ref = await context.createRemoteActorRef('other_actor_system', 'other_actor_system/root/user/test_actor');
   }
@@ -1537,7 +1538,7 @@ void main() async {
   // Initialize actor system before work with it
   await system.initialize();
 
-  // Create remote actor ref by connecting with name 'server_actor_system'
+  // Create remote actor ref by connection with name 'server_actor_system'
   // to actor with actor path 'server_actor_system/root/user/test_actor'
   var ref = system.createRemoteActorRef(
       'server_actor_system', 'server_actor_system/root/user/test_actor');
@@ -1566,12 +1567,14 @@ class Message {
   Map<String, dynamic> toJson() => {'data': data};
 }
 
+// Create Ping class
 class Ping extends Message {
   Ping(String data) : super(data);
 
   Ping.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 }
 
+// Create Pong class
 class Pong extends Message {
   Pong(String data) : super(data);
 
@@ -1647,7 +1650,7 @@ class TestActor extends UntypedActor {
       print(message.data);
     });
 
-    // Create remote actor ref by connecting with name 'second_actor_system'
+    // Create remote actor ref by connection with name 'second_actor_system'
     // to actor with actor path 'second_actor_system/root/user/test_actor'
     _ref = await context.createRemoteActorRef(
         'second_actor_system', 'second_actor_system/root/user/test_actor');
@@ -1716,7 +1719,7 @@ class TestActor extends UntypedActor {
       _ref.send('pong', Pong('Pong message from second actor system!'));
     });
 
-    // Create remote actor ref by connecting with name 'first_actor_system'
+    // Create remote actor ref by connection with name 'first_actor_system'
     // to actor with actor path 'first_actor_system/root/user/test_actor'
     _ref = await context.createRemoteActorRef(
         'first_actor_system', 'first_actor_system/root/user/test_actor');

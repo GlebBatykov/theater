@@ -80,7 +80,8 @@ It provides:
 - error handling system at the level of one actor or a group of actors;
 - the ability to configure message routing (special actors - routers that allow you to set one of the proposed message routing strategy between their child actors, the ability to set priority to messages of a certain type);
 - ability to load balance (messages) between actors, creating pools of actors;
-- the ability to schedule tasks performed periodically after a time, cancel them and resume.
+- the ability to schedule tasks performed periodically after a time, cancel them and resume;
+- possibility of remote interaction between actor systems.
 
 # Installing
 
@@ -88,7 +89,7 @@ Add Theater to your pubspec.yaml file:
 
 ```dart
 dependencies:
-  theater: ^0.1.52
+  theater: ^0.2.0
 ```
 
 Import theater in files that it will be used:
@@ -1398,7 +1399,8 @@ But what about other actor systems that are running both locally and remotely on
 In Theater, you can send messages to local actors that are in the same actor system. And remote, which are with them on one device or on another.
 
 At the moment, remote interaction is available using the following protocols:
--tcp.
+
+- tcp.
 
 ## Setup actor system
 
@@ -1406,7 +1408,7 @@ The actor system is configured at the time of its creation using the RemoteTrans
 
 The exchange of messages between actor systems is carried out one-way, that is, in the case when two actor systems exchange messages remotely, both actor systems are deployed to their servers and each of them creates an independent connection to the other actor system. That is, servers act as receivers of messages, and connections are necessary for sending.
 
-An example of an actor system with a deployed Tcp server created by connecting to another actor system:
+An example of an actor system with a deployed Tcp server, created connection to another actor system:
 
 ```dart
 void main() {
@@ -1433,11 +1435,11 @@ Dart lacks any JSON serializer/deserializer that works with objects without the 
 
 Such a serializer can be implemented using the dart:mirros library, however, it is not available during AOT compilation and, accordingly, it and packages using it are not available in Flutter applications. Also, dart:mirros is not currently supported, and it's almost impossible to work with nullable types properly with it.
 
-Therefore, I decided to add the ability to designate once, when creating an actor system, the logic of serialization and deserialization of messages incoming and outgoing from the actor system. Every message that enters or leaves the actor system goes through a serialization and deserialization stage.
+Therefore, I decided to add the ability to designate once, when creating an actor system, the logic of serialization and deserialization of messages incoming and outgoing from the actor system. Every message that enters or leaves the actor system goes through serialization and deserialization stage.
 
 Each message incoming and outgoing from the actor system, in addition to the message content, also has a tag for more convenient serialization and deserialization.
 
-An example of creating an actor system, setting up a RemoteTransportConfiguration with a created serializer and a deserializer created by the connection:
+An example of creating an actor system, setting up a RemoteTransportConfiguration with created serializer and deserializer, created by the connection:
 
 ```dart
 // If you need create some class to use as a message
@@ -1509,7 +1511,7 @@ An example of getting a ref to a remote actor using an actor context:
 class TestActor extends UntypedActor {
   @override
   Future<void> onStart(UntypedActorContext context) async {
-    // Create remote actor ref by connecting with name 'other_actor_system'
+    // Create remote actor ref by connection with name 'other_actor_system'
     // to actor with actor path 'other_actor_system/root/user/test_actor'
     var ref = await context.createRemoteActorRef('other_actor_system', 'other_actor_system/root/user/test_actor');
   }
@@ -1534,7 +1536,7 @@ void main() async {
   // Initialize actor system before work with it
   await system.initialize();
 
-  // Create remote actor ref by connecting with name 'server_actor_system'
+  // Create remote actor ref by connection with name 'server_actor_system'
   // to actor with actor path 'server_actor_system/root/user/test_actor'
   var ref = system.createRemoteActorRef(
       'server_actor_system', 'server_actor_system/root/user/test_actor');
@@ -1563,12 +1565,14 @@ class Message {
   Map<String, dynamic> toJson() => {'data': data};
 }
 
+// Create Ping class
 class Ping extends Message {
   Ping(String data) : super(data);
 
   Ping.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 }
 
+// Create Pong class
 class Pong extends Message {
   Pong(String data) : super(data);
 
@@ -1644,7 +1648,7 @@ class TestActor extends UntypedActor {
       print(message.data);
     });
 
-    // Create remote actor ref by connecting with name 'second_actor_system'
+    // Create remote actor ref by connection with name 'second_actor_system'
     // to actor with actor path 'second_actor_system/root/user/test_actor'
     _ref = await context.createRemoteActorRef(
         'second_actor_system', 'second_actor_system/root/user/test_actor');
@@ -1713,7 +1717,7 @@ class TestActor extends UntypedActor {
       _ref.send('pong', Pong('Pong message from second actor system!'));
     });
 
-    // Create remote actor ref by connecting with name 'first_actor_system'
+    // Create remote actor ref by connection with name 'first_actor_system'
     // to actor with actor path 'first_actor_system/root/user/test_actor'
     _ref = await context.createRemoteActorRef(
         'first_actor_system', 'first_actor_system/root/user/test_actor');
