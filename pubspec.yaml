@@ -1,6 +1,6 @@
 name: theater
 description: Actor framework for Dart. This package makes it easier to work with isolates, create clusters of isolates.
-version: 0.1.52
+version: 0.2.0
 repository: https://github.com/GlebBatykov/theater
 
 environment:
