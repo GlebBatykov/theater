@@ -13,7 +13,7 @@ class ConnectorConfiguration<S extends SecurityConfiguration> {
 
   final Duration? reconnectTimeout;
 
-  final int? reconnectDelay;
+  final double? reconnectDelay;
 
   ConnectorConfiguration(this.name, this.address, this.port, this.timeout,
       this.securityConfiguration, this.reconnectTimeout, this.reconnectDelay);

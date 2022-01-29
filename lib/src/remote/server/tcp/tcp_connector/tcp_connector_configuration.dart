@@ -9,7 +9,7 @@ class TcpConnectorConfiguration
       Duration? timeout,
       TcpConnectorSecurityConfiguration? securityConfiguration,
       Duration? reconnectTimeout,
-      int? reconnectDelay})
+      double? reconnectDelay})
       : super(name, address, port, timeout, securityConfiguration,
             reconnectTimeout, reconnectDelay);
 }

@@ -16,7 +16,7 @@ abstract class Connector<S extends SecurityConfiguration> {
 
   final Duration _reconnectTimeout;
 
-  final int _reconnectDelay;
+  final double _reconnectDelay;
 
   final S _securityConfiguration;
 
@@ -33,12 +33,12 @@ abstract class Connector<S extends SecurityConfiguration> {
   Stream<ConnectorError> get errors => _errorController.stream;
 
   Connector(this.address, this.port, S securityConfiguration,
-      {Duration? timeout, Duration? reconnectTimeout, int? reconnectDelay})
+      {Duration? timeout, Duration? reconnectTimeout, double? reconnectDelay})
       : _securityConfiguration = securityConfiguration,
         _timeout = timeout ?? const Duration(seconds: 10),
         _reconnectTimeout = reconnectTimeout ?? const Duration(seconds: 10),
         _reconnectDelay = reconnectDelay ?? 100 {
-    _retryer = Retryer(duration: _reconnectTimeout);
+    _retryer = Retryer(duration: _reconnectTimeout, delay: _reconnectDelay);
   }
 
   Future<void> connect();

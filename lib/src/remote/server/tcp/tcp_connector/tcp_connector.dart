@@ -9,7 +9,7 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
     TcpConnectorSecurityConfiguration? securityConfiguration,
     Duration? timeout,
     Duration? reconnectTimeout,
-    int? reconnectDelay,
+    double? reconnectDelay,
   }) : super(address, port,
             securityConfiguration ?? TcpConnectorSecurityConfiguration(),
             timeout: timeout,
