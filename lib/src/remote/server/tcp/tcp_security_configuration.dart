@@ -1,5 +1,6 @@
 part of theater.remote;
 
+/// Used to configure security when working with protocol TCP.
 abstract class TcpSecurityConfiguration extends SecurityConfiguration {
   final SecurityContext? securityContext;
 

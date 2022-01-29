@@ -26,7 +26,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Instance of [RemoteTransportConfiguration] which used for configuration actor system server.
   final RemoteTransportConfiguration _remoteConfiguration;
 
-  ///
+  /// List of [RemoteSource] which are used to send messages to other actor systems using Theater Remote.
   final List<RemoteSource> _remoteSources = [];
 
   /// Instanse of [ReceivePort] of actor system.
@@ -236,7 +236,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     await _root.kill();
   }
 
-  ///
+  /// Starts top level actor in actor system with [path].
   Future<void> startTopLevelActor(String path) async {
     var actorPath = _parcePath(path);
 
@@ -259,7 +259,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
-  ///
+  /// Pauses top level actor in actor system with [path].
   Future<void> pauseTopLevelActor(String path) async {
     var actorPath = _parcePath(path);
 
@@ -282,7 +282,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
-  ///
+  /// Resumes top level actor in actor system with [path].
   Future<void> resumeTopLevelActor(String path) async {
     var actorPath = _parcePath(path);
 
@@ -305,7 +305,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
-  ///
+  /// Kills top level actor in actor system with [path].
   Future<void> killTopLevelActor(String path) async {
     var actorPath = _parcePath(path);
 
@@ -328,7 +328,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     }
   }
 
-  ///
+  /// Deletes top level actor in actor system with [path].
   Future<void> deleteTopLevelActor(String path) async {
     var actorPath = _parcePath(path);
 
