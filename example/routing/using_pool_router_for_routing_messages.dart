@@ -38,6 +38,8 @@ class TestWorker extends WorkerActor {
           context.path.toString() +
           ', message: ' +
           message);
+
+      return;
     });
   }
 }

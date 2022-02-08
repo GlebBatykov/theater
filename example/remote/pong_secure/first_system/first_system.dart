@@ -15,6 +15,8 @@ class TestActor extends UntypedActor {
     // Set handler to all Pong type messages which actor received
     context.receive<Pong>((message) async {
       print(message.data);
+
+      return;
     });
 
     // Create remote actor ref by connecting with name 'second_actor_system'

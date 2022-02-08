@@ -8,6 +8,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Create child actor with name 'second_test_actor'

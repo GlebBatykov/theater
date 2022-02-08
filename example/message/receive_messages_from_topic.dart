@@ -30,6 +30,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as String from topic with name 'test_topic'
   system.listenTopic<String>('test_topic', (message) async {
     print(message);
+
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'

@@ -45,6 +45,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as double from topic with name 'second_test_topic'
   system.listenTopic<double>('second_test_topic', (message) async {
     print(message * 2);
+
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'

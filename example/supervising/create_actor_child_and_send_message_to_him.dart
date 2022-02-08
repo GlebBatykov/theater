@@ -21,6 +21,8 @@ class SecondTestActor extends UntypedActor {
       if (message == 'Luke, I am your father.') {
         print('Nooooooo!');
       }
+
+      return;
     });
   }
 }
