@@ -1,6 +1,6 @@
 <div align="center" width="200px">
 
-![](https://github.com/GlebBatykov/theater/blob/main/logo.png?raw=true)
+<img src="https://github.com/GlebBatykov/theater/blob/dev/logo.png?raw=true" width="700px"/>
 
 Actor framework for Dart
   
