@@ -57,7 +57,6 @@
     - [Повторяющееся действие](#повторяющееся-действие)
     - [Остановка и возобновление повторяющегося действия](#остановка-и-возобновление-повторяющегося-действия)
     - [Одиночное действие](#одиночное-действие)
-- [Дорожная карта](#дорожная-карта)
 
 # Введение
 
@@ -300,11 +299,15 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+
+      return;
     });
   }
 
@@ -379,6 +382,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -422,6 +427,8 @@ class SecondTestActor extends UntypedActor {
       if (message == 'Luke, I am your father.') {
         print('Nooooooo!');
       }
+
+      return;
     });
   }
 }
@@ -513,6 +520,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -564,6 +573,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -597,6 +608,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
 
     // Create child actor with name 'second_test_actor'
@@ -658,6 +671,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -688,6 +703,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -717,6 +734,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
 
     // Create actor child with name 'test_child'
@@ -767,6 +786,8 @@ class SecondTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
   }
 }
@@ -805,15 +826,21 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+      
+      return;
     });
 
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+      
+      return;
     });
 
     context.receive<Dog>((message) async {
       print('Dog name: ' + message.name);
+      
+      return;
     });
   }
 }
@@ -926,6 +953,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as String from topic with name 'test_topic'
   system.listenTopic<String>('test_topic', (message) async {
     print(message);
+      
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -991,6 +1020,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as double from topic with name 'second_test_topic'
   system.listenTopic<double>('second_test_topic', (message) async {
     print(message * 2);
+      
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -1094,6 +1125,8 @@ class SecondTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Second actor received message: ' + message);
+      
+      return;
     });
   }
 }
@@ -1105,6 +1138,8 @@ class ThirdTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Third actor received message: ' + message);
+      
+      return;
     });
   }
 }
@@ -1193,6 +1228,8 @@ class TestWorker extends WorkerActor {
           context.path.toString() +
           ', message: ' +
           message);
+      
+      return;
     });
   }
 }
@@ -1428,7 +1465,7 @@ void main() {
 }
 ```
 
-При создании подключения указывается название подключение, оно должно быть уникально и впоследствии используется для получения ссылки на удаленного актора.
+При создании подключения указывается название подключения, оно должно быть уникально и впоследствии используется для получения ссылки на удаленного актора.
 
 ### Сериализация
 
@@ -1649,6 +1686,8 @@ class TestActor extends UntypedActor {
     // Set handler to all Pong type messages which actor received
     context.receive<Pong>((message) async {
       print(message.data);
+      
+      return;
     });
 
     // Create remote actor ref by connection with name 'second_actor_system'
@@ -1718,6 +1757,8 @@ class TestActor extends UntypedActor {
 
       // Send message with tag 'pong'
       _ref.send('pong', Pong('Pong message from second actor system!'));
+      
+      return;
     });
 
     // Create remote actor ref by connection with name 'first_actor_system'
@@ -2100,13 +2141,3 @@ void main(List<String> arguments) async {
   await system.actorOf('test_actor', TestActor());
 }
 ```
-
-# Дорожная карта
-
-Сейчас в разработке находятся:
-
-- ~~улучшение планировщика действий~~;
-- ~~улучшение средств для отправки сообщений~~;
-- добавление инструментов для связывания данных в двух и более акторах;
-- общение с системами акторов находящяхся в других Dart VM через сеть (udp, tcp);
-- улучшение системы обработки ошибок, логирование ошибок.

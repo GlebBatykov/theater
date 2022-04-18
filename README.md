@@ -56,7 +56,6 @@ Actor framework for Dart
     - [Repeatedly action](#repeatedly-action)
     - [Stop and resume repeatedly action](#stop-and-resume-repeatedly-action)
     - [One shot action](#one-shot-action)
-- [Road map](#road-map)
 
 # Introduction
 
@@ -157,7 +156,6 @@ class TestActor extends UntypedActor {
 }
 
 void main(List<String> arguments) async {
-  // Create actor system with name 'test_system'
   // Create actor system
   var system = ActorSystem('test_system');
 
@@ -300,11 +298,15 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+
+      return;
     });
   }
 
@@ -379,6 +381,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -422,6 +426,8 @@ class SecondTestActor extends UntypedActor {
       if (message == 'Luke, I am your father.') {
         print('Nooooooo!');
       }
+
+      return;
     });
   }
 }
@@ -513,6 +519,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -564,6 +572,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -597,6 +607,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Create child actor with name 'second_test_actor'
@@ -658,6 +670,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -688,6 +702,8 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -717,6 +733,8 @@ class FirstTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Create actor child with name 'test_child'
@@ -767,6 +785,8 @@ class SecondTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
   }
 }
@@ -805,15 +825,21 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+
+      return;
     });
 
     context.receive<Dog>((message) async {
       print('Dog name: ' + message.name);
+
+      return;
     });
   }
 }
@@ -926,6 +952,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as String from topic with name 'test_topic'
   system.listenTopic<String>('test_topic', (message) async {
     print(message);
+
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -991,6 +1019,8 @@ void main(List<String> arguments) async {
   // Create handler to messages as double from topic with name 'second_test_topic'
   system.listenTopic<double>('second_test_topic', (message) async {
     print(message * 2);
+
+    return;
   });
 
   // Create top-level actor in actor system with name 'first_test_actor'
@@ -1094,6 +1124,8 @@ class SecondTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Second actor received message: ' + message);
+
+      return;
     });
   }
 }
@@ -1105,6 +1137,8 @@ class ThirdTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Third actor received message: ' + message);
+
+      return;
     });
   }
 }
@@ -1193,6 +1227,8 @@ class TestWorker extends WorkerActor {
           context.path.toString() +
           ', message: ' +
           message);
+      
+      return;
     });
   }
 }
@@ -1647,6 +1683,8 @@ class TestActor extends UntypedActor {
     // Set handler to all Pong type messages which actor received
     context.receive<Pong>((message) async {
       print(message.data);
+
+      return;
     });
 
     // Create remote actor ref by connection with name 'second_actor_system'
@@ -1716,6 +1754,8 @@ class TestActor extends UntypedActor {
 
       // Send message with tag 'pong'
       _ref.send('pong', Pong('Pong message from second actor system!'));
+
+      return;
     });
 
     // Create remote actor ref by connection with name 'first_actor_system'
@@ -2098,13 +2138,3 @@ void main(List<String> arguments) async {
   await system.actorOf('test_actor', TestActor());
 }
 ```
-
-# Road map
-
-Currently in development are:
-
-- ~~improvement of the scheduler~~;
-- ~~improved means for sending messages~~;
-- adding tools for linking data in two or more actors;
-- communication with actor systems located in other Dart VMs through the network (udp, tcp);
-- improvement of the error handling system, error logging.
