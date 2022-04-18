@@ -12,8 +12,10 @@ abstract class Connection<S extends SecurityConfiguration> {
 
   final S _securityConfiguration;
 
+  // ignore: prefer_final_fields
   bool _isClose = false;
 
+  // ignore: prefer_final_fields
   bool _isAuthorized = false;
 
   bool _isDispose = false;

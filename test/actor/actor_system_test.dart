@@ -83,6 +83,8 @@ void main() {
 
       actorSystem.listenTopic('test_topic', (message) async {
         streamController.sink.add(message);
+
+        return;
       });
 
       await actorSystem.actorOf('test_actor', TestActor_3());

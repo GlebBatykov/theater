@@ -7,6 +7,8 @@ class TestActor_1 extends UntypedActor {
     context.receive<String>((message) async {
       if (message == 'ping') {
         return MessageResult(data: 'pong');
+      } else {
+        return null;
       }
     });
   }
