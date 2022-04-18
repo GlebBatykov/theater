@@ -158,6 +158,7 @@ class TestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system with name 'test_system'
+  // Create actor system
   var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
