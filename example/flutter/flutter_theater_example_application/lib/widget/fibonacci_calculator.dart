@@ -55,7 +55,7 @@ class _FibonacciCalculatorState extends State<FibonacciCalculator> {
                             result = Fibonacci.calculate(number);
                           } else {
                             // Send message to actor
-                            var subscription = _ref.send(number);
+                            var subscription = _ref.sendAndSubscribe(number);
 
                             // Wait response from actor
                             var response = await subscription.stream.first;
