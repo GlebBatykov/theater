@@ -88,7 +88,7 @@ Add Theater to your pubspec.yaml file:
 
 ```dart
 dependencies:
-  theater: ^0.2.1
+  theater: ^0.2.11
 ```
 
 Import theater in files that it will be used:

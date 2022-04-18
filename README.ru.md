@@ -89,7 +89,7 @@ Theater - это пакет для упрощения работы с много
 
 ```dart
 dependencies:
-  theater: ^0.2.1
+  theater: ^0.2.11
 ```
 
 Импортируйте theater в файлы где он должен использоваться:
@@ -295,7 +295,7 @@ test_system/root/user/test_actor
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(context) async {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);

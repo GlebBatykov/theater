@@ -87,4 +87,7 @@ abstract class ActorCell<A extends Actor> {
       return false;
     }
   }
+
+  @override
+  int get hashCode => super.hashCode;
 }
