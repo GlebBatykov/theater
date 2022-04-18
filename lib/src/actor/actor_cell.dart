@@ -90,6 +90,8 @@ abstract class ActorCell<A extends Actor> {
 
   @override
   int get hashCode {
-    return super.hashCode;
+    var hashCode = super.hashCode;
+
+    return hashCode;
   }
 }

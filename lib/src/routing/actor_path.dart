@@ -137,6 +137,8 @@ class ActorPath {
 
   @override
   int get hashCode {
-    return super.hashCode;
+    var hashCode = super.hashCode;
+
+    return hashCode;
   }
 }
