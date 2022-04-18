@@ -10,6 +10,8 @@ class TestActor extends UntypedActor {
     // Method [receiveSeveral] return Future and you can wait or not wait him.
     unawaited(context.receiveSeveral<String>(5, (message) async {
       print(message);
+
+      return;
     }).then((_) {
       print('Hello, from test actor!');
     }));

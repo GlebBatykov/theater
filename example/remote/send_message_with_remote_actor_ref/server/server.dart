@@ -11,6 +11,8 @@ class ServerActor extends UntypedActor {
     // Set handler to all Message type messages which actor received
     context.receive<TestMessage>((message) async {
       print(message.data);
+
+      return;
     });
   }
 }

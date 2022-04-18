@@ -38,6 +38,8 @@ class ActorSystemServerActor extends SystemActor {
           .receiveSeveral<ActorSystemServerActorAddRemoteSource>(
               _remoteConfiguration.connectors.length, (message) async {
         _remoteSources.add(message.remoteSource);
+
+        return;
       }).then((_) {
         context.actorProperties.actorSystemMessagePort
             .send(ActorSystemSetRemoteSources(_remoteSources));

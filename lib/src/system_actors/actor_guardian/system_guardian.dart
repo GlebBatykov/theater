@@ -6,6 +6,7 @@ part of theater.system_actors;
 class SystemGuardian extends SystemActor {
   final RemoteTransportConfiguration _remoteConfiguration;
 
+  // ignore: unused_field
   late LocalActorRef _actorSystemServerRef;
 
   SystemGuardian({required RemoteTransportConfiguration remoteConfiguration})

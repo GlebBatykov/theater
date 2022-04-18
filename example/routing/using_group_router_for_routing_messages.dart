@@ -38,6 +38,8 @@ class SecondTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Second actor received message: ' + message);
+
+      return;
     });
   }
 }
@@ -49,6 +51,8 @@ class ThirdTestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Third actor received message: ' + message);
+
+      return;
     });
   }
 }

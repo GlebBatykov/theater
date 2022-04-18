@@ -7,11 +7,15 @@ class TestActor extends UntypedActor {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
+
+      return;
     });
 
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       print(message);
+
+      return;
     });
   }
 

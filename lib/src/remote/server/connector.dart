@@ -20,8 +20,10 @@ abstract class Connector<S extends SecurityConfiguration> {
 
   final S _securityConfiguration;
 
+  // ignore: prefer_final_fields
   bool _isStarted = false;
 
+  // ignore: prefer_final_fields
   bool _isAuthorized = false;
 
   bool _isDisposed = false;

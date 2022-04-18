@@ -13,6 +13,8 @@ class TestActor extends UntypedActor {
       if (message == 'ping') {
         // Send message result
         return MessageResult(data: 'pong');
+      } else {
+        return null;
       }
     });
   }

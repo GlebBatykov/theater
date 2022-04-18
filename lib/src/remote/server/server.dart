@@ -17,6 +17,7 @@ abstract class Server<C extends Connection, S extends SecurityConfiguration> {
 
   bool _isDisposed = false;
 
+  // ignore: prefer_final_fields
   bool _isStarted = false;
 
   bool get isStarted => _isStarted;

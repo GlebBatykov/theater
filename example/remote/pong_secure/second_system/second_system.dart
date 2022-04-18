@@ -18,6 +18,8 @@ class TestActor extends UntypedActor {
 
       // Send message with tag 'pong'
       _ref.send('pong', Pong('Pong message from second actor system!'));
+
+      return;
     });
 
     // Create remote actor ref by connecting with name 'first_actor_system'

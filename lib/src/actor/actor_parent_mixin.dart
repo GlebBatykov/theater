@@ -283,6 +283,8 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
         return child;
       }
     }
+
+    return null;
   }
 
   /// Kills all actor children.
