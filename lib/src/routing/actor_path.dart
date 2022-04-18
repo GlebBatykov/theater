@@ -124,4 +124,7 @@ class ActorPath {
       return false;
     }
   }
+
+  @override
+  int get hashCode => super.hashCode;
 }
