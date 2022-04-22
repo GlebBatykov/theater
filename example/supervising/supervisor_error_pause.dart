@@ -47,7 +47,7 @@ class TestDecider extends Decider {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     print('Hello, from second actor!');
 
     throw FormatException();
@@ -55,7 +55,7 @@ class SecondTestActor extends UntypedActor {
 
   // Override onPause method which will be executed before actor paused
   @override
-  Future<void> onPause(UntypedActorContext context) async {
+  void onPause(UntypedActorContext context) {
     print('Second test actor is paused!');
   }
 }

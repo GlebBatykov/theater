@@ -18,7 +18,7 @@ class MyActor extends UntypedActor {
 
 class MySecondActor extends UntypedActor {
   @override
-  Future<void> onStart(context) async {
+  void onStart(context) {
     context.receive<String>((message) async {
       print(message);
 

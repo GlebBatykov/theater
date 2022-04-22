@@ -17,4 +17,11 @@ abstract class SchedulerActionStatus {
       return false;
     }
   }
+
+  @override
+  int get hashCode {
+    var hashCode = super.hashCode;
+
+    return hashCode;
+  }
 }

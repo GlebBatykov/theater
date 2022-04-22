@@ -26,7 +26,7 @@ class TestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Get action token ref from actor store
     var ref = context.store.get<OneShotActionTokenRef>('action_token_ref');
 

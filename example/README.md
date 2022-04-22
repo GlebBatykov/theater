@@ -113,7 +113,7 @@ class ServerWorker extends WorkerActor {
 
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(WorkerActorContext context) async {
+  void onStart(WorkerActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<int>((message) async {
       var result = _fibonacci(message);
@@ -248,7 +248,7 @@ class ServerActorSystemBuilder extends ActorSystemBuilder {
 class ServerActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all Message type messages which actor received
     context.receive<Message>((message) async {
       print(message.data);
@@ -382,7 +382,7 @@ abstract class InjectionContainer {
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       // Calculate result

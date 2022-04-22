@@ -7,7 +7,7 @@ import 'server_actor_system_builder.dart';
 class ServerActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all Message type messages which actor received
     context.receive<TestMessage>((message) async {
       print(message.data);

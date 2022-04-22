@@ -42,7 +42,7 @@ class ServerWorker extends WorkerActor {
   @override
   Future<void> onStart(WorkerActorContext context) async {
     // Set handler to all String type messages which actor received
-    context.receive<int>((message) async {
+    context.receive<int>((message) {
       var result = _fibonacci(message);
 
       return MessageResult(data: result);
