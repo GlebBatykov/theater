@@ -149,7 +149,7 @@ Create and initialize an actor system, create a test actor, and output "Hello, w
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Print 'Hello, world!'
     print('Hello, world!');
   }
@@ -226,7 +226,7 @@ An example of displaying the absolute path to the created top-level actor:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     print(context.path);
   }
 }
@@ -294,7 +294,7 @@ Creating an actor with a priority mailbox (in the example, messages of type Stri
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -377,7 +377,7 @@ In these examples, we use the actor system to create a top-level actor and get a
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -420,7 +420,7 @@ class FirstTestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       if (message == 'Luke, I am your father.') {
@@ -485,7 +485,7 @@ class FirstTestActor extends UntypedActor {
   @override
   Future<void> onStart(UntypedActorContext context) async {
     // Create child actor with name 'second_test_actor' and get ref to him
-    var ref = context.actorOf('second_test_actor', SecondTestActor());
+    var ref = await context.actorOf('second_test_actor', SecondTestActor());
   }
 }
 
@@ -515,7 +515,7 @@ An example of creating two actors, transferring a link to actor â„–1 to actor â„
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -531,7 +531,7 @@ class SecondTestActor extends UntypedActor {
 
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Get ref from actor store
     _ref = context.store.get<LocalActorRef>('first_test_actor_ref');
 
@@ -568,7 +568,7 @@ An example of getting a link to an actor from a register using the actor system:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -666,7 +666,7 @@ An example of sending a message to an actor using the actor system using absolut
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -698,7 +698,7 @@ An example of sending a message to an actor using the actor system with a relati
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -745,7 +745,7 @@ class FirstTestActor extends UntypedActor {
 // Create second actor class
 class SecondTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to parent using absolute path
     context.send('test_system/root/user/test_actor', 'Hello, from child!');
   }
@@ -781,7 +781,7 @@ class FirstTestActor extends UntypedActor {
 // Create second actor class
 class SecondTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -821,7 +821,7 @@ class Dog {
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
@@ -866,7 +866,7 @@ An example of sending a message to an actor, receiving a response from it:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       // Print message
@@ -926,7 +926,7 @@ In this example, we create two actors, subscribe to messages of type String from
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'test_topic'
     context.sendToTopic('test_topic', 'Hello, from first test actor!');
   }
@@ -936,7 +936,7 @@ class FirstTestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'test_topic'
     context.sendToTopic('test_topic', 'Hello, from second test actor!');
   }
@@ -978,7 +978,7 @@ In this example, we are subscribing to several different topics, as well as post
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'first_test_topic' and get subscription to response
     var subscription =
         context.sendToTopicAndSubscribe('first_test_topic', 'This is String');
@@ -996,7 +996,7 @@ class FirstTestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'second_test_topic'
     context.sendToTopic('second_test_topic', 123.4);
   }
@@ -1120,7 +1120,7 @@ class TestRouter extends GroupRouterActor {
 // Create second test actor class
 class SecondTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Second actor received message: ' + message);
@@ -1133,7 +1133,7 @@ class SecondTestActor extends UntypedActor {
 // Create third test actor class
 class ThirdTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Third actor received message: ' + message);
@@ -1145,13 +1145,13 @@ class ThirdTestActor extends UntypedActor {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'hello_actor'
-  await actorSystem.actorOf('first_test_actor', FirstTestActor());
+  await system.actorOf('first_test_actor', FirstTestActor());
 }
 ```
 
@@ -1220,7 +1220,7 @@ class TestRouter extends PoolRouterActor {
 // Create actor worker class
 class TestWorker extends WorkerActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Received by the worker with path: ' +
@@ -1289,7 +1289,7 @@ An example of passing data to an actor using the data parameter and the actor da
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Get message from actor store
     var message = context.store.get<String>('message');
 
@@ -1323,7 +1323,7 @@ class TestActor extends UntypedActor {
 
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     print(_message);
   }
 }
@@ -1397,7 +1397,7 @@ class TestDecider extends Decider {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     print('Hello, from second test actor!');
 
     // Someone random factor or something where restarting might come in handy
@@ -1817,7 +1817,7 @@ In this example, we will create an actor that will print the message 'Hello, act
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Create repeatedly action in scheduler
     context.scheduler.scheduleRepeatedlyAction(
         interval: Duration(seconds: 1),
@@ -1854,7 +1854,7 @@ An example of scheduling a recurring action and stopping it after 3 seconds usin
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Create repeatedly action token
     var actionToken = RepeatedlyActionToken();
 
@@ -1894,7 +1894,7 @@ An example of scheduling two repeatedly actions with one token, canceling them a
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Create repeatedly action token
     var actionToken = RepeatedlyActionToken();
 
@@ -1982,7 +1982,7 @@ class FirstTestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Get action token ref from actor store
     var ref = context.store.get<RepeatedlyActionTokenRef>('action_token_ref');
 
@@ -2016,7 +2016,7 @@ An example of scheduling a one shot action and calling it using a token:
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Create one shot action token
     var actionToken = OneShotActionToken();
 
@@ -2052,7 +2052,7 @@ An example of planning two one shot actions with one token, calling them using a
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Create one shot action token
     var actionToken = OneShotActionToken();
 
@@ -2118,7 +2118,7 @@ class TestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Get action token ref from actor store
     var ref = context.store.get<OneShotActionTokenRef>('action_token_ref');
 
