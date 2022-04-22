@@ -18,16 +18,16 @@ part of theater.actor;
 abstract class Actor<T extends ActorContext>
     implements MailboxFactoryCreater, SupervisorStrategyCreater {
   /// This method is called after actor started (after him [Isolate] started).
-  Future<void> onStart(T context) async {}
+  FutureOr<void> onStart(T context) async {}
 
   /// This method is called before actor will killed (before him [Isolate] will killed).
-  Future<void> onKill(T context) async {}
+  FutureOr<void> onKill(T context) async {}
 
   /// This method is called before actor will paused (before him [Isolate] will paused).
-  Future<void> onPause(T context) async {}
+  FutureOr<void> onPause(T context) async {}
 
   /// This method is called after actor resumed (after him [Isolate] resumed).
-  Future<void> onResume(T context) async {}
+  FutureOr<void> onResume(T context) async {}
 
   /// Creates [MailboxFactory] which will be used to create [Mailbox] for actor.
   ///

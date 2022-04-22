@@ -65,7 +65,7 @@ class WorkerActorContext<P extends WorkerActorProperties>
     }
   }
 
-  void receive<T>(Future<MessageResult?> Function(T) handler) {
+  void receive<T>(FutureOr<MessageResult?> Function(T) handler) {
     if (_receiveHandlers.keys.contains(T)) {
       _receiveHandlers[T]!.add(handler);
     } else {
