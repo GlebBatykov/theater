@@ -4,7 +4,7 @@ import 'package:theater/theater.dart';
 class FirstTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'test_topic'
     context.sendToTopic('test_topic', 'Hello, from first test actor!');
   }
@@ -14,7 +14,7 @@ class FirstTestActor extends UntypedActor {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to actor system topic with name 'test_topic'
     context.sendToTopic('test_topic', 'Hello, from second test actor!');
   }

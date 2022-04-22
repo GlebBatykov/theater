@@ -3,7 +3,7 @@ import 'package:theater/theater.dart';
 // Create actor class
 class TestActor extends UntypedActor {
   @override
-  Future<void> onStart(context) async {
+  void onStart(context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);

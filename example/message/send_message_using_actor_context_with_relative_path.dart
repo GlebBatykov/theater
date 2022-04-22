@@ -15,7 +15,7 @@ class FirstTestActor extends UntypedActor {
 // Create second actor class
 class SecondTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);

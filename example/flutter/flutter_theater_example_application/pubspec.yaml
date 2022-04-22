@@ -30,7 +30,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  theater: ^0.2.0
+  theater: ^0.2.2
   get_it: ^7.2.0
 
   # The following adds the Cupertino Icons font to your application.

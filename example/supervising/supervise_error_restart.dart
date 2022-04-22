@@ -33,7 +33,7 @@ class TestDecider extends Decider {
 class SecondTestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     print('Hello, from second test actor!');
 
     // Someone random factor or something where restarting might come in handy

@@ -19,7 +19,7 @@ class FirstTestActor extends UntypedActor {
 // Create second actor class
 class SecondTestActor extends UntypedActor {
   @override
-  Future<void> onStart(UntypedActorContext context) async {
+  void onStart(UntypedActorContext context) {
     // Send message to parent using absolute path
     context.send('test_system/root/user/test_actor', 'Hello, from child!');
   }
