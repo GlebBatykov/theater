@@ -1,4 +1,10 @@
-# 0.2.13
+# 0.2.2
+
+- Updates README files.
+- Updates examples.
+- Makes minor fixes.
+
+## 0.2.13
 
 - Makes minor fixes.
 - Updates README files.
