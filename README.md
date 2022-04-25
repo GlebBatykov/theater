@@ -88,7 +88,7 @@ Add Theater to your pubspec.yaml file:
 
 ```dart
 dependencies:
-  theater: ^0.2.2
+  theater: ^0.2.21
 ```
 
 Import theater in files that it will be used:
@@ -1220,7 +1220,7 @@ class TestRouter extends PoolRouterActor {
 // Create actor worker class
 class TestWorker extends WorkerActor {
   @override
-  void onStart(UntypedActorContext context) {
+  void onStart(WorkerActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Received by the worker with path: ' +
@@ -1241,13 +1241,13 @@ class TestWorkerFactory extends WorkerActorFactory {
 
 void main(List<String> arguments) async {
   // Create actor system
-  var actorSystem = ActorSystem('test_system');
+  var system = ActorSystem('test_system');
 
   // Initialize actor system before work with it
-  await actorSystem.initialize();
+  await system.initialize();
 
   // Create top-level actor in actor system with name 'test_actor'
-  await actorSystem.actorOf('test_actor', TestActor());
+  await system.actorOf('test_actor', TestActor());
 }
 ```
 
