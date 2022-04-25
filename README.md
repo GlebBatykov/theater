@@ -1220,7 +1220,7 @@ class TestRouter extends PoolRouterActor {
 // Create actor worker class
 class TestWorker extends WorkerActor {
   @override
-  void onStart(UntypedActorContext context) {
+  void onStart(WorkerActorContext context) {
     // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print('Received by the worker with path: ' +
