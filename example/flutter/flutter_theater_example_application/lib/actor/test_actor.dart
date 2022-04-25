@@ -5,7 +5,7 @@ import 'package:theater/theater.dart';
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  void onStart(UntypedActorContext context) {
+  Future<void> onStart(UntypedActorContext context) async {
     // Set handler to all int type messages which actor received
     context.receive<int>((message) async {
       // Calculate result
