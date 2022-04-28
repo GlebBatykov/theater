@@ -150,7 +150,7 @@ import 'package:theater/theater.dart';
 class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
-  void>onStart(UntypedActorContext context) {
+  void onStart(UntypedActorContext context) {
     // Print 'Hello, world!'
     print('Hello, world!');
   }
