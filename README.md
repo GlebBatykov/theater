@@ -1470,9 +1470,9 @@ Since messages transmitted between actor systems, regardless of the selected pro
 
 Dart lacks any JSON serializer/deserializer that works with objects without the need to write toJson and fromJson methods yourself, based on non-code generation.
 
-Such a serializer can be implemented using the dart:mirros library, however, it is not available during AOT compilation and, accordingly, it and packages using it are not available in Flutter applications. Also, dart:mirros is not currently supported, and it's almost impossible to work with nullable types properly with it.
-
 Therefore, I decided to add the ability to designate once, when creating an actor system, the logic of serialization and deserialization of messages incoming and outgoing from the actor system. Every message that enters or leaves the actor system goes through serialization and deserialization stage.
+
+Если вы используете только JIT компиляцию (у вас не Flutter приложение) вы можете воспользоваться созданным мной пакетом для сериализации и десериализации JSON - [Emerald](https://pub.dev/packages/emerald).
 
 Each message incoming and outgoing from the actor system, in addition to the message content, also has a tag for more convenient serialization and deserialization.
 
