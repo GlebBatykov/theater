@@ -1472,7 +1472,7 @@ Dart lacks any JSON serializer/deserializer that works with objects without the 
 
 Therefore, I decided to add the ability to designate once, when creating an actor system, the logic of serialization and deserialization of messages incoming and outgoing from the actor system. Every message that enters or leaves the actor system goes through serialization and deserialization stage.
 
-Если вы используете только JIT компиляцию (у вас не Flutter приложение) вы можете воспользоваться созданным мной пакетом для сериализации и десериализации JSON - [Emerald](https://pub.dev/packages/emerald).
+If you only use JIT compilation (you don't have a Flutter application), you can use the package I created for serialization and deserialization of JSON - [Emerald](https://pub.dev/packages/emerald).
 
 Each message incoming and outgoing from the actor system, in addition to the message content, also has a tag for more convenient serialization and deserialization.
 
