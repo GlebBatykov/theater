@@ -80,6 +80,19 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     _systemGuardianPath = _rootPath.createChild('system');
   }
 
+  /// Create and initialize actor system.
+  static Future<ActorSystem> spawn(String name,
+      {RemoteTransportConfiguration? remoteConfiguration,
+      LoggingProperties? loggingProperties}) async {
+    var system = ActorSystem(name,
+        remoteConfiguration: remoteConfiguration,
+        loggingProperties: loggingProperties);
+
+    await system.initialize();
+
+    return system;
+  }
+
   /// Uses by the primary initialization [ActorSystem]. Creates and starts root actor and guardians, system actors.
   ///
   /// Before work with actor system you must initialize it.
