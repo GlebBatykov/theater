@@ -2,8 +2,8 @@ part of theater.routing;
 
 /// Used to represent the path to actor in actors tree.
 class ActorPath {
-  /// Stored in himself actor system name, host address and port, protocol.
-  final Address address;
+  /// Actor system name.
+  final String systemName;
 
   /// The path to the parent of the current actor.
   ///
@@ -21,7 +21,7 @@ class ActorPath {
   /// The current path without [Address], divided into segments with '/' delimiter.
   final List<String> segments;
 
-  ActorPath(this.address, String name, this.depthLevel)
+  ActorPath(this.systemName, String name, this.depthLevel)
       : parentPath = null,
         segments = [name] {
     if (name.contains('/')) {
@@ -34,7 +34,7 @@ class ActorPath {
   /// Creates actor path using [parentPath].
   ActorPath.withParent(ActorPath parentPath, String name)
       : parentPath = parentPath,
-        address = parentPath.address,
+        systemName = parentPath.systemName,
         depthLevel = parentPath.depthLevel + 1,
         segments = List.from(parentPath.segments)..add(name) {
     if (name.contains('/')) {
@@ -52,9 +52,9 @@ class ActorPath {
         path.split('/').where((element) => element.isNotEmpty).toList();
 
     if (pathSegments.isNotEmpty) {
-      var address = Address(pathSegments.removeAt(0));
+      var systemName = pathSegments.removeAt(0);
 
-      var actorPath = ActorPath(address, pathSegments.removeAt(0), 0);
+      var actorPath = ActorPath(systemName, pathSegments.removeAt(0), 0);
 
       for (var segment in pathSegments) {
         actorPath = actorPath.createChild(segment);
@@ -112,7 +112,7 @@ class ActorPath {
     if (parentPath != null) {
       return parentPath!.toString() + '/' + name;
     } else {
-      return address.toString() + '/' + name;
+      return systemName + '/' + name;
     }
   }
 
