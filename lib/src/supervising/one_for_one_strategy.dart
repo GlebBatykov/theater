@@ -4,9 +4,7 @@ part of theater.supervising;
 class OneForOneStrategy extends SupervisorStrategy {
   OneForOneStrategy(
       {required Decider decider,
-      //bool loggingEnabled = true,
       bool stopAfterError = true,
       Duration? restartDelay})
-      : super(decider, /* loggingEnabled, */ stopAfterError,
-            restartDelay: restartDelay);
+      : super(decider, restartDelay: restartDelay);
 }
