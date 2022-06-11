@@ -6,9 +6,9 @@ class DefaultRootActor extends RootActor {
 
   @override
   Future<void> onStart(RootActorContext context) async {
-    await context.actorOf(
-        'system', SystemGuardian(remoteConfiguration: remoteConfiguration));
+    await context.actorOf(SystemActorNames.systemGuardian,
+        SystemGuardian(remoteConfiguration: remoteConfiguration));
 
-    await context.actorOf('user', UserGuardian());
+    await context.actorOf(SystemActorNames.userGuardian, UserGuardian());
   }
 }

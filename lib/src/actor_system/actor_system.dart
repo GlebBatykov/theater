@@ -45,6 +45,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   // ignore: unused_field
   late final ActorPath _systemGuardianPath;
 
+  late final ActorPath _actorServerPath;
+
   /// [LocalActorRef] instance pointing to mailbox of user guardian.
   late LocalActorRef _userGuardianRef;
 
@@ -72,12 +74,17 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
   ActorSystem(this.name, {RemoteTransportConfiguration? remoteConfiguration})
       : _remoteConfiguration = remoteConfiguration ??
-            RemoteTransportConfiguration(isRemoteTransportEnabled: false) {
-    _rootPath = ActorPath(Address(name), 'root', 0);
+            RemoteTransportConfiguration(isRemoteTransportEnabled: false),
+        _loggerProperties = loggingProperties ??
+            LoggingProperties(loggerFactory: TheaterLoggerFactory()) {
+    _rootPath = ActorPath(name, SystemActorNames.root, 0);
 
-    _userGuardianPath = _rootPath.createChild('user');
+    _userGuardianPath = _rootPath.createChild(SystemActorNames.userGuardian);
 
-    _systemGuardianPath = _rootPath.createChild('system');
+    _systemGuardianPath =
+        _rootPath.createChild(SystemActorNames.systemGuardian);
+    _actorServerPath =
+        _systemGuardianPath.createChild(SystemActorNames.actorSystemServer);
   }
 
   /// Create and initialize actor system.

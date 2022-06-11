@@ -16,7 +16,8 @@ class SystemGuardian extends SystemActor {
   Future<void> onStart(SystemActorContext context) async {
     if (_remoteConfiguration.isRemoteTransportEnabled) {
       _actorSystemServerRef = await context.actorOf(
-          'actor_system_server', ActorSystemServerActor(_remoteConfiguration));
+          SystemActorNames.actorSystemServer,
+          ActorSystemServerActor(_remoteConfiguration));
     }
   }
 }

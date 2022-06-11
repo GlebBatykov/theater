@@ -7,6 +7,15 @@ class UserGuardian extends SystemActor {
   @override
   Future<void> handleSystemMessage(
       SystemActorContext context, SystemMessage message) async {
+    var data = message.data;
+
+    if (data is UserGuardianAction) {
+      await _handleUserGuardianAction(context, message);
+    }
+  }
+
+  Future<void> _handleUserGuardianAction(
+      SystemActorContext context, SystemMessage message) async {
     var action = message.data;
 
     if (action is UserGuardianCreateTopLevelActor) {
