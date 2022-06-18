@@ -183,7 +183,7 @@ This is how the tree of actors can be shown at the picture below:
 
 <div align = "center">
 
-![](https://i.ibb.co/qC98V4j/Actor-tree.png)
+![](docs/images/actor-tree.png)
   
 </div>
   
@@ -1167,7 +1167,7 @@ The structure of the actor tree in the actor system created in the example
 
 <div align="center">
 
-![](https://i.ibb.co/ZzHhr9q/group-router-example.png)
+![](docs/images/group-router.png)
 
 </div>
 
@@ -1255,7 +1255,7 @@ The structure of the actor tree in the actor system created in the example:
 
 <div align="center">
   
-![](https://i.ibb.co/nPNLyDk/pool-router-example.png)
+![](docs/images/pool-router.png)
   
 </div>
 
@@ -1423,7 +1423,7 @@ In this example, the tree of actors and what happens in it when an error occurs 
 
 <div align="center">
 
-![](https://i.ibb.co/KwfMwwq/error-handling-example.png)
+![](docs/images/supervising.png)
 
 </div>
 

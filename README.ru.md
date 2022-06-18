@@ -185,7 +185,7 @@ void main(List<String> arguments) async {
 
 <div align="center">
 
-![](https://i.ibb.co/qC98V4j/Actor-tree.png)
+![](docs/images/actor-tree.png)
   
 </div>
   
@@ -1169,7 +1169,7 @@ Second actor received message: First hello!
 
 <div align="center">
 
-![](https://i.ibb.co/ZzHhr9q/group-router-example.png)
+![](docs/images/group-router.png)
 
 </div>
   
@@ -1257,7 +1257,7 @@ void main(List<String> arguments) async {
 
 <div align="center">
   
-![](https://i.ibb.co/nPNLyDk/pool-router-example.png)
+![](docs/images/pool-router.png)
   
 </div>
 
@@ -1425,11 +1425,13 @@ void main(List<String> arguments) async {
 
 <div align="center">
 
-![](https://i.ibb.co/KwfMwwq/error-handling-example.png)
+![](docs/images/supervising.png)
 
 </div>
 
 # Логирование
+
+
 
 # Удаленное взаимодействие [Бета]
 
