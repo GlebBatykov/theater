@@ -33,7 +33,7 @@ class MessageSubscription {
   }
 
   /// Subscribes to the reply about the status of the sent message.
-  void onResponse(void Function(MessageResponse) handler) {
+  void onResponse(void Function(MessageResponse response) handler) {
     _responseController.stream.listen(handler);
   }
 
@@ -42,6 +42,15 @@ class MessageSubscription {
     _isMultiple = true;
 
     return this;
+  }
+
+  ///
+  Future<T> getFirstResult<T>() {
+    return stream
+        .firstWhere((element) => element is MessageResult)
+        .then((value) {
+      return (value as MessageResult).data;
+    });
   }
 
   /// Cancels subscription, closes [ReceivePort] and all streams.
