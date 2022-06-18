@@ -5,8 +5,8 @@ class SystemActorCellFactory extends NodeActorCellFactory<SystemActor,
   @override
   SystemActorCell create(
       ActorPath path, SystemActor actor, NodeActorCellProperties properties) {
-    return SystemActorCell(
-        path, actor, properties.parentRef, properties.actorSystemMessagePort,
+    return SystemActorCell(path, actor, properties.parentRef,
+        properties.actorSystemSendPort, properties.loggingProperties,
         data: properties.data,
         onError: properties.onError,
         onKill: properties.onKill);

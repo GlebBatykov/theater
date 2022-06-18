@@ -2,32 +2,11 @@ part of theater.actor;
 
 /// The class used by [WorkerActor] to communicate with other actors in the actor system, receive messages from other actors.
 class WorkerActorContext<P extends WorkerActorProperties>
-    extends SheetActorContext<P> with UserActorContextMixin<P> {
-  final Map<Type, List<Function>> _receiveHandlers = {};
-
+    extends SheetActorContext<P>
+    with UserActorContextMixin, ActorMessageReceiverMixin {
   WorkerActorContext(IsolateContext isolateContext, P actorProperties)
       : super(isolateContext, actorProperties) {
     _isolateContext.messages.listen(_handleMessageFromSupervisor);
-
-    _messageController.stream.listen((message) async {
-      var type = message.data.runtimeType;
-
-      if (_receiveHandlers.keys.contains(type)) {
-        await Future.wait(
-            _receiveHandlers[type]!.map((element) => Future(() async {
-                  var result = await element(message.data);
-
-                  if (message.isHaveSubscription) {
-                    result != null
-                        ? message.sendResult(result.data)
-                        : message.successful();
-                  }
-                })));
-
-        _isolateContext.supervisorMessagePort
-            .send(ActorCompletedTask(_actorProperties.path));
-      }
-    });
   }
 
   void _handleMessageFromSupervisor(Message message) {
@@ -40,18 +19,49 @@ class WorkerActorContext<P extends WorkerActorProperties>
 
   void _handleMailboxMessage(MailboxMessage message) {
     if (message is ActorMailboxMessage) {
-      _messageController.sink.add(message);
+      _handleActorMailboxMessage(message);
+    }
+  }
 
-      if (_actorProperties.mailboxType == MailboxType.reliable) {
-        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
+  @override
+  void _handleActorMailboxMessage(ActorMailboxMessage message) async {
+    var type = message.data.runtimeType;
+
+    var handlers = _handlers[type];
+
+    if (handlers != null) {
+      var futures = handlers.map((e) => Future(() async {
+            await e(message);
+          }));
+
+      if (_actorProperties.handlingType == HandlingType.consistently) {
+        await Future.wait(futures);
+
+        _isolateContext.supervisorMessagePort
+            .send(ActorCompletedTask(_actorProperties.path));
+      } else {
+        Future(() async {
+          await Future.wait(futures);
+        }).then((value) {
+          _isolateContext.supervisorMessagePort
+              .send(ActorCompletedTask(_actorProperties.path));
+        }).ignore();
       }
+    } else {
+      if (message.isHaveSubscription) {
+        message.feedbackPort!.send(HandlersNotAssignedResult());
+      }
+    }
+
+    if (_actorProperties.mailboxType == MailboxType.reliable) {
+      _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
     }
   }
 
   @override
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
-      _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+      _actorProperties.actorRef.send(ActorMailboxMessage(message.data,
           feedbackPort: message.feedbackPort));
     } else {
       if (message.recipientPath.depthLevel > _actorProperties.path.depthLevel &&
@@ -62,14 +72,6 @@ class WorkerActorContext<P extends WorkerActorProperties>
       } else {
         _isolateContext.supervisorMessagePort.send(message);
       }
-    }
-  }
-
-  void receive<T>(FutureOr<MessageResult?> Function(T) handler) {
-    if (_receiveHandlers.keys.contains(T)) {
-      _receiveHandlers[T]!.add(handler);
-    } else {
-      _receiveHandlers[T] = [handler];
     }
   }
 }

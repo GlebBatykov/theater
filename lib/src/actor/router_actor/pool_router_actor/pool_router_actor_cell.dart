@@ -2,8 +2,12 @@ part of theater.actor;
 
 class PoolRouterActorCell extends RouterActorCell<PoolRouterActor>
     with UserActorCellMixin<PoolRouterActor> {
-  PoolRouterActorCell(ActorPath path, PoolRouterActor actor,
-      LocalActorRef parentRef, SendPort actorSystemMessagePort,
+  PoolRouterActorCell(
+      ActorPath path,
+      PoolRouterActor actor,
+      LocalActorRef parentRef,
+      SendPort actorSystemSendPort,
+      LoggingProperties loggingProperties,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -12,7 +16,8 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor>
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
-            actorSystemMessagePort,
+            actorSystemSendPort,
+            loggingProperties,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -25,10 +30,13 @@ class PoolRouterActorCell extends RouterActorCell<PoolRouterActor>
         PoolRouterActorProperties(
             actorRef: ref,
             parentRef: parentRef,
+            handlingType: _mailbox.handlingType,
             deployementStrategy: actor.createDeployementStrategy(),
             supervisorStrategy: actor.createSupervisorStrategy(),
             mailboxType: _mailbox.type,
-            actorSystemMessagePort: _actorSystemMessagePort,
+            actorSystemSendPort: _actorSystemSendPort,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                loggingProperties, actor.createLoggingPropeties()),
             data: data),
         RouterActorIsolateHandlerFactory(),
         PoolRouterActorContextBuilder(), onError: (error) {

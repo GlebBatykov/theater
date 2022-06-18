@@ -1,19 +1,19 @@
 part of theater.actor;
 
+enum HandlePriority { event, microtask }
+
 mixin ActorMessageReceiverMixin<P extends ActorProperties> on ActorContext<P> {
   /// Sets [handler] to handle all messages of type [T] that received actor.
-  StreamSubscription<MailboxMessage> receive<T>(
-      FutureOr<MessageResult?> Function(T) handler) {
-    var subscription = _messageController.stream.listen((message) async {
-      if (message.data is T) {
-        var result = await handler(message.data);
+  HandlerSubscription receive<T>(MessageHandler<T> handler,
+      {HandlePriority priority = HandlePriority.event}) {
+    var handlers = _getHandlers(T);
 
-        if (message.isHaveSubscription) {
-          result != null
-              ? message.sendResult(result.data)
-              : message.successful();
-        }
-      }
+    var messageHandler = _getMessageHandler(handler, priority);
+
+    handlers.add(messageHandler);
+
+    var subscription = HandlerSubscription(() {
+      _removeMessageHandler(T, messageHandler);
     });
 
     return subscription;
@@ -22,30 +22,67 @@ mixin ActorMessageReceiverMixin<P extends ActorProperties> on ActorContext<P> {
   /// Sets [handler] to only for [count] following messages of type [T].
   ///
   /// After handled [count] of messages cancels handling messages and completes [Future].
-  Future<void> receiveSeveral<T>(
-      int count, Future<MessageResult?> Function(T) handler) async {
+  Future<void> receiveSeveral<T>(int count, MessageHandler<T> handler,
+      {HandlePriority priority = HandlePriority.event}) async {
+    var handlers = _getHandlers(T);
+
     var counter = 0;
 
-    var controller = StreamController<MailboxMessage>();
+    var controller = StreamController();
 
-    controller.stream.listen((message) async {
-      var result = await handler(message.data);
+    late Future<void> Function(ActorMailboxMessage) messageHandler;
 
-      if (message.isHaveSubscription) {
-        result != null ? message.sendResult(result.data) : message.successful();
-      }
-    });
+    messageHandler = (ActorMailboxMessage message) async {
+      await _getMessageHandler(handler, priority).call(message);
 
-    await for (var message in _messageController.stream) {
-      if (message.data is T) {
-        controller.sink.add(message);
+      controller.sink.add(null);
+    };
 
-        if (++counter == count) {
-          break;
-        }
+    handlers.add(messageHandler);
+
+    await for (var _ in controller.stream) {
+      if (++counter == count) {
+        _removeMessageHandler(T, messageHandler);
+
+        break;
       }
     }
 
     await controller.close();
+  }
+
+  Future<void> Function(ActorMailboxMessage message) _getMessageHandler<T>(
+      MessageHandler<T> handler, HandlePriority priority) {
+    return (ActorMailboxMessage message) async {
+      MessageResult? result;
+
+      if (priority == HandlePriority.event) {
+        result = await handler(message.data);
+      } else {
+        result = await Future.microtask(() => handler(message.data));
+      }
+
+      if (message.isHaveSubscription) {
+        result != null ? message.sendResult(result.data) : message.successful();
+      }
+    };
+  }
+
+  List<ActorMailboxMessageHandler> _getHandlers(Type type) {
+    if (!_handlers.containsKey(type)) {
+      _handlers[type] = [];
+    }
+
+    return _handlers[type]!;
+  }
+
+  void _removeMessageHandler(Type type, ActorMailboxMessageHandler handler) {
+    var handlers = _handlers[type]!;
+
+    handlers.remove(handler);
+
+    if (handlers.isEmpty) {
+      _handlers.remove(type);
+    }
   }
 }

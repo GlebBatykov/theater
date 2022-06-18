@@ -6,10 +6,10 @@ part of theater.dispatch;
 class PriorityReliableMailbox extends ReliableMailbox {
   final PriorityGenerator _priorityGenerator;
 
-  PriorityReliableMailbox(ActorPath path,
+  PriorityReliableMailbox(ActorPath path, HandlingType handlingType,
       {required PriorityGenerator priorityGenerator})
       : _priorityGenerator = priorityGenerator,
-        super(path);
+        super(path, handlingType);
 
   /// Adds message to [_messageQueue] and rebuild [_messageQueue] according to the priority of the message.
   @override

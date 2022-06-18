@@ -1,7 +1,7 @@
 part of theater.actor;
 
 abstract class SystemActor extends NodeActor<SystemActorContext> {
-  Future<void> handleSystemMessage(
+  FutureOr<void> handleSystemMessage(
       SystemActorContext context, SystemMessage message) async {}
 
   @override

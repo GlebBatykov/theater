@@ -3,7 +3,7 @@ part of theater.actor;
 class UntypedActorCell extends NodeActorCell<UntypedActor>
     with UserActorCellMixin<UntypedActor> {
   UntypedActorCell(ActorPath path, UntypedActor actor, LocalActorRef parentRef,
-      SendPort actorSystemMessagePort,
+      SendPort actorSystemSendPort, LoggingProperties loggingProperties,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -12,7 +12,8 @@ class UntypedActorCell extends NodeActorCell<UntypedActor>
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
-            actorSystemMessagePort,
+            actorSystemSendPort,
+            loggingProperties,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -26,8 +27,11 @@ class UntypedActorCell extends NodeActorCell<UntypedActor>
             actorRef: ref,
             parentRef: _parentRef,
             supervisorStrategy: actor.createSupervisorStrategy(),
+            handlingType: HandlingType.asynchronously,
             mailboxType: _mailbox.type,
-            actorSystemMessagePort: _actorSystemMessagePort,
+            actorSystemSendPort: _actorSystemSendPort,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                loggingProperties, actor.createLoggingPropeties()),
             data: data),
         UntypedActorIsolateHandlerFactory(),
         UntypedActorContextBuilder(), onError: (error) {

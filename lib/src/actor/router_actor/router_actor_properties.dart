@@ -2,12 +2,12 @@ part of theater.actor;
 
 abstract class RouterActorProperties extends NodeActorProperties {
   RouterActorProperties(
-      LocalActorRef parentRef,
-      SupervisorStrategy supervisorStrategy,
-      LocalActorRef actorRef,
-      MailboxType mailboxType,
-      SendPort actorSystemMessagePort,
-      Map<String, dynamic> data)
-      : super(parentRef, supervisorStrategy, actorRef, mailboxType,
-            actorSystemMessagePort, data);
+      {required super.parentRef,
+      required super.handlingType,
+      required super.supervisorStrategy,
+      required super.actorRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
+      required super.data});
 }

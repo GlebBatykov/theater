@@ -11,22 +11,23 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   void _handleChildError(ActorError error) async {
     var actorCell = _findActorCellByPath(error.path);
 
-    if (_actorProperties.supervisorStrategy.stopAfterError) {
-      await actorCell.pause();
-    }
-
     var directive = _actorProperties.supervisorStrategy.decide(error.object);
 
-    if (directive == Directive.restart) {
-      await _restartChild(actorCell);
-    } else if (directive == Directive.kill) {
+    if (_loggingProperties.isInfoEnabled) {
+      logger.info(ActorSupervisingDivideLog(
+          _actorProperties.path, actorCell.path, directive, error.object));
+    }
+
+    if (directive is RestartDirective) {
+      await _restartChild(actorCell, directive);
+    } else if (directive is KillDirective) {
       await _killChild(actorCell);
-    } else if (directive == Directive.escalate) {
+    } else if (directive is EscalateDirective) {
       await _escalateChild(actorCell, error);
-    } else if (directive == Directive.resume) {
-      await _resumeChild(actorCell);
-    } else if (directive == Directive.pause) {
+    } else if (directive is PauseDirective) {
       await _pauseChild(actorCell);
+    } else if (directive is DeleteDirective) {
+      await _deleteChild(actorCell);
     }
   }
 
@@ -43,18 +44,9 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
     return actorCell;
   }
 
-  Future<void> _resumeChild(ActorCell actorCell) async {
-    if (_actorProperties.supervisorStrategy is OneForOneStrategy) {
-      await actorCell.resume();
-    } else {
-      await resumeChildren();
-    }
-
-    //if (_actorProperties.supervisorStrategy.loggingEnabled) {}
-  }
-
-  Future<void> _restartChild(ActorCell actorCell) async {
-    var restartDelay = _actorProperties.supervisorStrategy.restartDelay;
+  Future<void> _restartChild(
+      ActorCell actorCell, RestartDirective directive) async {
+    var restartDelay = directive.delay;
 
     if (_actorProperties.supervisorStrategy is OneForOneStrategy) {
       if (restartDelay != null) {
@@ -107,6 +99,12 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
     }
 
     _isolateContext.supervisorMessagePort.send(ActorErrorEscalated(error));
+  }
+
+  Future<void> _deleteChild(ActorCell actorCell) async {
+    await actorCell.kill();
+    await actorCell.dispose();
+    _children.remove(actorCell);
   }
 
   /// Kills child with [path].
@@ -267,9 +265,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
     var actorCell = _findChild(actorPath);
 
     if (actorCell != null) {
-      await actorCell.kill();
-      await actorCell.dispose();
-      _children.remove(actorCell);
+      await _deleteChild(actorCell);
     } else {
       throw ActorContextException(
           message:
@@ -331,9 +327,7 @@ mixin ActorParentMixin<P extends SupervisorActorProperties> on ActorContext<P> {
   /// Kills child actors and cleans and deletes their mailboxes. Deletes child actors from the actor system.
   Future<void> deleteChildren() async {
     for (var child in _children) {
-      await child.kill();
-      await child.dispose();
-      _children.remove(child);
+      await _deleteChild(child);
     }
   }
 }

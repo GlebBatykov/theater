@@ -10,7 +10,7 @@ abstract class RouterActorContext<P extends RouterActorProperties>
       : super(isolateContext, actorProperties);
 
   void _sendRoundRobin(MailboxMessage message) {
-    _children[_nextRoundRobinWorker].ref.sendMessage(message);
+    _children[_nextRoundRobinWorker].ref.send(message);
 
     if (_nextRoundRobinWorker + 1 < _children.length) {
       _nextRoundRobinWorker += 1;
@@ -21,7 +21,7 @@ abstract class RouterActorContext<P extends RouterActorProperties>
 
   void _sendBroadcast(MailboxMessage message) {
     for (var child in _children) {
-      child.ref.sendMessage(message);
+      child.ref.send(message);
     }
   }
 
@@ -32,7 +32,7 @@ abstract class RouterActorContext<P extends RouterActorProperties>
       newRandomWorker = Random().nextInt(_children.length);
     } while (newRandomWorker == _lastRandomWorker);
 
-    _children[newRandomWorker].ref.sendMessage(message);
+    _children[newRandomWorker].ref.send(message);
 
     _lastRandomWorker = newRandomWorker;
   }

@@ -27,11 +27,7 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
 
   void _handleMailboxMessage(MailboxMessage message) {
     if (message is ActorMailboxMessage) {
-      _messageController.sink.add(message);
-
-      if (_actorProperties.mailboxType == MailboxType.reliable) {
-        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
-      }
+      _handleActorMailboxMessage(message);
     } else if (message is SystemMailboxMessage) {
       _actorProperties.actor.handleSystemMessage(this, message);
     }
@@ -41,7 +37,7 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+        _actorProperties.actorRef.send(ActorMailboxMessage(message.data,
             feedbackPort: message.feedbackPort));
       } else if (message is SystemRoutingMessage) {
         _actorProperties.actor.handleSystemMessage(this, message);
@@ -57,7 +53,7 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
           if (List.from(message.recipientPath.segments
                   .getRange(0, _actorProperties.path.segments.length + 1))
               .equal(child.path.segments)) {
-            child.ref.sendMessage(message);
+            child.ref.send(message);
             isSended = true;
             break;
           }
@@ -67,7 +63,7 @@ class SystemActorContext extends NodeActorContext<SystemActorProperties>
           message.notFound();
         }
       } else {
-        _actorProperties.parentRef.sendMessage(message);
+        _actorProperties.parentRef.send(message);
       }
     }
   }

@@ -5,6 +5,8 @@ import 'dart:core';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:theater/src/logging.dart';
+
 import 'actor_system.dart';
 import 'supervising.dart';
 import 'dispatch.dart';
@@ -40,6 +42,10 @@ part 'actor/actor_factory.dart';
 part 'actor/actor_data_store.dart';
 part 'actor/actor_event.dart';
 part 'actor/actor_action.dart';
+
+part 'actor/actor_notifier/actor_notifier.dart';
+part 'actor/actor_notifier/subscriber_data.dart';
+part 'actor/actor_notifier/typed_notify_subscription.dart';
 
 part 'actor/user_actor_cell_mixin.dart';
 part 'actor/user_actor_context_mixin.dart';

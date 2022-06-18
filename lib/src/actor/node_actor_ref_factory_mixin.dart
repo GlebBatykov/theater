@@ -19,8 +19,11 @@ mixin NodeActorRefFactoryMixin<P extends SupervisorActorProperties>
         actorPath,
         actor,
         NodeActorCellProperties(
-            actorSystemMessagePort: _actorProperties.actorSystemMessagePort,
+            actorSystemSendPort: _actorProperties.actorSystemSendPort,
             parentRef: _actorProperties.actorRef,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                _actorProperties.loggingProperties,
+                actor.createLoggingPropeties()),
             data: data,
             onKill: onKill));
 

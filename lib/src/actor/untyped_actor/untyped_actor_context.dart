@@ -4,7 +4,7 @@ part of theater.actor;
 class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
     with
         NodeActorRefFactoryMixin,
-        ActorMessageReceiverMixin<UntypedActorProperties>,
+        ActorMessageReceiverMixin,
         UserActorContextMixin<UntypedActorProperties> {
   UntypedActorContext(
       IsolateContext isolateContext, UntypedActorProperties actorProperties)
@@ -25,11 +25,7 @@ class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
 
   void _handleMailboxMessage(MailboxMessage message) {
     if (message is ActorMailboxMessage) {
-      _messageController.sink.add(message);
-
-      if (_actorProperties.mailboxType == MailboxType.reliable) {
-        _isolateContext.supervisorMessagePort.send(ActorReceivedMessage());
-      }
+      _handleActorMailboxMessage(message);
     }
   }
 
@@ -37,7 +33,7 @@ class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+        _actorProperties.actorRef.send(ActorMailboxMessage(message.data,
             feedbackPort: message.feedbackPort));
       }
     } else {
@@ -51,7 +47,7 @@ class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
           if (List.from(message.recipientPath.segments
                   .getRange(0, _actorProperties.path.segments.length + 1))
               .equal(child.path.segments)) {
-            child.ref.sendMessage(message);
+            child.ref.send(message);
             isSended = true;
             break;
           }
@@ -61,7 +57,7 @@ class UntypedActorContext extends NodeActorContext<UntypedActorProperties>
           message.notFound();
         }
       } else {
-        _actorProperties.parentRef.sendMessage(message);
+        _actorProperties.parentRef.send(message);
       }
     }
   }

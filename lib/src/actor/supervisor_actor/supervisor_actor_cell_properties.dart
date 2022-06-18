@@ -3,8 +3,9 @@ part of theater.actor;
 abstract class SupervisorActorCellProperties extends ActorCellProperties {
   SupervisorActorCellProperties(
       Map<String, dynamic> data,
-      SendPort actorSystemMessagePort,
+      SendPort actorSystemSendPort,
+      LoggingProperties loggingProperties,
       void Function()? onKill,
       void Function(ActorError)? onError)
-      : super(data, actorSystemMessagePort, onKill, onError);
+      : super(data, actorSystemSendPort, loggingProperties, onKill, onError);
 }

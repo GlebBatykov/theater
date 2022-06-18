@@ -1,5 +1,7 @@
 part of theater.dispatch;
 
+enum HandlingType { asynchronously, consistently }
+
 /// Mailbox which, after sending the message, waits for a delivery confirmation message. Can resend the last message.
 class ReliableMailbox extends Mailbox {
   /// Queue of received [MailboxMessage]-s for actor owning this mailbox.
@@ -11,7 +13,8 @@ class ReliableMailbox extends Mailbox {
   /// Indicates whether a message has been sent awaiting successful delivery.
   bool _isMessageSent = false;
 
-  ReliableMailbox(ActorPath path) : super(path, MailboxType.reliable) {
+  ReliableMailbox(ActorPath path, HandlingType handlingType)
+      : super(path, MailboxType.reliable, handlingType) {
     _internalMessageController.stream.listen((message) {
       if (message is MailboxMessage) {
         _handleMailboxMessage(message);

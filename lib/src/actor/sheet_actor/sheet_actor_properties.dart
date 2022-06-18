@@ -4,10 +4,11 @@ abstract class SheetActorProperties extends ObservableActorProperties {
   final LocalActorRef parentRef;
 
   SheetActorProperties(
-      this.parentRef,
-      LocalActorRef actorRef,
-      MailboxType mailboxType,
-      SendPort actorSystemMessagePort,
-      Map<String, dynamic> data)
-      : super(actorRef, mailboxType, actorSystemMessagePort, data);
+      {required this.parentRef,
+      required super.handlingType,
+      required super.actorRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
+      required super.data});
 }

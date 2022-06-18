@@ -5,12 +5,13 @@ class SystemActorProperties extends NodeActorProperties {
 
   SystemActorProperties(
       {required this.actor,
-      required LocalActorRef actorRef,
-      required SupervisorStrategy supervisorStrategy,
-      required LocalActorRef parentRef,
-      required MailboxType mailboxType,
-      required SendPort actorSystemMessagePort,
+      required super.actorRef,
+      required super.handlingType,
+      required super.supervisorStrategy,
+      required super.parentRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
       Map<String, dynamic>? data})
-      : super(parentRef, supervisorStrategy, actorRef, mailboxType,
-            actorSystemMessagePort, data ?? {});
+      : super(data: data ?? {});
 }

@@ -2,11 +2,12 @@ part of theater.actor;
 
 class WorkerActorProperties extends SheetActorProperties {
   WorkerActorProperties(
-      {required LocalActorRef actorRef,
-      required LocalActorRef parentRef,
-      required MailboxType mailboxType,
-      required SendPort actorSystemMessagePort,
+      {required super.actorRef,
+      required super.handlingType,
+      required super.parentRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
       Map<String, dynamic>? data})
-      : super(parentRef, actorRef, mailboxType, actorSystemMessagePort,
-            data ?? {});
+      : super(data: data ?? {});
 }

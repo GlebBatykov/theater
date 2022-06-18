@@ -8,7 +8,7 @@ abstract class ActorCell<A extends Actor> {
 
   final ActorPath path;
 
-  final SendPort _actorSystemMessagePort;
+  final SendPort _actorSystemSendPort;
 
   final Mailbox _mailbox;
 
@@ -17,6 +17,10 @@ abstract class ActorCell<A extends Actor> {
   late final LocalActorRef ref;
 
   late final IsolateSupervisor _isolateSupervisor;
+
+  late final LoggingProperties _loggerProperties;
+
+  late final Logger _logger;
 
   final void Function()? _onKillCallback;
 
@@ -34,37 +38,72 @@ abstract class ActorCell<A extends Actor> {
 
   bool get isDisposed => _isDisposed;
 
-  ActorCell(this.path, A actor, Mailbox mailbox,
-      SendPort actorSystemMessagePort, void Function()? onKill)
+  ActorCell(this.path, A actor, Mailbox mailbox, SendPort actorSystemSendPort,
+      LoggingProperties loggingProperties, void Function()? onKill)
       : _mailbox = mailbox,
         _actor = actor,
-        _actorSystemMessagePort = actorSystemMessagePort,
-        _onKillCallback = onKill;
+        _actorSystemSendPort = actorSystemSendPort,
+        _onKillCallback = onKill {
+    var actorLoggingProperties = _actor.createLoggingPropeties();
+
+    if (actorLoggingProperties != null) {
+      _loggerProperties = actorLoggingProperties;
+    } else {
+      _loggerProperties = loggingProperties;
+    }
+
+    _logger = _loggerProperties.loggerFactory.create(path);
+  }
 
   Future<void> initialize() async {
     await _isolateSupervisor.initialize();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger
+          .debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.initialized, path));
+    }
   }
 
   Future<void> start() async {
     await _isolateSupervisor.start();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.started, path));
+    }
   }
 
   Future<void> restart() async {
     await _isolateSupervisor.kill();
     await _isolateSupervisor.initialize();
     await _isolateSupervisor.start();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.restarted, path));
+    }
   }
 
   Future<void> pause() async {
     await _isolateSupervisor.pause();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.paused, path));
+    }
   }
 
   Future<void> resume() async {
     await _isolateSupervisor.resume();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.resumed, path));
+    }
   }
 
   Future<void> kill() async {
     await _isolateSupervisor.kill();
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.killed, path));
+    }
 
     _onKillCallback?.call();
   }
@@ -77,6 +116,10 @@ abstract class ActorCell<A extends Actor> {
     await _errorController.close();
 
     _isDisposed = true;
+
+    if (_loggerProperties.isDebugEnabled) {
+      _logger.debug(ActorLyfecycleLog(ActorLyfecycleLogEvent.disposed, path));
+    }
   }
 
   @override

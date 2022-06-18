@@ -4,10 +4,11 @@ abstract class SupervisorActorProperties extends ActorProperties {
   final SupervisorStrategy supervisorStrategy;
 
   SupervisorActorProperties(
-      this.supervisorStrategy,
-      LocalActorRef actorRef,
-      MailboxType mailboxType,
-      SendPort actorSystemMessagePort,
-      Map<String, dynamic> data)
-      : super(actorRef, mailboxType, actorSystemMessagePort, data);
+      {required this.supervisorStrategy,
+      required super.handlingType,
+      required super.actorRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
+      required super.data});
 }

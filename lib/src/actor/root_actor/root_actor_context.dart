@@ -25,7 +25,7 @@ class RootActorContext extends SupervisorActorContext<RootActorProperties>
   void _handleRoutingMessage(RoutingMessage message) {
     if (message.recipientPath == _actorProperties.path) {
       if (message is ActorRoutingMessage) {
-        _actorProperties.actorRef.sendMessage(ActorMailboxMessage(message.data,
+        _actorProperties.actorRef.send(ActorMailboxMessage(message.data,
             feedbackPort: message.feedbackPort));
       }
     } else {
@@ -39,7 +39,7 @@ class RootActorContext extends SupervisorActorContext<RootActorProperties>
           if (List.from(message.recipientPath.segments
                   .getRange(0, _actorProperties.path.segments.length + 1))
               .equal(child.path.segments)) {
-            child.ref.sendMessage(message);
+            child.ref.send(message);
             isSended = true;
             break;
           }

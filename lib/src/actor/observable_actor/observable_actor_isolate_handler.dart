@@ -43,6 +43,8 @@ abstract class ObservableActorIsolateHandler<A extends ObservableActor,
   void kill() async {
     try {
       await _actor.onKill(_actorContext);
+
+      await _actorContext._notifier.dispose();
     } catch (_) {
       rethrow;
     } finally {

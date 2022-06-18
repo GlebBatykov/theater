@@ -2,7 +2,7 @@ part of theater.actor;
 
 class WorkerActorCell extends SheetActorCell<WorkerActor> {
   WorkerActorCell(ActorPath path, WorkerActor actor, LocalActorRef parentRef,
-      SendPort actorSystemMessagePort,
+      SendPort actorSystemSendPort, LoggingProperties loggingProperties,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -11,7 +11,8 @@ class WorkerActorCell extends SheetActorCell<WorkerActor> {
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
-            actorSystemMessagePort,
+            actorSystemSendPort,
+            loggingProperties,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -24,8 +25,11 @@ class WorkerActorCell extends SheetActorCell<WorkerActor> {
         WorkerActorProperties(
             actorRef: ref,
             parentRef: _parentRef,
+            handlingType: _mailbox.handlingType,
             mailboxType: _mailbox.type,
-            actorSystemMessagePort: _actorSystemMessagePort,
+            actorSystemSendPort: _actorSystemSendPort,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                loggingProperties, actor.createLoggingPropeties()),
             data: data),
         WorkerActorIsolateHandlerFactory(),
         WorkerActorContextBuilder(), onError: (error) {

@@ -5,13 +5,13 @@ mixin UserActorCellMixin<A extends Actor> on ActorCell<A> {
   Future<void> initialize() async {
     await super.initialize();
 
-    _actorSystemMessagePort.send(ActorSystemRegisterUserLocalActorRef(ref));
+    _actorSystemSendPort.send(ActorSystemRegisterUserLocalActorRef(ref));
   }
 
   @override
   Future<void> dispose() async {
     await super.dispose();
 
-    _actorSystemMessagePort.send(ActorSystemRemoveUserLocalActorRef(path));
+    _actorSystemSendPort.send(ActorSystemRemoveUserLocalActorRef(path));
   }
 }

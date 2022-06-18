@@ -4,7 +4,8 @@ part of theater.dispatch;
 ///
 /// Used by default in all actors.
 class UnreliableMailbox extends Mailbox {
-  UnreliableMailbox(ActorPath path) : super(path, MailboxType.unreliable) {
+  UnreliableMailbox(ActorPath path)
+      : super(path, MailboxType.unreliable, HandlingType.asynchronously) {
     _internalMessageController.stream.listen((message) {
       if (message is MailboxMessage) {
         _mailboxMessageController.sink.add(message);

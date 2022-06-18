@@ -29,6 +29,9 @@ abstract class Mailbox {
   /// Type of current mailbox.
   final MailboxType type;
 
+  ///
+  final HandlingType handlingType;
+
   /// Path to actor owning this mailbox.
   final ActorPath path;
 
@@ -53,7 +56,7 @@ abstract class Mailbox {
   Stream<SystemRoutingMessage> get systemRoutingMessages =>
       _systemRoutingMessageController.stream;
 
-  Mailbox(this.path, this.type) {
+  Mailbox(this.path, this.type, this.handlingType) {
     _receiveStream = _receivePort.asBroadcastStream();
 
     _receiveStream.listen(_receiveMessage);

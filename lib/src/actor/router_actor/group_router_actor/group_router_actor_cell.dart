@@ -2,8 +2,12 @@ part of theater.actor;
 
 class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
     with UserActorCellMixin<GroupRouterActor> {
-  GroupRouterActorCell(ActorPath path, GroupRouterActor actor,
-      LocalActorRef parentRef, SendPort actorSystemMessagePort,
+  GroupRouterActorCell(
+      ActorPath path,
+      GroupRouterActor actor,
+      LocalActorRef parentRef,
+      SendPort actorSystemSendPort,
+      LoggingProperties loggingProperties,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -12,7 +16,8 @@ class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
-            actorSystemMessagePort,
+            actorSystemSendPort,
+            loggingProperties,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -25,10 +30,13 @@ class GroupRouterActorCell extends RouterActorCell<GroupRouterActor>
         GroupRouterActorProperties(
             actorRef: ref,
             parentRef: parentRef,
+            handlingType: _mailbox.handlingType,
             deployementStrategy: actor.createDeployementStrategy(),
             supervisorStrategy: actor.createSupervisorStrategy(),
             mailboxType: _mailbox.type,
-            actorSystemMessagePort: _actorSystemMessagePort,
+            actorSystemSendPort: _actorSystemSendPort,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                loggingProperties, actor.createLoggingPropeties()),
             data: data),
         RouterActorIsolateHandlerFactory(),
         GroupRouterActorContextBuilder(), onError: (error) {

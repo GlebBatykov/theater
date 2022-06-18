@@ -2,7 +2,7 @@ part of theater.actor;
 
 class SystemActorCell extends NodeActorCell<SystemActor> {
   SystemActorCell(ActorPath path, SystemActor actor, LocalActorRef parentRef,
-      SendPort actorSystemMessagePort,
+      SendPort actorSystemSendPort, LoggingProperties loggingProperties,
       {Map<String, dynamic>? data,
       void Function(ActorError)? onError,
       void Function()? onKill})
@@ -11,7 +11,8 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
             actor,
             parentRef,
             actor.createMailboxFactory().create(MailboxProperties(path)),
-            actorSystemMessagePort,
+            actorSystemSendPort,
+            loggingProperties,
             onKill) {
     if (onError != null) {
       _errorController.stream.listen(onError);
@@ -26,8 +27,11 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
             actorRef: ref,
             parentRef: _parentRef,
             supervisorStrategy: actor.createSupervisorStrategy(),
+            handlingType: _mailbox.handlingType,
             mailboxType: _mailbox.type,
-            actorSystemMessagePort: _actorSystemMessagePort,
+            loggingProperties: ActorLoggingProperties.fromLoggingProperties(
+                loggingProperties, actor.createLoggingPropeties()),
+            actorSystemSendPort: _actorSystemSendPort,
             data: data),
         SystemActorIsolateHandlerFactory(),
         SystemActorContextBuilder(), onError: (error) {
@@ -49,7 +53,7 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
       _isolateSupervisor.send(message);
     });
 
-    _actorSystemMessagePort.send(ActorSystemRegisterSystemLocalActorRef(ref));
+    _actorSystemSendPort.send(ActorSystemRegisterSystemLocalActorRef(ref));
   }
 
   void _handleMessageFromIsolate(message) {
@@ -79,6 +83,6 @@ class SystemActorCell extends NodeActorCell<SystemActor> {
   Future<void> dispose() async {
     await super.dispose();
 
-    _actorSystemMessagePort.send(ActorSystemRemoveSystemLocalActorRef(path));
+    _actorSystemSendPort.send(ActorSystemRemoveSystemLocalActorRef(path));
   }
 }

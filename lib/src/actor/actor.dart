@@ -16,7 +16,10 @@ part of theater.actor;
 ///
 /// Therefore, it is important not to wait indefinitely for anything in these methods  asynchronously.
 abstract class Actor<T extends ActorContext>
-    implements MailboxFactoryCreater, SupervisorStrategyCreater {
+    implements
+        MailboxFactoryCreater,
+        SupervisorStrategyCreater,
+        LoggingPropertiesCreater {
   /// This method is called after actor started (after him [Isolate] started).
   FutureOr<void> onStart(T context) async {}
 
@@ -43,4 +46,8 @@ abstract class Actor<T extends ActorContext>
   @override
   SupervisorStrategy createSupervisorStrategy() =>
       OneForOneStrategy(decider: DefaultDecider());
+
+  ///
+  @override
+  LoggingProperties? createLoggingPropeties() => null;
 }

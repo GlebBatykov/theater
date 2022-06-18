@@ -4,12 +4,12 @@ abstract class NodeActorProperties extends SupervisorActorProperties {
   final LocalActorRef parentRef;
 
   NodeActorProperties(
-      this.parentRef,
-      SupervisorStrategy supervisorStrategy,
-      LocalActorRef actorRef,
-      MailboxType mailboxType,
-      SendPort actorSystemMessagePort,
-      Map<String, dynamic> data)
-      : super(supervisorStrategy, actorRef, mailboxType, actorSystemMessagePort,
-            data);
+      {required this.parentRef,
+      required super.handlingType,
+      required super.supervisorStrategy,
+      required super.actorRef,
+      required super.mailboxType,
+      required super.actorSystemSendPort,
+      required super.loggingProperties,
+      required super.data});
 }
