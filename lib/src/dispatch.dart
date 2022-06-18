@@ -24,6 +24,7 @@ part 'dispatch/mailbox/priority_reliable_mailbox_factory.dart';
 part 'dispatch/mailbox/mailbox_factory_creater.dart';
 
 part 'dispatch/message/message_response/delivered_successfully_result.dart';
+part 'dispatch/message/message_response/handler_not_assigned.dart';
 part 'dispatch/message/message_response/message_result.dart';
 part 'dispatch/message/message_response/message_response.dart';
 part 'dispatch/message/message_response/recipient_not_found_result.dart';
