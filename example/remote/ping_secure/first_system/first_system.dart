@@ -11,6 +11,10 @@ class TestActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
+    var connectionName = 'second_actor_system';
+
+    var remoteActorPath = 'second_actor_system/root/user/test_actor';
+
     // Set handler to all Pong type messages which actor received
     context.receive<Pong>((message) async {
       print(message.data);
@@ -20,8 +24,7 @@ class TestActor extends UntypedActor {
 
     // Create remote actor ref by connecting with name 'second_actor_system'
     // to actor with actor path 'second_actor_system/root/user/test_actor'
-    _ref = await context.createRemoteActorRef(
-        'second_actor_system', 'second_actor_system/root/user/test_actor');
+    _ref = await context.createRemoteActorRef(connectionName, remoteActorPath);
 
     // Send message with tag 'ping'
     _ref.send('ping', Ping('Ping message from first actor system!'));

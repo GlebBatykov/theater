@@ -1,4 +1,3 @@
-import 'package:theater/src/dispatch.dart';
 import 'package:theater/theater.dart';
 
 import '../test_message.dart';
@@ -11,10 +10,13 @@ class ClientActor extends UntypedActor {
   // Override onStart method which will be executed at actor startup
   @override
   Future<void> onStart(UntypedActorContext context) async {
+    var connectionName = 'test_server';
+
+    var remoteActorPath = 'test_server_system/root/user/test_server_actor';
+
     // Create remote actor ref by connecting with name 'test_server'
     // to actor with actor path 'test_server_system/root/user/test_server_actor'
-    _ref = await context.createRemoteActorRef(
-        'test_server', 'test_server_system/root/user/test_server_actor');
+    _ref = await context.createRemoteActorRef(connectionName, remoteActorPath);
 
     // Send message with tag 'test_message'
     _ref.send('test_message', TestMessage('Hello, from client!'));

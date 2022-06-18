@@ -1,4 +1,3 @@
-import 'package:pedantic/pedantic.dart';
 import 'package:theater/theater.dart';
 
 // Create actor class
@@ -8,13 +7,13 @@ class TestActor extends UntypedActor {
   void onStart(UntypedActorContext context) {
     // Set handler to only 5 following messages of type String, then print 'Hello, from test actor!' message.
     // Method [receiveSeveral] return Future and you can wait or not wait him.
-    unawaited(context.receiveSeveral<String>(5, (message) async {
+    context.receiveSeveral<String>(5, (message) async {
       print(message);
 
       return;
     }).then((_) {
       print('Hello, from test actor!');
-    }));
+    }).ignore();
   }
 }
 

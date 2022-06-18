@@ -20,7 +20,7 @@ class SecondActorSystemBuilder extends ActorSystemBuilder {
               name: 'first_actor_system', address: '127.0.0.1', port: 6656)
         ],
         servers: [
-          TcpServerConfiguration(address: '127.0.0.1', port: 6655)
+          TcpServerConfiguration(name: 'server', port: 6655)
         ]);
 
     // Create actor system

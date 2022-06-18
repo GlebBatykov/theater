@@ -15,7 +15,7 @@ class ServerActorSystemBuilder extends ActorSystemBuilder {
     var remoteConfiguration = RemoteTransportConfiguration(
         serializer: TransportSerializer(),
         deserializer: TransportDeserializer(),
-        servers: [TcpServerConfiguration(address: '127.0.0.1', port: 6655)]);
+        servers: [TcpServerConfiguration(name: 'server', port: 6655)]);
 
     // Create actor system
     return ActorSystem(name, remoteConfiguration: remoteConfiguration);

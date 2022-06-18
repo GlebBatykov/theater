@@ -1,4 +1,3 @@
-import 'package:theater/src/dispatch.dart';
 import 'package:theater/theater.dart';
 
 import '../ping.dart';

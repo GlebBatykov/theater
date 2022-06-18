@@ -1,13 +1,17 @@
 import 'package:theater/theater.dart';
 
-class MyActor extends UntypedActor {
+// Create first actor class
+class FirstTestActor extends UntypedActor {
   @override
-  Future<void> onStart(context) async {
-    await context.actorOf('second', MySecondActor());
+  Future<void> onStart(UntypedActorContext context) async {
+    // Create child with name 'second'
+    await context.actorOf('second', SecondTestActor());
 
+    // Send routing message and get message subscription
     var subscription =
         context.sendAndSubscribe('../second', 'Hello, from actor!');
 
+    // Set subscription onResponse handler
     subscription.onResponse((response) {
       if (response is MessageResult) {
         print(response.data);
@@ -16,21 +20,27 @@ class MyActor extends UntypedActor {
   }
 }
 
-class MySecondActor extends UntypedActor {
+// Create second actor class
+class SecondTestActor extends UntypedActor {
   @override
-  void onStart(context) {
+  void onStart(UntypedActorContext context) {
+    // Set handler to all String type messages which actor received
     context.receive<String>((message) async {
       print(message);
 
+      // Send message result
       return MessageResult(data: 'Hello, from second actor!');
     });
   }
 }
 
 void main(List<String> arguments) async {
-  var system = ActorSystem('system');
+  // Create actor system
+  var system = ActorSystem('test_system');
 
+  // Initialize actor system before work with it
   await system.initialize();
 
-  await system.actorOf('actor', MyActor());
+  // Create top-level actor in actor system with name 'test_actor'
+  await system.actorOf('test_actor', FirstTestActor());
 }

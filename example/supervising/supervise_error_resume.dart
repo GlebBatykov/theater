@@ -30,8 +30,8 @@ class FirstTestActor extends UntypedActor {
 
   // Override createSupervisorStrategy method, set decider and restartDelay
   @override
-  SupervisorStrategy createSupervisorStrategy() => OneForOneStrategy(
-      decider: TestDecider(), restartDelay: Duration(milliseconds: 500));
+  SupervisorStrategy createSupervisorStrategy() =>
+      OneForOneStrategy(decider: TestDecider());
 }
 
 // Create decider class
@@ -39,9 +39,9 @@ class TestDecider extends Decider {
   @override
   Directive decide(Object object) {
     if (object is FormatException) {
-      return Directive.resume;
+      return IgnoreDirective();
     } else {
-      return Directive.escalate;
+      return EscalateDirective();
     }
   }
 }
