@@ -30,12 +30,18 @@ export 'src/actor.dart'
         PoolRouterActorProperties,
         GroupRouterActorProperties,
         UntypedActorProperties,
-        ActorParentMixin;
+        ActorParentMixin,
+        HandlePriority;
 
 export 'src/supervising.dart'
     show
         SupervisorStrategy,
         Directive,
+        IgnoreDirective,
+        RestartDirective,
+        KillDirective,
+        PauseDirective,
+        EscalateDirective,
         Decider,
         AllForOneStrategy,
         OneForOneStrategy;
@@ -63,7 +69,8 @@ export 'src/dispatch.dart'
         LocalActorRef,
         CancellationTokenRef,
         RepeatedlyActionTokenRef,
-        OneShotActionTokenRef;
+        OneShotActionTokenRef,
+        RemoteActorRef;
 
 export 'src/routing.dart';
 
@@ -86,3 +93,6 @@ export 'src/remote.dart'
         TcpConnectorConfiguration,
         ActorMessageTransportSerializer,
         ActorMessageTransportDeserializer;
+
+export 'src/logging.dart'
+    show LogLevel, DebugLevel, LoggingProperties, TheaterLoggerFactory;
