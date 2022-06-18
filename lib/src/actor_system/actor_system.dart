@@ -26,8 +26,11 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Instance of [RemoteTransportConfiguration] which used for configuration actor system server.
   final RemoteTransportConfiguration _remoteConfiguration;
 
+  ///
+  final LoggingProperties _loggerProperties;
+
   /// List of [RemoteSource] which are used to send messages to other actor systems using Theater Remote.
-  final List<RemoteSource> _remoteSources = [];
+  final List<ConnectorSource> _remoteSources = [];
 
   /// Instanse of [ReceivePort] of actor system.
   late ReceivePort _messagePort;
@@ -62,6 +65,9 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Instance of [LocalActorRefRegister] used to store links to system actors.
   final LocalActorRefRegister _systemActorRegister = LocalActorRefRegister();
 
+  ///
+  final ActorSystemNotifier _notifier = ActorSystemNotifier();
+
   bool _isDisposed = false;
 
   /// Used in creation top-level actors, needs for receive response from [UserGuardian].
@@ -72,7 +78,9 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// Shows the status of dispose.
   bool get isDisposed => _isDisposed;
 
-  ActorSystem(this.name, {RemoteTransportConfiguration? remoteConfiguration})
+  ActorSystem(this.name,
+      {RemoteTransportConfiguration? remoteConfiguration,
+      LoggingProperties? loggingProperties})
       : _remoteConfiguration = remoteConfiguration ??
             RemoteTransportConfiguration(isRemoteTransportEnabled: false),
         _loggerProperties = loggingProperties ??
@@ -83,6 +91,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
     _systemGuardianPath =
         _rootPath.createChild(SystemActorNames.systemGuardian);
+
     _actorServerPath =
         _systemGuardianPath.createChild(SystemActorNames.actorSystemServer);
   }
@@ -117,7 +126,8 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     _root = RootActorCell(
         _rootPath,
         DefaultRootActor(remoteConfiguration: _remoteConfiguration),
-        _messagePort.sendPort);
+        _messagePort.sendPort,
+        _loggerProperties);
 
     // If root actor escalate error. Prints stackTrace and dispose actor system.
     _root.errors.listen((error) {
@@ -152,6 +162,22 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
       _handleActorSystemCreateRemoteActorRef(action);
     } else if (action is ActorSystemRouteActorRemoteMessage) {
       _handleActorSystemRouteActorRemoteMessage(action);
+    } else if (action is ActorSystemGetUserActorsPaths) {
+      _handleActorSystemGetUserActorsPaths(action);
+    } else if (action is ActorSystemGetRemoteUserActorsPaths) {
+      _handleActorSystemGetRemoteUserActorsPaths(action);
+    } else if (action is ActorSystemIsRemoteConnectionExist) {
+      _handleActorSystemIsRemoteConnectionExist(action);
+    } else if (action is ActorSystemGetRemoteConnections) {
+      _handleActorSystemGetRemoteConnections(action);
+    } else if (action is ActorSystemGetRemoteConnection) {
+      _handleActorSystemGetRemoteConnection(action);
+    } else if (action is ActorSystemNotificationAction) {
+      _notifier.handle(action);
+    } else if (action is ActorSystemCreateConnector) {
+      _handleActorSystemCreateConnector(action);
+    } else if (action is ActorSystemCreateServer) {
+      _handleActorSystemCreateServer(action);
     }
   }
 
@@ -210,14 +236,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
   void _handleActorSystemCreateRemoteActorRef(
       ActorSystemCreateRemoteActorRef action) {
-    RemoteSource? remoteSource;
-
-    for (var source in _remoteSources) {
-      if (source.connectionName == action.connectionName) {
-        remoteSource = source;
-        break;
-      }
-    }
+    var remoteSource = _searchRemoteSource(action.connectionName);
 
     if (remoteSource != null) {
       var ref = remoteSource.createRemoteRef(action.path);
@@ -239,6 +258,130 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
         break;
       }
     }
+  }
+
+  void _handleActorSystemGetUserActorsPaths(
+      ActorSystemGetUserActorsPaths action) {
+    var paths = _userActorRegister.refs.map((e) => e.path).toList();
+
+    action.feedbackPort.send(ActorSystemGetUserActorsPathsResult(paths));
+  }
+
+  void _handleActorSystemGetRemoteUserActorsPaths(
+      ActorSystemGetRemoteUserActorsPaths action) async {
+    var remoteSource = _searchRemoteSource(action.connectionName);
+
+    if (remoteSource != null) {
+      var receivePort = ReceivePort();
+
+      remoteSource.birdgeSendPort
+          .send(GetActorsPathsMessage(receivePort.sendPort));
+
+      var result = (await receivePort.first) as GetActorsPathsResultMessage;
+
+      receivePort.close();
+
+      action.feedbackPort
+          .send(ActorSystemGetRemoteUserActorsPathsSuccess(result.paths));
+    } else {
+      action.feedbackPort
+          .send(ActorSystemGetRemoteUserActorsPathsConnectionNotExist());
+    }
+  }
+
+  void _handleActorSystemIsRemoteConnectionExist(
+      ActorSystemIsRemoteConnectionExist action) {
+    var remoteSource = _searchRemoteSource(action.connectionName);
+
+    late ActorSystemIsRemoteConnectionExistResult result;
+
+    if (remoteSource != null) {
+      result = ActorSystemRemoteConnectionExist();
+    } else {
+      result = ActorSystemRemoteConnectionNotExist();
+    }
+
+    action.feedbackPort.send(result);
+  }
+
+  void _handleActorSystemGetRemoteConnections(
+      ActorSystemGetRemoteConnections action) {
+    var connections = _remoteSources.map((e) => e.connection).toList();
+
+    action.feedbackPort
+        .send(ActorSystemGetRemoteConnectionsResult(connections));
+  }
+
+  void _handleActorSystemGetRemoteConnection(
+      ActorSystemGetRemoteConnection action) {
+    var remoteSource = _searchRemoteSource(action.connectionName);
+
+    late ActorSystemGetRemoteConnectionResult result;
+
+    if (remoteSource != null) {
+      result = ActorSystemGetRemoteConnectionSuccess(remoteSource.connection);
+    } else {
+      result = ActorSystemGetRemoteConnectionNotExist();
+    }
+
+    action.feedbackPort.send(result);
+  }
+
+  void _handleActorSystemCreateConnector(
+      ActorSystemCreateConnector action) async {
+    var receivePort = ReceivePort();
+
+    _systemActorRegister.getRefByPath(_actorServerPath)!.send(
+        SystemMailboxMessage(ActorSystemServerCreateConnector(
+            action.configuration, receivePort.sendPort)));
+
+    var result =
+        (await receivePort.first) as ActorSystemServerCreateConnectorResult;
+
+    receivePort.close();
+
+    if (result is ActorSystemServerCreateConnectorSuccess) {
+      var source = result.source;
+
+      _remoteSources.add(source);
+
+      action.feedbackPort
+          .send(ActorSystemCreateConnectorSuccess(source.connection));
+    } else if (result is ActorSystemServerCreateConnectorNameExist) {
+      action.feedbackPort.send(ActorSystemCreateConnectorNameExist());
+    }
+  }
+
+  void _handleActorSystemCreateServer(ActorSystemCreateServer action) async {
+    var receivePort = ReceivePort();
+
+    _systemActorRegister.getRefByPath(_actorServerPath)!.send(
+        SystemMailboxMessage(ActorSystemServerCreateServer(
+            action.configuration, receivePort.sendPort)));
+
+    var result =
+        (await receivePort.first) as ActorSystemServerCreateServerResult;
+
+    receivePort.close();
+
+    if (result is ActorSystemServerCreateServerSuccess) {
+      action.feedbackPort.send(ActorSystemCreateServerSuccess());
+    } else {
+      action.feedbackPort.send(ActorSystemCreateServerNameExist());
+    }
+  }
+
+  ConnectorSource? _searchRemoteSource(String connectionName) {
+    ConnectorSource? remoteSource;
+
+    for (var source in _remoteSources) {
+      if (source.connectionName == connectionName) {
+        remoteSource = source;
+        break;
+      }
+    }
+
+    return remoteSource;
   }
 
   /// Pauses all actors in actor system.
@@ -263,7 +406,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     if (_isTopLevelActorExist(actorPath)) {
       var receivePort = ReceivePort();
 
-      _userGuardianRef.sendMessage(SystemMailboxMessage(
+      _userGuardianRef.send(SystemMailboxMessage(
           UserGuardianStartTopLevelActor(actorPath),
           feedbackPort: receivePort.sendPort));
 
@@ -286,7 +429,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     if (_isTopLevelActorExist(actorPath)) {
       var receivePort = ReceivePort();
 
-      _userGuardianRef.sendMessage(SystemMailboxMessage(
+      _userGuardianRef.send(SystemMailboxMessage(
           UserGuardianPauseTopLevelActor(actorPath),
           feedbackPort: receivePort.sendPort));
 
@@ -309,7 +452,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     if (_isTopLevelActorExist(actorPath)) {
       var receivePort = ReceivePort();
 
-      _userGuardianRef.sendMessage(SystemMailboxMessage(
+      _userGuardianRef.send(SystemMailboxMessage(
           UserGuardianResumeTopLevelActor(actorPath),
           feedbackPort: receivePort.sendPort));
 
@@ -332,7 +475,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     if (_isTopLevelActorExist(actorPath)) {
       var receivePort = ReceivePort();
 
-      _userGuardianRef.sendMessage(SystemMailboxMessage(
+      _userGuardianRef.send(SystemMailboxMessage(
           UserGuardianKillTopLevelActor(actorPath),
           feedbackPort: receivePort.sendPort));
 
@@ -355,7 +498,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
     if (_isTopLevelActorExist(actorPath)) {
       var receivePort = ReceivePort();
 
-      _userGuardianRef.sendMessage(SystemMailboxMessage(
+      _userGuardianRef.send(SystemMailboxMessage(
           UserGuardianDeleteTopLevelActor(actorPath),
           feedbackPort: receivePort.sendPort));
 
@@ -400,7 +543,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
       var action = UserGuardianCreateTopLevelActor(name, actor, data, onKill);
 
-      _userGuardianRef.sendMessage(
+      _userGuardianRef.send(
           SystemMailboxMessage(action, feedbackPort: receivePort.sendPort));
 
       late LocalActorRef actorRef;
@@ -441,10 +584,10 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
     if (delay != null) {
       Future.delayed(delay, () {
-        _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath));
+        _root.ref.send(ActorRoutingMessage(data, recipientPath));
       });
     } else {
-      _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath));
+      _root.ref.send(ActorRoutingMessage(data, recipientPath));
     }
   }
 
@@ -471,11 +614,11 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
 
     if (delay != null) {
       Future.delayed(delay, () {
-        _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath,
+        _root.ref.send(ActorRoutingMessage(data, recipientPath,
             feedbackPort: receivePort.sendPort));
       });
     } else {
-      _root.ref.sendMessage(ActorRoutingMessage(data, recipientPath,
+      _root.ref.send(ActorRoutingMessage(data, recipientPath,
           feedbackPort: receivePort.sendPort));
     }
 
@@ -558,7 +701,7 @@ class ActorSystem implements ActorRefFactory<NodeActor>, ActorMessageSender {
   /// If actor system has no connection to remote system with [connectionName] an exception will be thrown.
   RemoteActorRef createRemoteActorRef(String connectionName, String path) {
     if (_root.isInitialized) {
-      RemoteSource? remoteSource;
+      ConnectorSource? remoteSource;
 
       for (var source in _remoteSources) {
         if (source.connectionName == connectionName) {
