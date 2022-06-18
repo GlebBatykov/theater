@@ -3,5 +3,7 @@ part of theater.logging;
 class DebugLevel extends LogLevel {
   final bool lifecycle;
 
-  DebugLevel({this.lifecycle = false}) : super._('debug');
+  final bool remote;
+
+  DebugLevel({this.lifecycle = false, this.remote = false}) : super._('debug');
 }
