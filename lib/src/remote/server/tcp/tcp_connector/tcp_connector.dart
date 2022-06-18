@@ -4,13 +4,14 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
   Socket? _socket;
 
   TcpConnector(
+    String name,
     dynamic address,
     int port, {
     TcpConnectorSecurityConfiguration? securityConfiguration,
     Duration? timeout,
     Duration? reconnectTimeout,
     double? reconnectDelay,
-  }) : super(address, port,
+  }) : super(name, address, port,
             securityConfiguration ?? TcpConnectorSecurityConfiguration(),
             timeout: timeout,
             reconnectTimeout: reconnectTimeout,
@@ -18,6 +19,7 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
 
   TcpConnector.fromConfiguration(TcpConnectorConfiguration configuration)
       : super(
+            configuration.name,
             configuration.address,
             configuration.port,
             configuration.securityConfiguration ??
@@ -72,15 +74,25 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
   void _handleEvent(RemoteTransportEvent event) {
     if (event is AuthorizationEvent) {
       _handleAuthorizationEvent(event);
+    } else if (event is SystemMessageEvent) {
+      _handleSystemMessageEvent(event);
     }
   }
 
   void _handleAuthorizationEvent(AuthorizationEvent event) {
     if (event is SuccessAuthorizationEvent) {
       _isAuthorized = true;
+
       _sendMessageQueue();
     } else if (event is InvalidAuthorizationEvent) {
       _errorController.sink.add(ConnectorInvalidAuthorizationError());
+    }
+  }
+
+  void _handleSystemMessageEvent(SystemMessageEvent event) {
+    if (event is GetActorsPathsResult) {
+      _systemMessageController.sink
+          .add(GetActorsPathsResultTransportMessage(event.id, event.paths));
     }
   }
 
@@ -105,8 +117,7 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
 
       _socket = null;
 
-      _isStarted = false;
-      _isAuthorized = false;
+      await super.close();
     }
   }
 
@@ -125,6 +136,7 @@ class TcpConnector extends Connector<TcpConnectorSecurityConfiguration> {
   void _sendMessageQueue() {
     while (_messageQueue.isNotEmpty) {
       var message = _messageQueue.removeFirst();
+
       send(message);
     }
   }

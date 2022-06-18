@@ -7,27 +7,29 @@ abstract class Connection<S extends SecurityConfiguration> {
   final StreamController<ActorRemoteMessage> _actorMessageController =
       StreamController.broadcast();
 
-  final StreamController<SystemRemoteMessage> _systemMessageController =
-      StreamController.broadcast();
+  final StreamController<SystemRemoteTransportMessage>
+      _systemMessageController = StreamController.broadcast();
 
   final S _securityConfiguration;
 
-  // ignore: prefer_final_fields
   bool _isClose = false;
 
-  // ignore: prefer_final_fields
   bool _isAuthorized = false;
 
   bool _isDispose = false;
 
   bool get isDispose => _isDispose;
 
+  dynamic get address;
+
+  int get port;
+
   Stream<ConnectionError> get errors => _errorController.stream;
 
   Stream<ActorRemoteMessage> get actorMessages =>
       _actorMessageController.stream;
 
-  Stream<SystemRemoteMessage> get systemMessages =>
+  Stream<SystemRemoteTransportMessage> get systemMessages =>
       _systemMessageController.stream;
 
   Connection(S securityConfiguration)
@@ -35,7 +37,12 @@ abstract class Connection<S extends SecurityConfiguration> {
 
   void initialize();
 
-  Future<void> close();
+  Future<void> send(TransportMessage message);
+
+  Future<void> close() async {
+    _isClose = false;
+    _isAuthorized = false;
+  }
 
   Future<void> dispose() async {
     await close();

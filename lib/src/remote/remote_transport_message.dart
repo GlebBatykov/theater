@@ -24,9 +24,14 @@ class TransportMessage {
         data = RemoteTransportEventSerializer.serialize(
             ActorMessageEvent(path, tag, data));
 
-  TransportMessage.systemMessage()
-      : type = RemoteMessageType.systemMessage,
-        data = '';
+  TransportMessage.getActorsPaths(int id)
+      : type = RemoteMessageType.getActorsPaths,
+        data = RemoteTransportEventSerializer.serialize(GetActorsPaths(id));
+
+  TransportMessage.getActorsPathsResult(int id, List<ActorPath> paths)
+      : type = RemoteMessageType.getActorsPathsResult,
+        data = RemoteTransportEventSerializer.serialize(
+            GetActorsPathsResult(id, paths));
 
   TransportMessage.fromJson(Map<String, dynamic> json)
       : type = json['type'],

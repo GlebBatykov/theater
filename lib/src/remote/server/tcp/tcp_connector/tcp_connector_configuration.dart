@@ -18,6 +18,8 @@ class TcpConnectorConfiguration
   /// [reconnectTimeout] - time during which, in case of unsuccessful connection, there are repeated attempts to connect. By default equal 10 seconds.
   ///
   /// [reconnectDelay] - initial delay between reconnect attempts. By default equal 100 milliseconds.
+  ///
+  /// [supervisingStrategy] - .
   TcpConnectorConfiguration(
       {required String name,
       required dynamic address,
@@ -25,7 +27,17 @@ class TcpConnectorConfiguration
       Duration? timeout,
       TcpConnectorSecurityConfiguration? securityConfiguration,
       Duration? reconnectTimeout,
-      double? reconnectDelay})
-      : super(name, address, port, timeout, securityConfiguration,
-            reconnectTimeout, reconnectDelay);
+      double? reconnectDelay,
+      ConnectorSupervisingStrategy? supervisingStrategy})
+      : super(
+            name,
+            address,
+            port,
+            timeout,
+            securityConfiguration,
+            reconnectTimeout,
+            reconnectDelay,
+            supervisingStrategy ??
+                ConnectorSupervisingStrategy(
+                    desider: ConnectorDefaultDecider()));
 }

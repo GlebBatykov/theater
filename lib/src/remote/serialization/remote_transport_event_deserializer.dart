@@ -10,8 +10,10 @@ abstract class RemoteTransportEventDeserializer {
       event = SuccessAuthorizationEvent();
     } else if (type == RemoteMessageType.actorMessage) {
       event = ActorMessageEvent.fromJson(jsonDecode(data));
-    } else if (type == RemoteMessageType.systemMessage) {
-      event = SystemMessageEvent();
+    } else if (type == RemoteMessageType.getActorsPaths) {
+      event = GetActorsPaths.fromJson(jsonDecode(data));
+    } else if (type == RemoteMessageType.getActorsPathsResult) {
+      event = GetActorsPathsResult.fromJson(jsonDecode(data));
     } else if (type == RemoteMessageType.login) {
       event = LoginEvent.fromJson(jsonDecode(data));
     }

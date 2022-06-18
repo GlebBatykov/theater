@@ -3,6 +3,12 @@ part of theater.remote;
 class TcpConnection<S extends TcpSecurityConfiguration> extends Connection<S> {
   final Socket _socket;
 
+  @override
+  dynamic get address => _socket.address.address;
+
+  @override
+  int get port => _socket.port;
+
   TcpConnection(Socket socket, S securityConfiguration)
       : _socket = socket,
         super(securityConfiguration);
@@ -61,8 +67,9 @@ class TcpConnection<S extends TcpSecurityConfiguration> extends Connection<S> {
     if (event is ActorMessageEvent) {
       _actorMessageController.sink
           .add(ActorRemoteMessage(event.path, event.tag, event.data));
-    } else if (event is SystemMessageEvent) {
-      _systemMessageController.sink.add(SystemRemoteMessage());
+    } else if (event is GetActorsPaths) {
+      _systemMessageController.sink
+          .add(GetActorsPathsTransportMessage(event.id));
     }
   }
 
@@ -75,10 +82,19 @@ class TcpConnection<S extends TcpSecurityConfiguration> extends Connection<S> {
   }
 
   @override
+  Future<void> send(TransportMessage message) async {
+    if ((!_securityConfiguration.haveKey && !_isClose) ||
+        (!_isClose && _securityConfiguration.haveKey && _isAuthorized)) {
+      var data = RemoteTransportMessageSerializer.serialize(message);
+
+      _socket.write(data);
+    }
+  }
+
+  @override
   Future<void> close() async {
     await _socket.close();
 
-    _isClose = true;
-    _isAuthorized = false;
+    await super.close();
   }
 }

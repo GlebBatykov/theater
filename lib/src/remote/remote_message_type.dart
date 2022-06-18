@@ -9,5 +9,7 @@ abstract class RemoteMessageType {
 
   static const String actorMessage = 'actor_message';
 
-  static const String systemMessage = 'system_message';
+  static const String getActorsPaths = 'get_actors_paths';
+
+  static const String getActorsPathsResult = 'get_actors_paths_result';
 }

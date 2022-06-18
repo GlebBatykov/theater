@@ -15,6 +15,15 @@ class ConnectorConfiguration<S extends SecurityConfiguration> {
 
   final double? reconnectDelay;
 
-  ConnectorConfiguration(this.name, this.address, this.port, this.timeout,
-      this.securityConfiguration, this.reconnectTimeout, this.reconnectDelay);
+  final ConnectorSupervisingStrategy supervisingStrategy;
+
+  ConnectorConfiguration(
+      this.name,
+      this.address,
+      this.port,
+      this.timeout,
+      this.securityConfiguration,
+      this.reconnectTimeout,
+      this.reconnectDelay,
+      this.supervisingStrategy);
 }

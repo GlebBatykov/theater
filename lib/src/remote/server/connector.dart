@@ -1,8 +1,13 @@
 part of theater.remote;
 
 abstract class Connector<S extends SecurityConfiguration> {
+  final StreamController<SystemRemoteTransportMessage>
+      _systemMessageController = StreamController.broadcast();
+
   final StreamController<ConnectorError> _errorController =
       StreamController.broadcast();
+
+  final String name;
 
   late final Retryer _retryer;
 
@@ -20,10 +25,8 @@ abstract class Connector<S extends SecurityConfiguration> {
 
   final S _securityConfiguration;
 
-  // ignore: prefer_final_fields
   bool _isStarted = false;
 
-  // ignore: prefer_final_fields
   bool _isAuthorized = false;
 
   bool _isDisposed = false;
@@ -32,9 +35,12 @@ abstract class Connector<S extends SecurityConfiguration> {
 
   bool get isDisposed => _isDisposed;
 
+  Stream<SystemRemoteTransportMessage> get systemMessages =>
+      _systemMessageController.stream;
+
   Stream<ConnectorError> get errors => _errorController.stream;
 
-  Connector(this.address, this.port, S securityConfiguration,
+  Connector(this.name, this.address, this.port, S securityConfiguration,
       {Duration? timeout, Duration? reconnectTimeout, double? reconnectDelay})
       : _securityConfiguration = securityConfiguration,
         _timeout = timeout ?? const Duration(seconds: 10),
@@ -45,13 +51,19 @@ abstract class Connector<S extends SecurityConfiguration> {
 
   Future<void> connect();
 
-  Future<void> close();
+  Future<void> close() async {
+    _isStarted = false;
+    _isAuthorized = false;
+  }
 
   void send(TransportMessage message);
 
   Future<void> dispose() async {
     await close();
+
     await _errorController.close();
+    await _systemMessageController.close();
+
     _messageQueue.clear();
 
     _isDisposed = true;

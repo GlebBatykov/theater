@@ -1,11 +1,11 @@
 part of theater.remote;
 
 abstract class ServerConfiguration<S extends SecurityConfiguration> {
-  final dynamic address;
+  final String name;
 
   final int port;
 
   final S? securityConfiguration;
 
-  ServerConfiguration(this.address, this.port, this.securityConfiguration);
+  ServerConfiguration(this.name, this.port, this.securityConfiguration);
 }

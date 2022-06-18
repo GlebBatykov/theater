@@ -3,20 +3,22 @@ part of theater.remote;
 class TcpServer extends Server<TcpConnection, TcpServerSecurityConfiguration> {
   Stream<Socket>? _serverSocket;
 
-  TcpServer(dynamic address, int port,
+  TcpServer(String name, int port,
       {TcpServerSecurityConfiguration? securityConfiguration})
-      : super(address, port,
+      : super(name, port,
             securityConfiguration ?? TcpServerSecurityConfiguration());
 
   TcpServer.fromConfiguration(TcpServerConfiguration configuration)
       : super(
-            configuration.address,
+            configuration.name,
             configuration.port,
             configuration.securityConfiguration ??
                 TcpServerSecurityConfiguration());
 
   @override
   Future<void> start() async {
+    var address = InternetAddress.anyIPv4;
+
     if (_securityConfiguration.haveContext) {
       _serverSocket = await SecureServerSocket.bind(
           address, port, _securityConfiguration.securityContext);
@@ -31,7 +33,7 @@ class TcpServer extends Server<TcpConnection, TcpServerSecurityConfiguration> {
         await connection.close();
         await connection.dispose();
 
-        _connections.remove(connection);
+        _removeConnection(connection);
       });
 
       connection.actorMessages.listen((message) {
@@ -39,15 +41,30 @@ class TcpServer extends Server<TcpConnection, TcpServerSecurityConfiguration> {
       });
 
       connection.systemMessages.listen((message) {
-        _systemMessageController.sink.add(message);
+        _systemMessageController.sink
+            .add(SystemMessageDetails(message, connection));
       });
 
       connection.initialize();
 
-      _connections.add(connection);
+      _addConnecton(connection);
     });
 
     _isStarted = true;
+  }
+
+  void _removeConnection(TcpConnection connection) {
+    _connections.remove(connection);
+
+    _removeConnectionController.sink.add(IncomingConnection(
+        connection.address, connection.port, InternetProtocol.tcp, name));
+  }
+
+  void _addConnecton(TcpConnection connection) {
+    _connections.add(connection);
+
+    _addConnectionController.sink.add(IncomingConnection(
+        connection.address, connection.port, InternetProtocol.tcp, name));
   }
 
   @override
@@ -55,6 +72,7 @@ class TcpServer extends Server<TcpConnection, TcpServerSecurityConfiguration> {
     if (_isStarted) {
       for (var connection in _connections) {
         await connection.close();
+
         await connection.dispose();
       }
 
@@ -64,7 +82,7 @@ class TcpServer extends Server<TcpConnection, TcpServerSecurityConfiguration> {
         await (_serverSocket as ServerSocket).close();
       }
 
-      _isStarted = false;
+      await super.close();
     }
   }
 }

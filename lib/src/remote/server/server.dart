@@ -4,10 +4,16 @@ abstract class Server<C extends Connection, S extends SecurityConfiguration> {
   final StreamController<ActorRemoteMessage> _actorMessageController =
       StreamController.broadcast();
 
-  final StreamController<SystemRemoteMessage> _systemMessageController =
+  final StreamController<SystemMessageDetails> _systemMessageController =
       StreamController.broadcast();
 
-  final dynamic address;
+  final StreamController<IncomingConnection> _addConnectionController =
+      StreamController.broadcast();
+
+  final StreamController<IncomingConnection> _removeConnectionController =
+      StreamController.broadcast();
+
+  final String name;
 
   final List<C> _connections = [];
 
@@ -17,7 +23,6 @@ abstract class Server<C extends Connection, S extends SecurityConfiguration> {
 
   bool _isDisposed = false;
 
-  // ignore: prefer_final_fields
   bool _isStarted = false;
 
   bool get isStarted => _isStarted;
@@ -27,19 +32,30 @@ abstract class Server<C extends Connection, S extends SecurityConfiguration> {
   Stream<ActorRemoteMessage> get actorMessages =>
       _actorMessageController.stream;
 
-  Stream<SystemRemoteMessage> get systemMessages =>
+  Stream<SystemMessageDetails> get systemMessages =>
       _systemMessageController.stream;
 
-  Server(this.address, this.port, S securityConfiguration)
+  Stream<IncomingConnection> get addConnection =>
+      _addConnectionController.stream;
+
+  Stream<IncomingConnection> get removeConnection =>
+      _removeConnectionController.stream;
+
+  Server(this.name, this.port, S securityConfiguration)
       : _securityConfiguration = securityConfiguration;
 
   Future<void> start();
 
-  Future<void> close();
+  Future<void> close() async {
+    _isStarted = false;
+  }
 
   Future<void> dispose() async {
     await _actorMessageController.close();
     await _systemMessageController.close();
+
+    await _addConnectionController.close();
+    await _removeConnectionController.close();
 
     _isDisposed = true;
   }
