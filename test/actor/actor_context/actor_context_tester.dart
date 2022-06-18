@@ -14,7 +14,7 @@ abstract class ActorContextTester<T extends ActorContext> {
   Future<void> sendToTopicTest(ActorContextTestData<T> data) async {
     data.actorContext.sendToTopic('test_topic', 'test');
 
-    var event = await data.actorSystemMessagePort
+    var event = await data.actorSystemSendPort
         .firstWhere((element) => element is ActorSystemAddTopicMessage);
 
     expect(event, isA<ActorSystemAddTopicMessage>());

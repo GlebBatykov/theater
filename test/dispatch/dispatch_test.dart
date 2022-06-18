@@ -99,7 +99,7 @@ void main() {
     group('mailbox', () {
       late ReceivePort receivePort;
 
-      var path = ActorPath(Address('test_system'), 'test', 0);
+      var path = ActorPath('test_system', 'test', 0);
 
       var recipientPath = path.createChild('test');
 
@@ -156,7 +156,7 @@ void main() {
         late MailboxTestData<ReliableMailbox> data;
 
         setUp(() {
-          mailbox = ReliableMailbox(path);
+          mailbox = ReliableMailbox(path, HandlingType.asynchronously);
 
           data = MailboxTestData(mailbox, receivePort, path, recipientPath);
         });
@@ -207,7 +207,7 @@ void main() {
         late MailboxTestData<PriorityReliableMailbox> data;
 
         setUp(() {
-          mailbox = PriorityReliableMailbox(path,
+          mailbox = PriorityReliableMailbox(path, HandlingType.asynchronously,
               priorityGenerator: TestPriorityGenerator_1());
 
           data = MailboxTestData(mailbox, receivePort, path, recipientPath);

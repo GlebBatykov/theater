@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
 import 'package:theater/src/isolate.dart';
+import 'package:theater/src/logging.dart';
 import 'package:theater/src/routing.dart';
 
 import 'isolate/test_actor_1.dart';
@@ -12,11 +13,14 @@ import 'isolate/test_actor_1.dart';
 void main() {
   group('isolate', () {
     group('isolate_supervisor', () {
-      var actorSystemMessagePort = ReceivePort();
+      final loggingProperties =
+          ActorLoggingProperties(loggerFactory: TheaterLoggerFactory());
+
+      var actorSystemSendPort = ReceivePort();
 
       var actor = TestActor_1();
 
-      var parentPath = ActorPath(Address('test_system'), 'user', 1);
+      var parentPath = ActorPath('test_system', 'user', 1);
 
       var parentMailbox = UnreliableMailbox(parentPath);
 
@@ -50,8 +54,10 @@ void main() {
                 actorRef: actorRef,
                 supervisorStrategy: actor.createSupervisorStrategy(),
                 parentRef: parentRef,
+                handlingType: HandlingType.asynchronously,
                 mailboxType: actorMailbox.type,
-                actorSystemMessagePort: actorSystemMessagePort.sendPort,
+                actorSystemSendPort: actorSystemSendPort.sendPort,
+                loggingProperties: loggingProperties,
                 data: {'feedbackPort': receivePort.sendPort}),
             UntypedActorIsolateHandlerFactory(),
             UntypedActorContextBuilder());
@@ -70,7 +76,7 @@ void main() {
       tearDownAll(() async {
         await parentMailbox.dispose();
         await actorMailbox.dispose();
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(

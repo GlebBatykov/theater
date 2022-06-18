@@ -3,7 +3,7 @@ import 'package:theater/src/routing.dart';
 
 void main() {
   group('actor_path', () {
-    var address = Address('test_system');
+    var address = 'test_system';
 
     var parentPath = ActorPath(address, 'test', 0);
 
@@ -53,14 +53,6 @@ void main() {
 
     test('.toString(). Converts actor path to string and check it.', () {
       expect(parentPath.toString(), 'test_system/test');
-    });
-  });
-
-  group('address', () {
-    test('.toString(). Converts address to string and check it.', () {
-      var address = Address('test_system', host: '127.0.0.1', port: 8555);
-
-      expect(address.toString(), 'test_system@127.0.0.1:8555');
     });
   });
 }
