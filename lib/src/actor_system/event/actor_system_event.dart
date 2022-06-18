@@ -13,3 +13,15 @@ class ActorSystemIsExistLocalActorRefResult extends ActorSystemEvent {
 
   ActorSystemIsExistLocalActorRefResult(this.isExist);
 }
+
+class ActorSystemGetUserActorsPathsResult extends ActorSystemEvent {
+  final List<ActorPath> paths;
+
+  ActorSystemGetUserActorsPathsResult(this.paths);
+}
+
+class ActorSystemGetRemoteConnectionsResult extends ActorSystemEvent {
+  final List<OutgoingConnection> connections;
+
+  ActorSystemGetRemoteConnectionsResult(this.connections);
+}
