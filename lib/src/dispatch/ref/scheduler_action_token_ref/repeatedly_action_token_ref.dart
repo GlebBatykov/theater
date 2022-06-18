@@ -40,4 +40,9 @@ class RepeatedlyActionTokenRef extends SchedulerActionTokenRef {
   void resume() {
     _sendPort.send(RepeatedlyActionTokenResume());
   }
+
+  ///
+  void changeInterval(Duration interval) {
+    _sendPort.send(RepeatedlyActionTokenChangeInterval(interval));
+  }
 }
