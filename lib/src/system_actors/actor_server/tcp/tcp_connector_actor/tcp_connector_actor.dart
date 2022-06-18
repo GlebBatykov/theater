@@ -7,9 +7,11 @@ class TcpConnectorActor extends SystemActor {
 
   final TcpConnectorConfiguration _configuration;
 
+  final List<ProcessedRequest> _processedRequests = [];
+
   late final TcpConnector _connector;
 
-  late final RemoteSourceBridge _sourceBridge;
+  late final ConnectorBridge _bridge;
 
   TcpConnectorActor(
       LocalActorRef actorServerRef,
@@ -25,49 +27,91 @@ class TcpConnectorActor extends SystemActor {
 
     await initializeSourceBridge();
 
-    _actorServerRef
-        .send(ActorSystemServerActorAddRemoteSource(_sourceBridge.source));
+    _actorServerRef.send(ActorSystemServerAddRemoteSource(_bridge.source));
   }
 
   Future<void> initializeConnector() async {
     _connector = TcpConnector.fromConfiguration(_configuration);
 
+    _connector.systemMessages.listen(_handleSystemRemoteMessage);
+
     _connector.errors.listen((error) async {
       await _connector.close();
+
       await _connector.dispose();
 
       throw TcpConnectorActorException(
-          message: 'connection with name \'' +
-              _configuration.name +
-              '\' on \'' +
-              _configuration.address +
-              ':' +
-              _configuration.port.toString() +
-              ' was interrupted.');
+          message:
+              'connection with name \'${_configuration.name}\' on \' ${_configuration.address}\':${_configuration.port} + was interrupted.');
     });
 
-    unawaited(_connector.connect());
+    _connector.connect().ignore();
+  }
+
+  void _handleSystemRemoteMessage(SystemRemoteTransportMessage message) {
+    if (message is GetActorsPathsResultTransportMessage) {
+      var request = _processedRequests.firstWhere((element) =>
+          element.id == message.id &&
+          element.type == ProcessedRequestType.getActorsPaths);
+
+      request.feedbackPort.send(GetActorsPathsResultMessage(message.paths));
+
+      _processedRequests.remove(request);
+    }
   }
 
   Future<void> initializeSourceBridge() async {
-    _sourceBridge = RemoteSourceBridge(_serializer, _configuration.name,
-        _configuration.address, _configuration.port);
+    _bridge = ConnectorBridge(_serializer, _configuration.name,
+        _configuration.address, _configuration.port, InternetProtocol.tcp);
 
-    _sourceBridge.actorMessages.listen((message) {
+    _bridge.actorMessages.listen((message) {
       _connector.send(TransportMessage.actorMessage(
           message.path, message.tag, message.data));
     });
 
-    _sourceBridge.systemMessages.listen((message) {
-      _connector.send(TransportMessage.systemMessage());
-    });
+    _bridge.systemMessages.listen(_handleSystemRemoteTransportMessage);
+  }
+
+  void _handleSystemRemoteTransportMessage(SystemRemoteMessage message) {
+    if (message is GetActorsPathsMessage) {
+      _handleGetActorsPathsMessage(message);
+    }
+  }
+
+  void _handleGetActorsPathsMessage(GetActorsPathsMessage message) {
+    late int id;
+
+    var random = Random();
+
+    do {
+      id = random.nextInt(maxInt);
+    } while (_requestExist(id));
+
+    _processedRequests.add(ProcessedRequest(
+        id, ProcessedRequestType.getActorsPaths, message.feedbackPort));
+
+    _connector.send(TransportMessage.getActorsPaths(id));
+  }
+
+  bool _requestExist(int id) {
+    var isExist = false;
+
+    for (var request in _processedRequests) {
+      if (request.id == id) {
+        isExist = true;
+        break;
+      }
+    }
+
+    return isExist;
   }
 
   @override
   Future<void> onKill(SystemActorContext context) async {
     await _connector.close();
+
     await _connector.dispose();
 
-    await _sourceBridge.dispose();
+    await _bridge.dispose();
   }
 }

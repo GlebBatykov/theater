@@ -4,6 +4,7 @@ import 'package:test/scaffolding.dart';
 import 'package:theater/src/actor.dart';
 import 'package:theater/src/dispatch.dart';
 import 'package:theater/src/isolate.dart';
+import 'package:theater/src/logging.dart';
 import 'package:theater/src/routing.dart';
 import 'package:theater/src/supervising.dart';
 
@@ -19,10 +20,13 @@ import 'actor_context/worker_actor_context_tester.dart';
 
 void main() {
   group('actor_context', () {
-    group('root_actor_context', () {
-      var actorSystemMessagePort = ReceivePort();
+    final loggingProperties =
+        ActorLoggingProperties(loggerFactory: TheaterLoggerFactory());
 
-      var path = ActorPath(Address('test_system'), 'test', 0);
+    group('root_actor_context', () {
+      var actorSystemSendPort = ReceivePort();
+
+      var path = ActorPath('test_system', 'test', 0);
 
       late UnreliableMailbox mailbox;
 
@@ -62,13 +66,15 @@ void main() {
                 actorRef: actorRef,
                 supervisorStrategy:
                     OneForOneStrategy(decider: DefaultDecider()),
+                handlingType: HandlingType.asynchronously,
                 mailboxType: MailboxType.unreliable,
-                actorSystemMessagePort: actorSystemMessagePort.sendPort));
+                loggingProperties: loggingProperties,
+                actorSystemSendPort: actorSystemSendPort.sendPort));
 
         feedbackPort = ReceivePort();
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemSendPort,
             feedbackPort: feedbackPort);
       });
 
@@ -87,7 +93,7 @@ void main() {
       });
 
       tearDownAll(() {
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(
@@ -150,9 +156,9 @@ void main() {
     });
 
     group('untyped_actor_context', () {
-      var actorSystemMessagePort = ReceivePort();
+      var actorSystemSendPort = ReceivePort();
 
-      var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
+      var parentPath = ActorPath('test_system', 'test_root', 0);
 
       var path = parentPath.createChild('test');
 
@@ -205,11 +211,13 @@ void main() {
                 actorRef: actorRef,
                 supervisorStrategy:
                     OneForOneStrategy(decider: DefaultDecider()),
+                handlingType: HandlingType.asynchronously,
                 mailboxType: MailboxType.unreliable,
-                actorSystemMessagePort: actorSystemMessagePort.sendPort));
+                loggingProperties: loggingProperties,
+                actorSystemSendPort: actorSystemSendPort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemSendPort,
             parentMailbox: parentMailbox, feedbackPort: feedbackPort);
       });
 
@@ -228,7 +236,7 @@ void main() {
       });
 
       tearDownAll(() {
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(
@@ -293,9 +301,9 @@ void main() {
     });
 
     group('group_router_actor_context', () {
-      var actorSystemMessagePort = ReceivePort();
+      var actorSystemSendPort = ReceivePort();
 
-      var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
+      var parentPath = ActorPath('test_system', 'test_root', 0);
 
       var path = parentPath.createChild('test');
 
@@ -327,24 +335,21 @@ void main() {
         var properties = GroupRouterActorProperties(
             parentRef: parentRef,
             actorRef: actorRef,
+            handlingType: HandlingType.asynchronously,
             deployementStrategy: GroupDeployementStrategy(
                 routingStrategy: strategy, group: group),
             supervisorStrategy: OneForOneStrategy(decider: DefaultDecider()),
             mailboxType: MailboxType.unreliable,
-            actorSystemMessagePort: actorSystemMessagePort.sendPort);
+            loggingProperties: loggingProperties,
+            actorSystemSendPort: actorSystemSendPort.sendPort);
 
         return await GroupRouterActorContextBuilder()
             .build(isolateContext, properties);
       }
 
       ActorContextTestData<GroupRouterActorContext> createTestData() =>
-          ActorContextTestData(
-              context,
-              mailbox,
-              isolateContext,
-              supervisorMessagePort,
-              supervisorErrorPort,
-              actorSystemMessagePort,
+          ActorContextTestData(context, mailbox, isolateContext,
+              supervisorMessagePort, supervisorErrorPort, actorSystemSendPort,
               parentMailbox: parentMailbox,
               feedbackPort: feedbackPort,
               isolateReceivePort: isolateReceivePort);
@@ -387,7 +392,7 @@ void main() {
       });
 
       tearDownAll(() {
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(
@@ -582,9 +587,9 @@ void main() {
     });
 
     group('pool_router_actor_context', () {
-      var actorSystemMessagePort = ReceivePort();
+      var actorSystemSendPort = ReceivePort();
 
-      var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
+      var parentPath = ActorPath('test_system', 'test_root', 0);
 
       var path = parentPath.createChild('test');
 
@@ -616,6 +621,7 @@ void main() {
         var properties = PoolRouterActorProperties(
             parentRef: parentRef,
             actorRef: actorRef,
+            handlingType: HandlingType.asynchronously,
             deployementStrategy: PoolDeployementStrategy(
                 workerFactory: TestWorkerActorFactory_1(),
                 poolSize: 5,
@@ -623,20 +629,16 @@ void main() {
                 data: {'feedbackPort': feedbackPort.sendPort}),
             supervisorStrategy: OneForOneStrategy(decider: DefaultDecider()),
             mailboxType: MailboxType.unreliable,
-            actorSystemMessagePort: actorSystemMessagePort.sendPort);
+            loggingProperties: loggingProperties,
+            actorSystemSendPort: actorSystemSendPort.sendPort);
 
         return await PoolRouterActorContextBuilder()
             .build(isolateContext, properties);
       }
 
       ActorContextTestData<PoolRouterActorContext> createTestData() =>
-          ActorContextTestData(
-              context,
-              mailbox,
-              isolateContext,
-              supervisorMessagePort,
-              supervisorErrorPort,
-              actorSystemMessagePort,
+          ActorContextTestData(context, mailbox, isolateContext,
+              supervisorMessagePort, supervisorErrorPort, actorSystemSendPort,
               parentMailbox: parentMailbox,
               feedbackPort: feedbackPort,
               isolateReceivePort: isolateReceivePort);
@@ -679,7 +681,7 @@ void main() {
       });
 
       tearDownAll(() {
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(
@@ -841,9 +843,9 @@ void main() {
     });
 
     group('worker_actor_context', () {
-      var actorSystemMessagePort = ReceivePort();
+      var actorSystemSendPort = ReceivePort();
 
-      var parentPath = ActorPath(Address('test_system'), 'test_root', 0);
+      var parentPath = ActorPath('test_system', 'test_root', 0);
 
       var path = parentPath.createChild('worker');
 
@@ -890,11 +892,13 @@ void main() {
             WorkerActorProperties(
                 parentRef: parentRef,
                 actorRef: actorRef,
+                handlingType: HandlingType.asynchronously,
                 mailboxType: MailboxType.unreliable,
-                actorSystemMessagePort: actorSystemMessagePort.sendPort));
+                loggingProperties: loggingProperties,
+                actorSystemSendPort: actorSystemSendPort.sendPort));
 
         data = ActorContextTestData(context, mailbox, isolateContext,
-            supervisorMessagePort, supervisorErrorPort, actorSystemMessagePort,
+            supervisorMessagePort, supervisorErrorPort, actorSystemSendPort,
             parentMailbox: parentMailbox);
       });
 
@@ -911,7 +915,7 @@ void main() {
       });
 
       tearDownAll(() {
-        actorSystemMessagePort.close();
+        actorSystemSendPort.close();
       });
 
       test(
