@@ -6,6 +6,12 @@ class RepeatedlyActionTokenStop extends RepeatedlyActionTokenEvent {}
 
 class RepeatedlyActionTokenResume extends RepeatedlyActionTokenEvent {}
 
+class RepeatedlyActionTokenChangeInterval extends RepeatedlyActionTokenEvent {
+  final Duration interval;
+
+  RepeatedlyActionTokenChangeInterval(this.interval);
+}
+
 class RepeatedlyActionTokenGetStatus extends RepeatedlyActionTokenEvent {
   final SendPort feedbackPort;
 

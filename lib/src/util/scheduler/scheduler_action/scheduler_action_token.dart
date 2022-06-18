@@ -15,6 +15,9 @@ abstract class SchedulerActionToken<E extends SchedulerActionEvent,
   /// Shows the status of dispose.
   bool get isDisposed => _isDisposed;
 
+  ///
+  Stream<E> get stream => _eventController.stream;
+
   /// Dispose all resources, close all streams.
   ///
   /// After dispose you can no longer use this token.

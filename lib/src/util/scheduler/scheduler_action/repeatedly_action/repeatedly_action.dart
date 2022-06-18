@@ -1,14 +1,13 @@
 part of theater.util;
 
-typedef RepeatedlyActionCallback = void Function(RepeatedlyActionContext);
+typedef RepeatedlyActionCallback = void Function(
+    RepeatedlyActionContext context);
 
 class RepeatedlyAction extends SchedulerAction {
   final StreamController<RepeatedlyActionEvent> _streamController =
       StreamController();
 
   final Duration? _initialDelay;
-
-  final Duration _interval;
 
   final RepeatedlyActionCallback _action;
 
@@ -17,6 +16,8 @@ class RepeatedlyAction extends SchedulerAction {
   final RepeatedlyActionCallback? _onResume;
 
   final RepeatedlyActionToken? _actionToken;
+
+  Duration _interval;
 
   Timer? timer;
 
@@ -35,9 +36,7 @@ class RepeatedlyAction extends SchedulerAction {
         _onStop = onStop,
         _onResume = onResume,
         _actionToken = actionToken {
-    _actionToken?.addOnStopListener(() => stop());
-
-    _actionToken?.addOnResumeListener(() => resume());
+    _actionToken?.stream.listen((event) => _streamController.sink.add(event));
 
     _streamController.stream.listen((event) {
       _handleRepeatedlyActionEvent(event);
@@ -46,9 +45,11 @@ class RepeatedlyAction extends SchedulerAction {
 
   void _handleRepeatedlyActionEvent(RepeatedlyActionEvent event) {
     if (event is RepeatedlyActionStop) {
-      stop();
+      _stop();
     } else if (event is RepeatedlyActionResume) {
-      resume();
+      _resume();
+    } else if (event is RepeatedlyActionChangeInterval) {
+      _changeInterval(event.interval);
     }
   }
 
@@ -77,7 +78,7 @@ class RepeatedlyAction extends SchedulerAction {
     counter++;
   }
 
-  void stop() async {
+  void _stop() async {
     timer?.cancel();
 
     await _initialDelaySubscription?.cancel();
@@ -85,11 +86,19 @@ class RepeatedlyAction extends SchedulerAction {
     _onStop?.call(RepeatedlyActionContext(counter));
   }
 
-  void resume() {
+  void _resume() {
     if (timer != null && !timer!.isActive) {
       _onResume?.call(RepeatedlyActionContext(counter));
     }
 
     start();
+  }
+
+  void _changeInterval(Duration interval) {
+    timer?.cancel();
+
+    _interval = interval;
+
+    timer = Timer.periodic(_interval, _runTimer);
   }
 }

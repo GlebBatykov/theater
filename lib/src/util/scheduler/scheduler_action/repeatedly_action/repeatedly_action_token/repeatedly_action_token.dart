@@ -40,6 +40,8 @@ class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
       stop();
     } else if (event is RepeatedlyActionTokenResume) {
       resume();
+    } else if (event is RepeatedlyActionTokenChangeInterval) {
+      changeInterval(event.interval);
     }
   }
 
@@ -71,5 +73,9 @@ class RepeatedlyActionToken extends SchedulerActionToken<RepeatedlyActionEvent,
     _eventController.sink.add(RepeatedlyActionResume());
 
     _status = RepeatedlyActionStatus.running;
+  }
+
+  void changeInterval(Duration interval) {
+    _eventController.sink.add(RepeatedlyActionChangeInterval(interval));
   }
 }
