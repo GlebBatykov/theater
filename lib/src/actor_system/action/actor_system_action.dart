@@ -15,7 +15,7 @@ class ActorSystemRouteActorRemoteMessage extends ActorSystemAction {
 }
 
 class ActorSystemSetRemoteSources extends ActorSystemAction {
-  final List<RemoteSource> remoteSources;
+  final List<ConnectorSource> remoteSources;
 
   ActorSystemSetRemoteSources(this.remoteSources);
 }
@@ -29,4 +29,26 @@ class ActorSystemCreateRemoteActorRef extends ActorSystemAction {
 
   ActorSystemCreateRemoteActorRef(
       this.feedbackPort, this.connectionName, this.path);
+}
+
+class ActorSystemGetUserActorsPaths extends ActorSystemAction {
+  final SendPort feedbackPort;
+
+  ActorSystemGetUserActorsPaths(this.feedbackPort);
+}
+
+class ActorSystemGetRemoteUserActorsPaths extends ActorSystemAction {
+  final SendPort feedbackPort;
+
+  final String connectionName;
+
+  ActorSystemGetRemoteUserActorsPaths(this.feedbackPort, this.connectionName);
+}
+
+class ActorSystemIsRemoteConnectionExist extends ActorSystemAction {
+  final SendPort feedbackPort;
+
+  final String connectionName;
+
+  ActorSystemIsRemoteConnectionExist(this.feedbackPort, this.connectionName);
 }
