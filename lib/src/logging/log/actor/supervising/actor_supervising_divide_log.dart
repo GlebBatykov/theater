@@ -14,18 +14,6 @@ class ActorSupervisingDivideLog {
 
   @override
   String toString() {
-    return 'Actor name: [' +
-        actorPath.name +
-        '], actor path: [' +
-        actorPath.toString() +
-        ']. Child name: [' +
-        childPath.name +
-        '], child path: [' +
-        childPath.toString() +
-        ']. Error: [' +
-        error.runtimeType.toString() +
-        '], divide directive: [' +
-        directive.name +
-        '].';
+    return 'Actor name: [${actorPath.name}], actor path: [$actorPath]. Child name: [${childPath.name}], child path: [$childPath]. Error: [${error.runtimeType}], divide directive: [${directive.name}].';
   }
 }

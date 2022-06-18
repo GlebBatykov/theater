@@ -9,12 +9,6 @@ class ActorLyfecycleLog {
 
   @override
   String toString() {
-    return 'Actor name: [' +
-        actorPath.name +
-        '], actor path: [' +
-        actorPath.toString() +
-        '], was ' +
-        event.name +
-        '.';
+    return 'Actor name: [${actorPath.name}], actor path: [$actorPath], was ${event.name}.';
   }
 }

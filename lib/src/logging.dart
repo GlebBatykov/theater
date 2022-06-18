@@ -27,5 +27,8 @@ part 'logging/theater_logger/theater_logger_factory.dart';
 
 part 'logging/log/actor/lyfecycle/actor_lyfecycle_log.dart';
 part 'logging/log/actor/lyfecycle/actor_lyfecycle_log_event.dart';
-
 part 'logging/log/actor/supervising/actor_supervising_divide_log.dart';
+
+part 'logging/log/remote/lifecycle/connector/connector_lyfecycle_log.dart';
+part 'logging/log/remote/lifecycle/connector/connector_lyfecycle_log_event.dart';
+part 'logging/log/remote/lifecycle/server/server_start_log.dart';
